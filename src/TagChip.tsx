@@ -29,16 +29,14 @@ export function TagChipList({
             {!minimal && (
                 <ScrollArea className="w-full">
                     <div className="flex items-center gap-2">
-                        {visibleTag.map((tag) => {
-                            return (
-                                <TagChip
-                                    key={tag.id}
-                                    color={tag.color}
-                                    onRemove={onRemove && (() => onRemove?.(tag))}>
-                                    {tag.name}
-                                </TagChip>
-                            );
-                        })}
+                        {visibleTag.map((tag) => (
+                            <TagChip
+                                key={tag.id}
+                                color={tag.color}
+                                onRemove={onRemove && (() => onRemove?.(tag))}>
+                                {tag.name}
+                            </TagChip>
+                        ))}
                     </div>
                     <ScrollBar orientation="horizontal" />
                 </ScrollArea>
@@ -101,7 +99,7 @@ export default function TagChip({ children, onRemove, className = "", color }: T
         <div
             className={cn(
                 "flex max-w-[150px] items-center gap-1 rounded-md border bg-opacity-30 px-1 py-[2px] text-white grayscale-[0.3]",
-                { "bg-background border-border text-foreground": !Boolean(color) },
+                { "bg-background border-border text-foreground": !color },
                 className,
             )}
             style={{ borderColor: color, background: color }}>

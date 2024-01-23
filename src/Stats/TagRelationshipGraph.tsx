@@ -16,7 +16,7 @@ function descending(a: number, b: number): number {
     return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
 }
 
-const makeMatrix = (n: number): number[][] => {
+function makeMatrix(n: number): number[][] {
     const rows = [] as number[][];
     for (let i = 0; i < n; i++) {
         const cols = Array.from({ length: n }).fill(0) as number[];
@@ -24,7 +24,7 @@ const makeMatrix = (n: number): number[][] => {
     }
 
     return rows;
-};
+}
 
 function calcTabMatrix(tabs: SavedTab[], tags: Tag[], countLoops?: boolean) {
     const matrix = makeMatrix(tags.length);
@@ -208,9 +208,6 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
                                         innerRadius={innerRadius}
                                         outerRadius={outerRadius}
                                         fill={`${tagsByIndex[i]?.color}`}
-                                        onClick={() => {
-                                            console.log(tagsByIndex[i]);
-                                        }}
                                         rx={4}
                                     />
                                 );

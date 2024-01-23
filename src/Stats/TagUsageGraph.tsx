@@ -2,7 +2,6 @@ import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";
 import { LinearGradient } from "@visx/gradient";
 import { Group } from "@visx/group";
-import letterFrequency from "@visx/mock-data/lib/mocks/letterFrequency";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { Bar } from "@visx/shape";
 import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
@@ -12,7 +11,6 @@ import { useSavedTabStore } from "../SavedTabs";
 import TagChip from "../TagChip";
 import { unassignedTag, useTagStore } from "../TagStore";
 
-const data = letterFrequency.slice(5);
 const defaultMargin = { top: 40, right: 40, bottom: 40, left: 40 };
 
 export type Props = {
@@ -205,9 +203,6 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
                             width={barWidth}
                             height={barHeight}
                             fill={`url(#${t.id})`}
-                            onClick={() => {
-                                console.log(t);
-                            }}
                             fillOpacity={hover?.key === t.id ? 1 : 0.5}
                             onMouseMove={(e) => {
                                 const coords = localPoint(

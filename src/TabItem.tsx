@@ -7,7 +7,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/HoverCard";
 import Spinner from "./ui/Spinner";
 import { cn } from "./util";
 
-const fetchGoogleFavicon = async (url: string) => {
+async function fetchGoogleFavicon(url: string) {
     const domain = new URL(url).hostname;
 
     const res = await fetch(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
@@ -16,7 +16,7 @@ const fetchGoogleFavicon = async (url: string) => {
     }
 
     throw new Error("Failed to fetch favicon");
-};
+}
 
 export function Favicon({ src, className }: { className?: string; src?: string }) {
     const { data, error } = useSWRImmutable(src || null, fetchGoogleFavicon, {

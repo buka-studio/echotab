@@ -29,8 +29,8 @@ export default function TabListPlaceholder({
                         <div className="flex flex-shrink-0">
                             <Favicon />
                         </div>
-                        <span className="bg-foreground/20 h-3 w-full max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap rounded text-sm"></span>
-                        <span className="group/link bg-foreground/5 flex h-3 w-full max-w-[25cqw] items-center gap-2 rounded transition-colors duration-200"></span>
+                        <span className="bg-foreground/20 h-3 w-full max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap rounded text-sm" />
+                        <span className="group/link bg-foreground/5 flex h-3 w-full max-w-[25cqw] items-center gap-2 rounded transition-colors duration-200" />
                     </motion.div>
                 ))}
             </div>
