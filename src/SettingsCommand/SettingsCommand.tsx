@@ -108,9 +108,9 @@ export default function SettingsCommand() {
         downloadJSON(
             {
                 tabs: savedStore.tabs,
-                tags: Object.fromEntries(tagStore.tags.entries()),
+                tags: Array.from(tagStore.tags.values()).filter((t) => t.id !== unassignedTag.id),
             },
-            `cmdtab-${new Date()}.json`,
+            `cmdtab-${Date.now()}.json`,
         );
     };
 
