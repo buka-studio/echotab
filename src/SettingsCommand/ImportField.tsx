@@ -16,8 +16,8 @@ Tab {                 Tag {
 }                           
 
 Import { 
-    savedTabs: Record<number, Tab>; 
-    tags: Record<number, Tag>;
+    savedTabs: Tab[]; 
+    tags: Tag[];
 }
 `;
 
@@ -112,7 +112,7 @@ export default function DNDImport() {
                 onDrop={handleDrop}>
                 <div
                     className={cn(
-                        "hover:border-primary text-muted-foreground cursor-pointer whitespace-pre rounded-md border border-dashed bg-opacity-10 p-4 pl-6 font-mono transition-all duration-200 hover:bg-opacity-10",
+                        "cursor-pointer whitespace-pre rounded-md border border-dashed bg-opacity-10 p-4 pl-6 font-mono text-muted-foreground transition-all duration-200 hover:border-primary hover:bg-opacity-10",
                         { ["border-primary"]: draggingOver },
                     )}>
                     {importHint}
