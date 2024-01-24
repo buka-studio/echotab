@@ -156,27 +156,28 @@ export default function DNDImport() {
     };
 
     return (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-8 p-1">
             <Button variant="outline" onClick={handleImportBookmarks}>
                 Import bookmarks
             </Button>
 
             <div className="flex flex-col gap-2">
                 <div>Drop a file or click to upload a CmdTab JSON export.</div>
+                <input id="import" className="peer sr-only" type="file" onChange={handleChange} />
                 <label
                     htmlFor="import"
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}>
+                    onDrop={handleDrop}
+                    className="group">
                     <div
                         className={cn(
-                            "cursor-pointer whitespace-pre rounded-md border border-dashed bg-opacity-10 p-4 pl-6 font-mono text-muted-foreground transition-all duration-200 hover:border-primary hover:bg-opacity-10",
+                            "cursor-pointer whitespace-pre rounded-md border border-dashed bg-opacity-10 p-4 pl-6 font-mono text-muted-foreground transition-all duration-200 peer-focus-visible:group-[]:border-primary hover:border-primary hover:bg-opacity-10",
                             { ["border-primary"]: draggingOver },
                         )}>
                         {importHint}
                     </div>
                 </label>
-                <input id="import" className="sr-only" type="file" onChange={handleChange} />
             </div>
         </div>
     );
