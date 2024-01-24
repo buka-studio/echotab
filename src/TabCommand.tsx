@@ -42,9 +42,12 @@ export function useTabCommand() {
     };
 }
 
-export function CommandPagination({ className, ...props }: ComponentProps<"div">) {
-    const { pages, goToPage } = useTabCommand();
-
+export function CommandPagination({
+    className,
+    pages,
+    goToPage,
+    ...props
+}: ComponentProps<"div"> & { pages: string[]; goToPage: (page: string) => void }) {
     return (
         <div className={cn("pages flex items-center gap-1 px-1", className)} {...props}>
             {pages.flatMap((p, i) => {
@@ -104,7 +107,7 @@ export function TabCommandDialog({
         <div ref={setCommandContainer} className={cn("relative mx-auto flex max-w-4xl flex-1")}>
             <button
                 className={cn(
-                    "focus-ring bg-background/20 flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-md backdrop-blur-lg transition-all duration-200",
+                    "focus-ring flex flex-1 items-center justify-between rounded-lg border bg-background/20 p-3 text-base shadow-md backdrop-blur-lg transition-all duration-200",
                     {
                         "opacity-0": open,
                     },

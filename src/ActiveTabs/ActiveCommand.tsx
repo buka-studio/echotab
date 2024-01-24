@@ -24,7 +24,8 @@ export default function ActiveCommand() {
     const tagStore = useTagStore();
     const uiStore = useUIStore();
 
-    const { activePage, pushPage, search, setSearch, setPages, goToPrevPage } = useTabCommand();
+    const { pages, goToPage, activePage, pushPage, search, setSearch, setPages, goToPrevPage } =
+        useTabCommand();
 
     const inputRef = useRef<HTMLInputElement>(null);
     const commandRef = useRef<HTMLDivElement>(null);
@@ -112,8 +113,8 @@ export default function ActiveCommand() {
                         }
                     }
                 }}>
-                <div className="bg-popover text-popover-foreground flex max-w-4xl flex-1 items-center rounded-lg rounded-b-none border p-3 px-4 text-base">
-                    <CommandPagination className="mr-2" />
+                <div className="flex max-w-4xl flex-1 items-center rounded-lg rounded-b-none border bg-popover p-3 px-4 text-base text-popover-foreground">
+                    <CommandPagination pages={pages} goToPage={goToPage} className="mr-2" />
                     <CommandInput
                         ref={inputRef}
                         placeholder="Type a command or search..."
@@ -138,7 +139,7 @@ export default function ActiveCommand() {
                 </div>
                 <CommandList
                     className={cn(
-                        "bg-popover text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg",
+                        "absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 bg-popover p-2 text-popover-foreground shadow-lg",
                     )}>
                     {activePage === "/" && (
                         <>
