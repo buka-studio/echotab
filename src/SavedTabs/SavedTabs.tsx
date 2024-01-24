@@ -428,7 +428,7 @@ export default function SavedTabs() {
                                         </div>
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
-                                                <Button variant="ghost">Close All</Button>
+                                                <Button variant="ghost">Remove All</Button>
                                             </AlertDialogTrigger>
                                             <AlertDialogContent>
                                                 <AlertDialogHeader>
