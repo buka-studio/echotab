@@ -208,7 +208,7 @@ export default function SavedTabs() {
 
     const virtualizer = useWindowVirtualizer({
         count: items.length,
-        estimateSize: () => 56,
+        estimateSize: () => 58,
         overscan: 50,
         scrollMargin: listRef.current?.offsetTop ?? 0,
     });
