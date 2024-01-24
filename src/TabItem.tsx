@@ -8,11 +8,19 @@ import Spinner from "./ui/Spinner";
 import { cn } from "./util";
 
 async function fetchGoogleFavicon(url: string) {
-    const domain = new URL(url).hostname;
+    try {
+        const directRes = await fetch(url);
+        if (directRes.status === 200) {
+            return directRes.blob();
+        }
+    } catch (e) {
+        console.error(e);
+    }
 
-    const res = await fetch(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
-    if (res.status === 200) {
-        return res.blob();
+    const domain = new URL(url).hostname;
+    const googleRes = await fetch(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
+    if (googleRes.status === 200) {
+        return googleRes.blob();
     }
 
     throw new Error("Failed to fetch favicon");
@@ -73,7 +81,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
         <div
             ref={ref}
             className={cn(
-                "group/item bg-card border-border hover:bg-card-active [&:has(:focus-within)]:bg-card-active text-card-foreground hover:border-border-active [&:has(:focus-within)]:border-border-active flex min-h-12 w-full items-center gap-5 rounded-lg border p-2 transition-colors duration-200 @container",
+                "group/item flex min-h-12 w-full items-center gap-5 rounded-lg border border-border bg-card p-2 text-card-foreground transition-colors duration-200 @container hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active",
                 className,
             )}
             {...props}>
