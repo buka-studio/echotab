@@ -76,7 +76,8 @@
         "permissions": [
             "storage",
             "unlimitedStorage",
-            "contextMenus"
+            "contextMenus",
+            "bookmarks"
         ],
         "host_permissions": [
             "https://*/*"
