@@ -14,6 +14,17 @@ import TabItem, { Favicon } from "../TabItem";
 import TabListPlaceholder from "../TabsListPlaceholder";
 import { TagChipList } from "../TagChip";
 import { unassignedTag, useTagStore } from "../TagStore";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "../ui/AlertDialog";
 import { Badge } from "../ui/Badge";
 import Button from "../ui/Button";
 import {
@@ -322,7 +333,7 @@ export default function SavedTabs() {
                             <div className="text-balance text-lg">
                                 Currently, there are no tabs saved.
                             </div>
-                            <div className="text-foreground/75 text-balance text-sm">
+                            <div className="text-balance text-sm text-foreground/75">
                                 Once you save a tab by tagging it, it will appear here.
                             </div>
                         </div>
@@ -350,9 +361,9 @@ export default function SavedTabs() {
                                             <li
                                                 key={item}
                                                 className={cn(
-                                                    "text-foreground/50 text-sm leading-4 transition-all duration-200",
+                                                    "text-sm leading-4 text-foreground/50 transition-all duration-200",
                                                     {
-                                                        "text-foreground -translate-x-1":
+                                                        "-translate-x-1 text-foreground":
                                                             visibleItems.has(item),
                                                     },
                                                 )}>
@@ -415,9 +426,28 @@ export default function SavedTabs() {
                                                 <CaretSortIcon className="ml-2 h-4 w-4" />
                                             </Button>
                                         </div>
-                                        <Button variant="ghost" className="select-none">
-                                            Remove All
-                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost">Close All</Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>
+                                                        Are you sure?
+                                                    </AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This will delete all tabs in this group.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => tabStore.removeTabs(tabIds)}>
+                                                        Remove All
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </li>
                                 ) : (
                                     <SelectableItem asChild id={tab.id} key={i.key}>
@@ -433,7 +463,7 @@ export default function SavedTabs() {
                                             ref={virtualizer.measureElement}>
                                             <TabItem
                                                 className={cn({
-                                                    "bg-card-active border-border-active":
+                                                    "border-border-active bg-card-active":
                                                         tabStore.selectedTabIds.has(tab.id),
                                                 })}
                                                 icon={
