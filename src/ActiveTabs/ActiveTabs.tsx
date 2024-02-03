@@ -38,33 +38,36 @@ import {
 } from "../ui/DropdownMenu";
 import { cn, focusSiblingItem } from "../util";
 import ActiveCommand from "./ActiveCommand";
-import ActiveStore, { useActiveTabStore } from "./ActiveStore";
+import ActiveStore, { useActiveTabStore, useIsTabSelected } from "./ActiveStore";
 
-function TabMenu({ tab }: { tab: ActiveTab }) {
-    const tabStore = useActiveTabStore();
-
-    const tabIndex = tabStore.viewTabIdsByWindowId[tab.windowId].findIndex((id) => id === tab.id);
+function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
+    const getTabIndex = () =>
+        ActiveStore.viewTabIdsByWindowId[tab.windowId].findIndex((id) => id === tab.id);
 
     const handleCloseBefore = () => {
-        tabStore.removeTabs(tabStore.viewTabIdsByWindowId[tab.windowId].slice(0, tabIndex));
+        ActiveStore.removeTabs(
+            ActiveStore.viewTabIdsByWindowId[tab.windowId].slice(0, getTabIndex()),
+        );
     };
 
     const handleCloseAfter = () => {
-        tabStore.removeTabs(tabStore.viewTabIdsByWindowId[tab.windowId].slice(tabIndex + 1));
+        ActiveStore.removeTabs(
+            ActiveStore.viewTabIdsByWindowId[tab.windowId].slice(getTabIndex() + 1),
+        );
     };
 
     const handleCloseOthers = () => {
-        tabStore.removeTabs(
-            tabStore.viewTabIdsByWindowId[tab.windowId].filter((id) => id !== tab.id),
+        ActiveStore.removeTabs(
+            ActiveStore.viewTabIdsByWindowId[tab.windowId].filter((id) => id !== tab.id),
         );
     };
 
     const handleTabSelection = () => {
-        tabStore.toggleTabSelection(tab.id);
+        ActiveStore.toggleTabSelection(tab.id);
     };
 
     const handlePinTab = () => {
-        tabStore.updateTab(tab.id, {
+        ActiveStore.updateTab(tab.id, {
             pinned: !tab.pinned,
         });
     };
@@ -81,7 +84,7 @@ function TabMenu({ tab }: { tab: ActiveTab }) {
                     {tab.pinned ? "Unpin" : "Pin"}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleTabSelection}>
-                    {tabStore.selectedTabIds.has(tab.id) ? "Deselect" : "Select"}
+                    {selected ? "Deselect" : "Select"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleCloseBefore}>Close before</DropdownMenuItem>
@@ -95,13 +98,15 @@ function TabMenu({ tab }: { tab: ActiveTab }) {
 const ActiveTabItem = forwardRef<
     ComponentRef<typeof TabItem>,
     ComponentProps<typeof TabItem> & { tab: ActiveTab }
->(function ActiveTabItem({ tab, ...rest }, ref) {
-    const tabStore = useActiveTabStore();
-    const tagStore = useTagStore();
+>(function ActiveTabItem({ tab, className, ...rest }, ref) {
+    const { assignedTagIds } = useActiveTabStore();
+    const { tags } = useTagStore();
 
-    const tags = tabStore.selectedTabIds.has(tab.id)
-        ? Array.from(tabStore.assignedTagIds)
-              .map((id) => tagStore.tags.get(id)!)
+    const selected = useIsTabSelected(tab.id);
+
+    const assignedTags = selected
+        ? Array.from(assignedTagIds)
+              .map((id) => tags.get(id)!)
               .filter(Boolean)
         : [];
 
@@ -109,10 +114,7 @@ const ActiveTabItem = forwardRef<
         <TabItem
             {...rest}
             ref={ref}
-            className={cn({
-                "border-border-active bg-card-active data-[is-dragged=true]:!opacity-20 data-[is-dragged=true]:blur-sm":
-                    tabStore.selectedTabIds.has(tab.id),
-            })}
+            className={cn({ "border-border-active bg-card-active": selected }, className)}
             icon={
                 <SortableHandle asChild>
                     <button
@@ -140,12 +142,12 @@ const ActiveTabItem = forwardRef<
             }
             actions={
                 <div className="flex gap-2">
-                    <TagChipList tags={tags} minimal />
-                    <TabMenu tab={tab} />
+                    <TagChipList tags={assignedTags} minimal />
+                    <TabMenu tab={tab} selected={selected} />
                     <Button
                         size="icon-sm"
                         variant="ghost"
-                        onClick={() => tabStore.removeTab(tab.id)}>
+                        onClick={() => ActiveStore.removeTab(tab.id)}>
                         <Cross2Icon className="h-5 w-5" />
                     </Button>
                 </div>
@@ -154,9 +156,31 @@ const ActiveTabItem = forwardRef<
     );
 });
 
+function SelectButton() {
+    const { filteredTabIds, selectedTabIds } = useActiveTabStore();
+
+    const hasTabs = filteredTabIds.size > 0;
+    const hasSelectedTabs = selectedTabIds.size > 0;
+
+    return (
+        <>
+            {hasSelectedTabs ? (
+                <Button variant="ghost" onClick={ActiveStore.deselectAllTabs}>
+                    Deselect All
+                </Button>
+            ) : (
+                hasTabs && (
+                    <Button variant="ghost" onClick={ActiveStore.selectAllTabs}>
+                        Select All
+                    </Button>
+                )
+            )}
+        </>
+    );
+}
+
 export default function ActiveTabs() {
     const tabStore = useActiveTabStore();
-    const tagStore = useTagStore();
     const isFirstRender = useIsFirstRender();
 
     const [tabIdsByWindowId, setTabIdsByWindowId] = useState(tabStore.viewTabIdsByWindowId);
@@ -172,16 +196,14 @@ export default function ActiveTabs() {
 
     const activeTab = tabStore.viewTabsById[activeId!];
 
-    const hasTabs = tabStore.filteredTabIds.size > 0;
-    const hasSelectedTabs = tabStore.selectedTabIds.size > 0;
-    const hasDuplicates = tabStore.viewDuplicateTabIds.size > 0;
-
     const handleRemoveFilterKeyword = (keyword: string) => {
         tabStore.setFilter({
             ...tabStore.view.filter,
             keywords: tabStore.view.filter.keywords.filter((kw) => kw !== keyword.trim()),
         });
     };
+
+    const hasDuplicates = tabStore.viewDuplicateTabIds.size > 0;
 
     return (
         <div className={cn("flex h-full flex-col", {})}>
@@ -201,19 +223,9 @@ export default function ActiveTabs() {
                     </div>
                 )}
                 <div className="ml-auto">
-                    {hasSelectedTabs ? (
-                        <Button variant="ghost" onClick={ActiveStore.deselectAllTabs}>
-                            Deselect All
-                        </Button>
-                    ) : (
-                        hasTabs && (
-                            <Button variant="ghost" onClick={ActiveStore.selectAllTabs}>
-                                Select All
-                            </Button>
-                        )
-                    )}
+                    <SelectButton />
                     {hasDuplicates && (
-                        <Button variant="ghost" onClick={tabStore.removeDuplicateTabs}>
+                        <Button variant="ghost" onClick={ActiveStore.removeDuplicateTabs}>
                             Close {tabStore.viewDuplicateTabIds.size} Duplicate(s)
                         </Button>
                     )}
@@ -242,7 +254,7 @@ export default function ActiveTabs() {
                     return activeIdRef.current === null;
                 }}>
                 <SortableList
-                    selectedIds={Array.from(ActiveStore.selectedTabIds)}
+                    getSelectedIds={() => ActiveStore.selectedTabIds}
                     items={tabIdsByWindowId}
                     onItemsChange={(items) => setTabIdsByWindowId(items)}
                     onSortEnd={(items) => tabStore.syncOrder(items)}
@@ -318,9 +330,14 @@ export default function ActiveTabs() {
                                                     <SortableItem
                                                         id={tabId}
                                                         useHandle
-                                                        asChild
-                                                        disabled={tab.pinned}>
-                                                        <ActiveTabItem tab={tab} />
+                                                        disabled={tab.pinned}
+                                                        asChild>
+                                                        <div className="group/sortable">
+                                                            <ActiveTabItem
+                                                                tab={tab}
+                                                                className="group-data-[is-dragged=true]/sortable:!opacity-20 group-data-[is-dragged=true]/sortable:blur-sm"
+                                                            />
+                                                        </div>
                                                     </SortableItem>
                                                 </motion.li>
                                             </SelectableItem>

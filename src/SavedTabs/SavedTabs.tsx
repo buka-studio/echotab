@@ -47,7 +47,12 @@ import {
 import { cn, focusSiblingItem } from "../util";
 import { SortDir } from "../util/sort";
 import SavedCommand from "./SavedCommand";
-import SavedStore, { TabGrouping, TabSortProp, useSavedTabStore } from "./SavedStore";
+import SavedStore, {
+    TabGrouping,
+    TabSortProp,
+    useIsTabSelected,
+    useSavedTabStore,
+} from "./SavedStore";
 
 function getAnimationProps(stagger: number) {
     return {
@@ -104,14 +109,21 @@ const SavedTabItem = forwardRef<
     ComponentRef<typeof TabItem>,
     ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId: number }
 >(function SavedTabItem({ tab, currentGroupTagId, ...rest }, ref) {
-    const tabStore = useSavedTabStore();
-    const tagStore = useTagStore();
+    const { assignedTagIds } = useSavedTabStore();
+    const { tags } = useTagStore();
+
+    const selected = useIsTabSelected(tab.id);
+
+    const combinedTags = Array.from(tab.tagIds)
+        .concat(selected ? Array.from(assignedTagIds) : [])
+        .map((id) => tags.get(id)!)
+        .filter(Boolean);
 
     return (
         <TabItem
             ref={ref}
             className={cn({
-                "border-border-active bg-card-active": tabStore.selectedTabIds.has(tab.id),
+                "border-border-active bg-card-active": selected,
             })}
             icon={
                 <Favicon
@@ -132,22 +144,21 @@ const SavedTabItem = forwardRef<
                 <div className="flex gap-2">
                     <TagChipList
                         minimal
-                        tags={Array.from(tab.tagIds)
-                            .map((id) => tagStore.tags.get(id)!)
-                            .filter(Boolean)
-                            .sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
+                        tags={combinedTags.sort((a, b) =>
+                            currentTagFirstComparator(a, b, currentGroupTagId),
+                        )}
                         onRemove={
                             tab.tagIds[0] === unassignedTag.id
                                 ? undefined
                                 : (tag) => {
-                                      tabStore.removeTabTag(tab.id, tag.id!);
+                                      SavedStore.removeTabTag(tab.id, tag.id!);
                                   }
                         }
                     />
                     <Button
                         variant="ghost"
                         size="icon-sm"
-                        onClick={() => tabStore.removeTab(tab.id)}>
+                        onClick={() => SavedStore.removeTab(tab.id)}>
                         <Cross2Icon className="h-5 w-5 " />
                     </Button>
                 </div>
@@ -216,6 +227,29 @@ function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagI
         return 1;
     }
     return 0;
+}
+
+function SelectButton() {
+    const { filteredTabIds, selectedTabIds } = useSavedTabStore();
+
+    const hasTabs = filteredTabIds.size > 0;
+    const hasSelectedTabs = selectedTabIds.size > 0;
+
+    return (
+        <>
+            {hasSelectedTabs ? (
+                <Button variant="ghost" onClick={SavedStore.deselectAllTabs}>
+                    Deselect All
+                </Button>
+            ) : (
+                hasTabs && (
+                    <Button variant="ghost" onClick={SavedStore.selectAllTabs}>
+                        Select All
+                    </Button>
+                )
+            )}
+        </>
+    );
 }
 
 export default function SavedTabs() {
@@ -310,9 +344,8 @@ export default function SavedTabs() {
     const range = virtualizer.calculateRange();
 
     const visibleItems = range ? calcVisibleTagMembers(items, range) : new Set<string>();
-
     const hasTabs = tabStore.filteredTabIds.size > 0;
-    const hasSelectedTabs = tabStore.selectedTabIds.size > 0;
+
     const isTagView = tabStore.view.grouping === TabGrouping.Tag;
 
     let prevTagId = 0;
@@ -336,17 +369,7 @@ export default function SavedTabs() {
                     </div>
                 )}
                 <div className="ml-auto">
-                    {hasSelectedTabs ? (
-                        <Button variant="ghost" onClick={tabStore.deselectAllTabs}>
-                            Deselect All
-                        </Button>
-                    ) : (
-                        hasTabs && (
-                            <Button variant="ghost" onClick={tabStore.selectAllTabs}>
-                                Select All
-                            </Button>
-                        )
-                    )}
+                    <SelectButton />
                     {hasTabs &&
                         tabStore.view.grouping === TabGrouping.Tag &&
                         (allCollapsed ? (
@@ -531,8 +554,7 @@ export default function SavedTabs() {
                                     <SelectableItem asChild id={tab.id} key={i.key}>
                                         <li
                                             data-index={i.index}
-                                            data-key={tab.id}
-                                            className="item-container selectable absolute top-0 w-full select-none pt-2"
+                                            className="item-container absolute top-0 w-full select-none pt-2"
                                             style={{
                                                 transform: `translateY(${
                                                     i.start - virtualizer.options.scrollMargin

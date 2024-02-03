@@ -82,7 +82,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
         <div
             ref={ref}
             className={cn(
-                "group/item flex min-h-12 w-full items-center gap-5 rounded-lg border border-border bg-card p-2 text-card-foreground transition-colors duration-200 @container hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active",
+                "group/item flex min-h-[50px] w-full items-center gap-5 rounded-lg border border-border bg-card p-2 text-card-foreground transition-colors duration-200 @container hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active",
                 className,
             )}
             {...props}>

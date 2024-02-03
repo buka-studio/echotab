@@ -1,5 +1,6 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import Fuse from "fuse.js";
+import { useEffect, useState } from "react";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { derive, proxySet } from "valtio/utils";
 
@@ -311,6 +312,24 @@ subscribe(store, (ops) => {
 
 store.initStore();
 
-export const useSavedTabStore = () => useSnapshot(store) as typeof store;
+export function useSavedTabStore() {
+    return useSnapshot(store) as typeof store;
+}
+
+export function useIsTabSelected(tabId: number) {
+    const [selected, setSelected] = useState(store.selectedTabIds.has(tabId));
+
+    useEffect(() => {
+        const callback = () => {
+            setSelected(store.selectedTabIds.has(tabId));
+        };
+        const unsubscribe = subscribe(store, callback);
+        callback();
+
+        return unsubscribe;
+    }, [tabId]);
+
+    return selected;
+}
 
 export default store;

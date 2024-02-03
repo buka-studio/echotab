@@ -99,14 +99,14 @@ function rollupChanges(changes: OrderChange[]): OrderChange[] {
 
 export default function SortableList({
     items,
-    selectedIds,
+    getSelectedIds,
     onItemsChange,
     onActiveIdChange,
     onSortEnd,
     children,
 }: {
     items: Items;
-    selectedIds: number[];
+    getSelectedIds: () => Set<number>;
     children?: ReactNode;
     onItemsChange: (items: Items, change?: OrderChange) => void;
     onSortEnd: (changes: any) => void;
@@ -225,7 +225,7 @@ export default function SortableList({
             return items;
         }
 
-        return items.filter((id) => id === activeId || !selectedIds.includes(id));
+        return items.filter((id) => id === activeId || !getSelectedIds().has(id));
     }
 
     const initialContainer = useMemo(() => (activeId ? findContainer(activeId) : null), [activeId]);
@@ -243,8 +243,9 @@ export default function SortableList({
                 modifiers={[restrictToVerticalAxis]}
                 onDragStart={({ active }) => {
                     setDraggingIds(() => {
-                        return selectedIds.includes(active.id as number)
-                            ? selectedIds
+                        const selectedIds = getSelectedIds();
+                        return selectedIds.has(active.id as number)
+                            ? Array.from(selectedIds)
                             : [active.id as number];
                     });
                     setActiveId(active.id as number);
@@ -324,8 +325,12 @@ export default function SortableList({
 
                     const overContainer = findContainer(overId) as number;
 
-                    const ids = selectedIds.length
-                        ? [active.id as number, ...selectedIds.filter((id) => id !== active.id)]
+                    const selectedIds = getSelectedIds();
+                    const ids = selectedIds.size
+                        ? [
+                              active.id as number,
+                              ...Array.from(selectedIds).filter((id) => id !== active.id),
+                          ]
                         : [active.id as number];
 
                     if (overContainer) {
@@ -390,13 +395,17 @@ export function SortableItem({ id, children, useHandle, disabled, asChild }: Ite
 
     const { draggingIds } = useContext(SortableListContext);
 
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        touchAction: "manipulation",
-        zIndex: isDragging ? 1 : 0,
-        opacity: isDragging ? draggingOpacity : 1,
-    } as const;
+    const style = useMemo(
+        () =>
+            ({
+                transform: CSS.Transform.toString(transform),
+                transition,
+                touchAction: "manipulation",
+                zIndex: isDragging ? 1 : 0,
+                opacity: isDragging ? draggingOpacity : 1,
+            }) as const,
+        [isDragging, transform],
+    );
 
     const Comp = asChild ? Slot : "div";
 

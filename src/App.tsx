@@ -5,7 +5,7 @@ import ActiveTabs from "./ActiveTabs";
 import { DynamicViewportVarsSetter, updateViewport } from "./hooks/useDynamicViewportVars";
 import Layout from "./Layout";
 import { Panel } from "./models";
-import SavedTabs, { useSavedTabStore } from "./SavedTabs";
+import SavedTabs from "./SavedTabs";
 import ScrollTopFAB from "./ScrollTopFAB";
 import SettingsCommand from "./SettingsCommand";
 import Stats from "./Stats";
@@ -17,7 +17,7 @@ import Logo from "./ui/Logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 import Toaster from "./ui/Toast";
 import { TooltipProvider } from "./ui/Tooltip";
-import { useUIStore } from "./UIStore";
+import UIStore, { useUIStore } from "./UIStore";
 import { cn } from "./util";
 
 import "./app.css";
@@ -25,34 +25,32 @@ import "./app.css";
 updateViewport();
 
 export default function App() {
-    const uiStore = useUIStore();
-    const tagStore = useTagStore();
-    const tabStore = useSavedTabStore();
-
-    if (!(uiStore.initialized && tagStore.initialized)) {
+    const { activePanel, initialized: UIInitialized } = useUIStore();
+    const { initialized: tagInitialized } = useTagStore();
+    if (!(UIInitialized && tagInitialized)) {
         return null;
     }
 
     return (
         <TooltipProvider>
             <Layout>
-                <Tabs value={uiStore.activePanel} className="mx-auto flex w-full flex-col px-4">
+                <Tabs value={activePanel} className="mx-auto flex w-full flex-col px-4">
                     <div className="mx-auto mb-10 flex w-full max-w-4xl items-center justify-between gap-2">
-                        <div className="border-border flex gap-2 rounded-lg border p-1">
+                        <div className="flex gap-2 rounded-lg border border-border p-1">
                             <TabsList className="flex h-auto gap-2 bg-transparent p-0">
-                                <Logo className="text-primary mx-1 h-4 w-4" />
+                                <Logo className="mx-1 h-4 w-4 text-primary" />
                                 {Object.keys(Panel).map((panel) => (
                                     <TabsTrigger
                                         key={panel}
                                         value={panel}
-                                        onClick={() => uiStore.activatePanel(panel as Panel)}
+                                        onClick={() => UIStore.activatePanel(panel as Panel)}
                                         className={cn(
-                                            "focus-ring text-muted-foreground data-[state=active]:text-background relative rounded bg-transparent p-1 px-5 text-xs font-semibold uppercase tracking-widest transition-colors duration-200 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:outline-none",
+                                            "focus-ring relative rounded bg-transparent p-1 px-5 text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors duration-200 data-[state=active]:bg-transparent data-[state=active]:text-background data-[state=active]:shadow-none data-[state=active]:outline-none",
                                         )}>
-                                        {uiStore.activePanel === panel && (
+                                        {activePanel === panel && (
                                             <motion.span
                                                 layoutId="highlight"
-                                                className="bg-primary absolute inset-0 rounded"
+                                                className="absolute inset-0 rounded bg-primary will-change-transform"
                                                 transition={{
                                                     type: "spring",
                                                     bounce: 0.2,

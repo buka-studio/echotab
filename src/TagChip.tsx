@@ -99,7 +99,7 @@ export default function TagChip({ children, onRemove, className = "", color }: T
         <div
             className={cn(
                 "flex max-w-[150px] items-center gap-1 rounded-md border bg-opacity-30 px-1 py-[2px] text-white grayscale-[0.3]",
-                { "bg-background border-border text-foreground": !color },
+                { "border-border bg-background text-foreground": !color },
                 className,
             )}
             style={{ borderColor: color, background: color }}>
