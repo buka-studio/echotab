@@ -1,4 +1,4 @@
-![logo](./assets/icon.png)
+![og](./assets/og.png)
 
 # CmdTab
 
@@ -8,12 +8,23 @@ CmdTab is a tab management Chrome extension. It is built using [shadcn-ui](https
 
 ### Installing
 
-Since the extension is not yet available on the Chrome Web Store, you can install it in one of the following ways:
+You can install the extension in a couple of ways:
 
--   Download the build (`/build/chrome-mv3-prod`) from this repository.
--   Build it from the source code.
+#### Installing from the Web Store
 
-After that, follow [these](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked) steps to add the extension to your browser:
+-   [Chrome Web Store](https://chromewebstore.google.com/detail/cmdtab/cnhamlcjfdekdinhkfmllfdjamcncbkl)
+-   Firefox Add-ons (soon)
+
+#### Building from Source
+
+After downloading the code, run the following commands:
+
+```bash
+npm install
+npm run build
+```
+
+After obtaining the build, follow [these](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked) steps to add the extension to your browser:
 
 1. Open the extensions page in Chrome (`chrome://extensions or edge://extensions`).
 2. Enable Developer Mode.
@@ -23,15 +34,11 @@ After that, follow [these](https://developer.chrome.com/docs/extensions/get-star
 
 Previously, I've used [OneTab](https://chromewebstore.google.com/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) and [Toby](https://chromewebstore.google.com/detail/toby-for-chrome/hddnkoipeenegfoeaoibdmnaalmgkpip) but wanted something in-between with the following characteristics:
 
--   No sign-up required for import/export and customizations.
+-   No sign-up required for data import/export and other extra features.
 -   Simple and clean UI.
 -   Basic search/filtering capabilities.
 -   Intuitive tagging with excellent keyboard support.
 -   Smooth performance even with a large number (1000+) of saved tabs.
-
-### Chrome only?
-
-For now, yes. In theory, adding support for other browsers should be straightforward as it's built using [Plasmo](https://github.com/PlasmoHQ/plasmo), but nothing on the roadmap yet.
 
 ## Development
 
