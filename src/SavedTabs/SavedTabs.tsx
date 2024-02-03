@@ -6,9 +6,18 @@ import {
     MixerHorizontalIcon,
 } from "@radix-ui/react-icons";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useRef, useState } from "react";
+import {
+    ComponentProps,
+    ComponentRef,
+    forwardRef,
+    ReactNode,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 
-import { Tag } from "../models";
+import FilterTagChips from "../FilterTagChips";
+import { SavedTab, Tag } from "../models";
 import { SelectableItem, SelectableList } from "../SelectableList";
 import TabItem, { Favicon } from "../TabItem";
 import TabListPlaceholder from "../TabsListPlaceholder";
@@ -37,7 +46,6 @@ import {
 } from "../ui/Select";
 import { cn, focusSiblingItem } from "../util";
 import { SortDir } from "../util/sort";
-import FilterTagChips from "./FilterTagChips";
 import SavedCommand from "./SavedCommand";
 import SavedStore, { TabGrouping, TabSortProp, useSavedTabStore } from "./SavedStore";
 
@@ -53,6 +61,101 @@ function getAnimationProps(stagger: number) {
         initial: { opacity: 0 },
     };
 }
+
+function TagHeaderItem({ tag, actions }: { tag: Tag; actions?: ReactNode }) {
+    const tabStore = useSavedTabStore();
+    const tagStore = useTagStore();
+
+    const tabIds = tabStore.filteredTabsByTagId[tag.id];
+
+    return (
+        <>
+            <div className="select-none">
+                <span className="mr-2 inline-flex gap-2">
+                    {tagStore.tags.get(Number(tag?.id))?.name}
+                    <Badge variant="secondary">{tabIds.length}</Badge>
+                </span>
+                {actions}
+            </div>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="ghost">Remove All</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will delete all tabs in this group.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => tabStore.removeTabs(tabIds)}>
+                            Remove All
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
+    );
+}
+
+const SavedTabItem = forwardRef<
+    ComponentRef<typeof TabItem>,
+    ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId: number }
+>(function SavedTabItem({ tab, currentGroupTagId, ...rest }, ref) {
+    const tabStore = useSavedTabStore();
+    const tagStore = useTagStore();
+
+    return (
+        <TabItem
+            ref={ref}
+            className={cn({
+                "border-border-active bg-card-active": tabStore.selectedTabIds.has(tab.id),
+            })}
+            icon={
+                <Favicon
+                    src={tab.favIconUrl}
+                    className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
+                />
+            }
+            link={
+                <a
+                    className="focus-ring overflow-hidden text-ellipsis whitespace-nowrap rounded-sm"
+                    target="_blank"
+                    href={tab.url}>
+                    {tab.url}
+                </a>
+            }
+            tab={tab}
+            actions={
+                <div className="flex gap-2">
+                    <TagChipList
+                        minimal
+                        tags={Array.from(tab.tagIds)
+                            .map((id) => tagStore.tags.get(id)!)
+                            .filter(Boolean)
+                            .sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
+                        onRemove={
+                            tab.tagIds[0] === unassignedTag.id
+                                ? undefined
+                                : (tag) => {
+                                      tabStore.removeTabTag(tab.id, tag.id!);
+                                  }
+                        }
+                    />
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => tabStore.removeTab(tab.id)}>
+                        <Cross2Icon className="h-5 w-5 " />
+                    </Button>
+                </div>
+            }
+            {...rest}
+        />
+    );
+});
 
 interface SortButtonProps {
     active: boolean;
@@ -102,27 +205,14 @@ function calcVisibleTagMembers(
     return visibleItems;
 }
 
-function currentTagFirstComparator(
-    a: Partial<Tag>,
-    b: Partial<Tag>,
-    index: number,
-    items: (string | number)[],
-) {
-    let firstTag;
-    for (let i = index; i > -1; i--) {
-        const item = items[i];
-        if (typeof item === "string") {
-            firstTag = item;
-            break;
-        }
-    }
-    if (!firstTag) {
+function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagId: number) {
+    if (!currentTagId) {
         return 0;
     }
-    const tagId = Number(firstTag.slice(2));
-    if (a.id === tagId) {
+
+    if (a.id === currentTagId) {
         return -1;
-    } else if (b.id === tagId) {
+    } else if (b.id === currentTagId) {
         return 1;
     }
     return 0;
@@ -224,6 +314,8 @@ export default function SavedTabs() {
     const hasTabs = tabStore.filteredTabIds.size > 0;
     const hasSelectedTabs = tabStore.selectedTabIds.size > 0;
     const isTagView = tabStore.view.grouping === TabGrouping.Tag;
+
+    let prevTagId = 0;
 
     return (
         <div className={cn("flex h-full flex-col")}>
@@ -394,62 +486,48 @@ export default function SavedTabs() {
                             {virtualizer.getVirtualItems().map((i) => {
                                 const item = items[i.index];
 
-                                const isTag = typeof item === "string" && item.startsWith("t:");
-                                const tagId = isTag ? Number(item.slice(2)) : undefined;
-                                const tag = tagStore.tags.get(tagId!);
-                                const tabIds = tabStore.filteredTabsByTagId[tagId!];
+                                const isTagItem = typeof item === "string" && item.startsWith("t:");
+                                if (isTagItem) {
+                                    const tagId = Number(item.slice(2));
+                                    prevTagId = tagId;
 
+                                    const tag = tagStore.tags.get(tagId!);
+
+                                    return (
+                                        <li
+                                            style={{
+                                                transform: `translateY(${
+                                                    i.start - virtualizer.options.scrollMargin
+                                                }px)`,
+                                            }}
+                                            data-index={i.index}
+                                            ref={virtualizer.measureElement}
+                                            className="tag-group absolute top-0 flex w-full justify-between pt-8 text-sm [&+.tag-group]:pt-2"
+                                            key={i.key}>
+                                            <TagHeaderItem
+                                                tag={tag!}
+                                                actions={
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => {
+                                                            toggleTagsExpanded(Number(tag?.id));
+                                                        }}>
+                                                        {tagsExpanded[tag?.id!]
+                                                            ? "Collapse"
+                                                            : "Expand"}
+                                                        <CaretSortIcon className="ml-2 h-4 w-4" />
+                                                    </Button>
+                                                }
+                                            />
+                                        </li>
+                                    );
+                                }
+
+                                const currentGroupTagId =
+                                    tabStore.view.grouping === TabGrouping.All ? 0 : prevTagId;
                                 const tab = tabStore.viewTabsById[item as number];
 
-                                return isTag ? (
-                                    <li
-                                        style={{
-                                            transform: `translateY(${
-                                                i.start - virtualizer.options.scrollMargin
-                                            }px)`,
-                                        }}
-                                        data-index={i.index}
-                                        ref={virtualizer.measureElement}
-                                        className="tag-group absolute top-0 flex w-full justify-between pt-8 text-sm [&+.tag-group]:pt-2"
-                                        key={i.key}>
-                                        <div className="select-none">
-                                            <span className="mr-2 inline-flex gap-2">
-                                                {tagStore.tags.get(Number(tag?.id))?.name}
-                                                <Badge variant="secondary">{tabIds.length}</Badge>
-                                            </span>
-                                            <Button
-                                                variant="ghost"
-                                                onClick={() => {
-                                                    toggleTagsExpanded(Number(tag?.id));
-                                                }}>
-                                                {tagsExpanded[tag?.id!] ? "Collapse" : "Expand"}
-                                                <CaretSortIcon className="ml-2 h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost">Remove All</Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>
-                                                        Are you sure?
-                                                    </AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This will delete all tabs in this group.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction
-                                                        onClick={() => tabStore.removeTabs(tabIds)}>
-                                                        Remove All
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </li>
-                                ) : (
+                                return (
                                     <SelectableItem asChild id={tab.id} key={i.key}>
                                         <li
                                             data-index={i.index}
@@ -461,61 +539,9 @@ export default function SavedTabs() {
                                                 }px)`,
                                             }}
                                             ref={virtualizer.measureElement}>
-                                            <TabItem
-                                                className={cn({
-                                                    "border-border-active bg-card-active":
-                                                        tabStore.selectedTabIds.has(tab.id),
-                                                })}
-                                                icon={
-                                                    <Favicon
-                                                        src={tab.favIconUrl}
-                                                        className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
-                                                    />
-                                                }
+                                            <SavedTabItem
                                                 tab={tab}
-                                                additional={
-                                                    <div className="flex gap-2">
-                                                        <TagChipList
-                                                            minimal
-                                                            tags={Array.from(tab.tagIds)
-                                                                .map((id) => tagStore.tags.get(id)!)
-                                                                .filter(Boolean)
-                                                                .sort((a, b) => {
-                                                                    if (
-                                                                        tabStore.view.grouping ===
-                                                                        TabGrouping.All
-                                                                    ) {
-                                                                        return 0;
-                                                                    }
-
-                                                                    return currentTagFirstComparator(
-                                                                        a,
-                                                                        b,
-                                                                        i.index,
-                                                                        items,
-                                                                    );
-                                                                })}
-                                                            onRemove={
-                                                                tab.tagIds[0] === unassignedTag.id
-                                                                    ? undefined
-                                                                    : (tag) => {
-                                                                          tabStore.removeTabTag(
-                                                                              tab.id,
-                                                                              tag.id!,
-                                                                          );
-                                                                      }
-                                                            }
-                                                        />
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon-sm"
-                                                            onClick={() =>
-                                                                tabStore.removeTab(tab.id)
-                                                            }>
-                                                            <Cross2Icon className="h-5 w-5 " />
-                                                        </Button>
-                                                    </div>
-                                                }
+                                                currentGroupTagId={currentGroupTagId}
                                             />
                                         </li>
                                     </SelectableItem>

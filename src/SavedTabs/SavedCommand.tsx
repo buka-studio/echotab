@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 
+import FilterTagChips from "../FilterTagChips";
 import { Panel } from "../models";
 import { CommandPagination, TabCommandDialog, useTabCommand } from "../TabCommand";
 import TagChip, { TagChipList } from "../TagChip";
@@ -18,7 +19,6 @@ import { toast } from "../ui/Toast";
 import { useUIStore } from "../UIStore";
 import { cn, formatLinks } from "../util";
 import { toggle } from "../util/set";
-import FilterTagChips from "./FilterTagChips";
 import SavedStore, { useSavedTabStore } from "./SavedStore";
 
 export default function SavedCommand() {
@@ -120,12 +120,12 @@ export default function SavedCommand() {
     };
 
     const handleToggleFilterKeyword = (keyword: string) => {
-        let filterTags = new Set(filter.keywords);
-        toggle(filterTags, keyword.trim());
+        let filterKeywords = new Set(filter.keywords);
+        toggle(filterKeywords, keyword.trim());
 
         setFilter((f) => ({
             ...f,
-            keywords: Array.from(filterTags),
+            keywords: Array.from(filterKeywords),
         }));
         setSearch("");
     };

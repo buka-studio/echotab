@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
+import FilterTagChips from "../FilterTagChips";
 import { Panel, SavedTab } from "../models";
 import { CommandPagination, TabCommandDialog, useTabCommand } from "../TabCommand";
 import TagChip, { TagChipList } from "../TagChip";
@@ -17,8 +18,10 @@ import {
 import { toast } from "../ui/Toast";
 import { useUIStore } from "../UIStore";
 import { cn, formatLinks } from "../util";
+import { toggle } from "../util/set";
 import ActiveStore, { useActiveTabStore } from "./ActiveStore";
 
+// todo: clean this & SavedCommand up
 export default function ActiveCommand() {
     const tabStore = useActiveTabStore();
     const tagStore = useTagStore();
@@ -29,6 +32,13 @@ export default function ActiveCommand() {
 
     const inputRef = useRef<HTMLInputElement>(null);
     const commandRef = useRef<HTMLDivElement>(null);
+
+    const [filter, setFilter] = useState(tabStore.view.filter);
+    const prevFilter = useRef(tabStore.view.filter);
+    if (prevFilter.current !== tabStore.view.filter) {
+        setFilter(tabStore.view.filter);
+        prevFilter.current = tabStore.view.filter;
+    }
 
     const getValue = () => {
         const highlighted = commandRef.current?.querySelector(
@@ -63,6 +73,11 @@ export default function ActiveCommand() {
         setPages(["/"]);
     };
 
+    const handleApplyFilter = () => {
+        tabStore.setFilter(filter);
+        setSearch("");
+    };
+
     const handleCopyToClipboard = () => {
         const selectedLinks = tabStore.tabs.filter((tab) => tabStore.selectedTabIds.has(tab.id));
 
@@ -78,11 +93,6 @@ export default function ActiveCommand() {
             });
     };
 
-    let commandLabel = undefined;
-    if (activePage === "tag") {
-        commandLabel = "Tagging";
-    }
-
     const handleCreateTag = () => {
         const newTag = tagStore.createTag(search);
         tabStore.toggleAssignedTagId(newTag.id);
@@ -92,6 +102,33 @@ export default function ActiveCommand() {
     const handleCloseSelected = () => {
         tabStore.removeTabs(Array.from(ActiveStore.selectedTabIds));
     };
+
+    const handleToggleFilterKeyword = (keyword: string) => {
+        let filterKeywords = new Set(filter.keywords);
+        toggle(filterKeywords, keyword.trim());
+
+        setFilter((f) => ({
+            ...f,
+            keywords: Array.from(filterKeywords),
+        }));
+        setSearch("");
+    };
+
+    const handleApply = () => {
+        if (activePage === "tag") {
+            handleSaveAssignedTags();
+        }
+        if (activePage === "filter") {
+            handleApplyFilter();
+        }
+    };
+
+    let commandLabel = undefined;
+    if (activePage === "tag") {
+        commandLabel = "Tagging";
+    } else if (activePage === "filter") {
+        commandLabel = "Filtering";
+    }
 
     return (
         <TabCommandDialog label={commandLabel}>
@@ -112,6 +149,15 @@ export default function ActiveCommand() {
                             handleSaveAssignedTags();
                         }
                     }
+                    if (activePage === "filter") {
+                        if (e.key === "Enter" && !getValue() && search) {
+                            e.preventDefault();
+                            handleToggleFilterKeyword(search);
+                        } else if (e.key === "Enter" && e.metaKey) {
+                            e.preventDefault();
+                            handleApplyFilter();
+                        }
+                    }
                 }}>
                 <div className="flex max-w-4xl flex-1 items-center rounded-lg rounded-b-none border bg-popover p-3 px-4 text-base text-popover-foreground">
                     <CommandPagination pages={pages} goToPage={goToPage} className="mr-2" />
@@ -124,13 +170,12 @@ export default function ActiveCommand() {
                         autoFocus
                     />
                     <div className="actions">
-                        {activePage === "tag" && (
+                        {["tag", "filter"].includes(activePage) && (
                             <div className="flex items-center gap-1">
                                 <button
-                                    disabled={tabStore.assignedTagIds.size === 0}
-                                    onClick={handleSaveAssignedTags}
+                                    onClick={handleApply}
                                     className="focus-ring whitespace-nowrap rounded px-2 text-sm">
-                                    Save
+                                    Apply
                                 </button>
                                 <span className="keyboard-shortcut">⌘ + Enter</span>
                             </div>
@@ -181,6 +226,9 @@ export default function ActiveCommand() {
                             </CommandGroup>
                             <CommandSeparator />
                             <CommandGroup heading="Misc">
+                                <CommandItem onSelect={() => pushPage("filter")}>
+                                    Filter
+                                </CommandItem>
                                 {tabStore.viewDuplicateTabIds.size > 0 && (
                                     <CommandItem onSelect={tabStore.removeDuplicateTabs}>
                                         Close {tabStore.viewDuplicateTabIds.size} Duplicates
@@ -249,6 +297,19 @@ export default function ActiveCommand() {
                                 ) : (
                                     "Type to create a tag"
                                 )}
+                            </CommandEmpty>
+                        </div>
+                    )}
+                    {activePage === "filter" && (
+                        <div>
+                            <div className="mb-2 px-2">
+                                <FilterTagChips
+                                    filter={filter}
+                                    onRemoveKeyword={handleToggleFilterKeyword}
+                                />
+                            </div>
+                            <CommandEmpty>
+                                {search ? `Filter by "${search}"` : "Filter by keywords"}
                             </CommandEmpty>
                         </div>
                     )}

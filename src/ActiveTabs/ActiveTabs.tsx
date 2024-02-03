@@ -1,7 +1,8 @@
 import { Cross2Icon, DotsVerticalIcon, DragHandleDots2Icon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { ComponentProps, ComponentRef, forwardRef, useRef, useState } from "react";
 
+import FilterTagChips from "../FilterTagChips";
 import useIsFirstRender from "../hooks/useIsFirstRender";
 import { ActiveTab } from "../models";
 import { SelectableItem, SelectableList } from "../SelectableList";
@@ -39,6 +40,120 @@ import { cn, focusSiblingItem } from "../util";
 import ActiveCommand from "./ActiveCommand";
 import ActiveStore, { useActiveTabStore } from "./ActiveStore";
 
+function TabMenu({ tab }: { tab: ActiveTab }) {
+    const tabStore = useActiveTabStore();
+
+    const tabIndex = tabStore.viewTabIdsByWindowId[tab.windowId].findIndex((id) => id === tab.id);
+
+    const handleCloseBefore = () => {
+        tabStore.removeTabs(tabStore.viewTabIdsByWindowId[tab.windowId].slice(0, tabIndex));
+    };
+
+    const handleCloseAfter = () => {
+        tabStore.removeTabs(tabStore.viewTabIdsByWindowId[tab.windowId].slice(tabIndex + 1));
+    };
+
+    const handleCloseOthers = () => {
+        tabStore.removeTabs(
+            tabStore.viewTabIdsByWindowId[tab.windowId].filter((id) => id !== tab.id),
+        );
+    };
+
+    const handleTabSelection = () => {
+        tabStore.toggleTabSelection(tab.id);
+    };
+
+    const handlePinTab = () => {
+        tabStore.updateTab(tab.id, {
+            pinned: !tab.pinned,
+        });
+    };
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon-sm">
+                    <DotsVerticalIcon className="h-5 w-5" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem onClick={handlePinTab}>
+                    {tab.pinned ? "Unpin" : "Pin"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleTabSelection}>
+                    {tabStore.selectedTabIds.has(tab.id) ? "Deselect" : "Select"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleCloseBefore}>Close before</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCloseAfter}>Close after</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCloseOthers}>Close others</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
+const ActiveTabItem = forwardRef<
+    ComponentRef<typeof TabItem>,
+    ComponentProps<typeof TabItem> & { tab: ActiveTab }
+>(function ActiveTabItem({ tab, ...rest }, ref) {
+    const tabStore = useActiveTabStore();
+    const tagStore = useTagStore();
+
+    const tags = tabStore.selectedTabIds.has(tab.id)
+        ? Array.from(tabStore.assignedTagIds)
+              .map((id) => tagStore.tags.get(id)!)
+              .filter(Boolean)
+        : [];
+
+    return (
+        <TabItem
+            {...rest}
+            ref={ref}
+            className={cn({
+                "border-border-active bg-card-active data-[is-dragged=true]:!opacity-20 data-[is-dragged=true]:blur-sm":
+                    tabStore.selectedTabIds.has(tab.id),
+            })}
+            icon={
+                <SortableHandle asChild>
+                    <button
+                        className={cn("handle focus-ring group relative cursor-grab rounded", {
+                            "pointer-events-none": tab.pinned,
+                        })}
+                        disabled={tab.pinned}>
+                        <Favicon
+                            src={tab.favIconUrl}
+                            className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
+                        />
+                        <DragHandleDots2Icon className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" />
+                    </button>
+                </SortableHandle>
+            }
+            tab={tab}
+            link={
+                <button
+                    className="focus-ring overflow-hidden text-ellipsis whitespace-nowrap rounded-sm"
+                    onClick={() => {
+                        chrome.tabs.update(tab.id, { active: true });
+                    }}>
+                    {tab.url}
+                </button>
+            }
+            actions={
+                <div className="flex gap-2">
+                    <TagChipList tags={tags} minimal />
+                    <TabMenu tab={tab} />
+                    <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => tabStore.removeTab(tab.id)}>
+                        <Cross2Icon className="h-5 w-5" />
+                    </Button>
+                </div>
+            }
+        />
+    );
+});
+
 export default function ActiveTabs() {
     const tabStore = useActiveTabStore();
     const tagStore = useTagStore();
@@ -61,12 +176,30 @@ export default function ActiveTabs() {
     const hasSelectedTabs = tabStore.selectedTabIds.size > 0;
     const hasDuplicates = tabStore.viewDuplicateTabIds.size > 0;
 
+    const handleRemoveFilterKeyword = (keyword: string) => {
+        tabStore.setFilter({
+            ...tabStore.view.filter,
+            keywords: tabStore.view.filter.keywords.filter((kw) => kw !== keyword.trim()),
+        });
+    };
+
     return (
         <div className={cn("flex h-full flex-col", {})}>
             <div className="header sticky top-[20px] z-10">
                 <ActiveCommand />
             </div>
             <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-2 py-2">
+                {tabStore.filtersApplied && (
+                    <div className="flex items-center gap-5">
+                        <Button variant="ghost" onClick={tabStore.clearFilter}>
+                            Clear Filter
+                        </Button>
+                        <FilterTagChips
+                            filter={tabStore.view.filter}
+                            onRemoveKeyword={handleRemoveFilterKeyword}
+                        />
+                    </div>
+                )}
                 <div className="ml-auto">
                     {hasSelectedTabs ? (
                         <Button variant="ghost" onClick={ActiveStore.deselectAllTabs}>
@@ -94,7 +227,7 @@ export default function ActiveTabs() {
                             <div className="text-balance text-lg">
                                 Currently, there are no open tabs.
                             </div>
-                            <div className="text-foreground/75 text-balance text-sm">
+                            <div className="text-balance text-sm text-foreground/75">
                                 Open tabs will be displayed here.
                             </div>
                         </div>
@@ -153,18 +286,13 @@ export default function ActiveTabs() {
                                         focusSiblingItem(e, ".item-container");
                                     }}
                                     className={cn(
-                                        "data-[over=true]:bg-muted/30 flex w-full flex-col gap-2 rounded-xl p-2",
+                                        "flex w-full flex-col gap-2 rounded-xl p-2 data-[over=true]:bg-muted/30",
                                     )}>
                                     {tabIds.map((tabId, j) => {
                                         const tab = tabStore.viewTabsById[tabId];
                                         if (!tab) {
                                             return null;
                                         }
-                                        const tags = tabStore.selectedTabIds.has(tabId)
-                                            ? Array.from(tabStore.assignedTagIds)
-                                                  .map((id) => tagStore.tags.get(id)!)
-                                                  .filter(Boolean)
-                                            : [];
 
                                         return (
                                             <SelectableItem asChild id={tabId} key={tabId}>
@@ -192,53 +320,7 @@ export default function ActiveTabs() {
                                                         useHandle
                                                         asChild
                                                         disabled={tab.pinned}>
-                                                        <TabItem
-                                                            className={cn({
-                                                                "bg-card-active border-border-active data-[is-dragged=true]:!opacity-20 data-[is-dragged=true]:blur-sm":
-                                                                    tabStore.selectedTabIds.has(
-                                                                        tabId,
-                                                                    ),
-                                                            })}
-                                                            icon={
-                                                                <SortableHandle asChild>
-                                                                    <button
-                                                                        className={cn(
-                                                                            "handle focus-ring group relative cursor-grab rounded",
-                                                                            {
-                                                                                "pointer-events-none":
-                                                                                    tab.pinned,
-                                                                            },
-                                                                        )}
-                                                                        disabled={tab.pinned}>
-                                                                        <Favicon
-                                                                            src={tab.favIconUrl}
-                                                                            className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
-                                                                        />
-                                                                        <DragHandleDots2Icon className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" />
-                                                                    </button>
-                                                                </SortableHandle>
-                                                            }
-                                                            tab={tab}
-                                                            additional={
-                                                                <div className="flex gap-2">
-                                                                    <TagChipList
-                                                                        tags={tags}
-                                                                        minimal
-                                                                    />
-                                                                    <TabMenu tab={tab} i={j} />
-                                                                    <Button
-                                                                        size="icon-sm"
-                                                                        variant="ghost"
-                                                                        onClick={() =>
-                                                                            tabStore.removeTab(
-                                                                                tabId,
-                                                                            )
-                                                                        }>
-                                                                        <Cross2Icon className="h-5 w-5" />
-                                                                    </Button>
-                                                                </div>
-                                                            }
-                                                        />
+                                                        <ActiveTabItem tab={tab} />
                                                     </SortableItem>
                                                 </motion.li>
                                             </SelectableItem>
@@ -259,57 +341,5 @@ export default function ActiveTabs() {
                 </SortableList>
             </SelectableList>
         </div>
-    );
-}
-
-function TabMenu({ tab, i }: { tab: ActiveTab; i: number }) {
-    const tabStore = useActiveTabStore();
-
-    const tabIdx = tabStore.viewTabIdsByWindowId[tab.windowId].findIndex((id) => id === tab.id);
-
-    const handleCloseBefore = () => {
-        tabStore.removeTabs(tabStore.viewTabIdsByWindowId[tab.windowId].slice(0, tabIdx));
-    };
-
-    const handleCloseAfter = () => {
-        tabStore.removeTabs(tabStore.viewTabIdsByWindowId[tab.windowId].slice(i + 1));
-    };
-
-    const handleCloseOthers = () => {
-        tabStore.removeTabs(
-            tabStore.viewTabIdsByWindowId[tab.windowId].filter((id) => id !== tab.id),
-        );
-    };
-
-    const handleTabSelection = () => {
-        tabStore.toggleTabSelection(tab.id);
-    };
-
-    const handlePinTab = () => {
-        tabStore.updateTab(tab.id, {
-            pinned: !tab.pinned,
-        });
-    };
-
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm">
-                    <DotsVerticalIcon className="h-5 w-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                <DropdownMenuItem onClick={handlePinTab}>
-                    {tab.pinned ? "Unpin" : "Pin"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleTabSelection}>
-                    {tabStore.selectedTabIds.has(tab.id) ? "Deselect" : "Select"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleCloseBefore}>Close before</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleCloseAfter}>Close after</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleCloseOthers}>Close others</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
     );
 }

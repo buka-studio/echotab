@@ -68,13 +68,14 @@ const LinkPreview = ({ url }: { url: string }) => {
 
 interface Props {
     tab: Tab;
-    additional?: ReactNode;
+    actions?: ReactNode;
     className?: string;
     icon?: ReactNode;
+    link?: ReactNode;
 }
 
 const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
-    { tab, additional, className, icon, ...props },
+    { tab, actions, className, icon, link, ...props },
     ref,
 ) {
     return (
@@ -91,14 +92,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
             </span>
             <HoverCard openDelay={1000}>
                 <span className="group/link flex max-w-[25cqw] items-center gap-2 transition-colors duration-200">
-                    <HoverCardTrigger asChild>
-                        <a
-                            className="focus-ring overflow-hidden text-ellipsis whitespace-nowrap rounded-sm"
-                            target="_blank"
-                            href={tab.url}>
-                            {tab.url}
-                        </a>
-                    </HoverCardTrigger>
+                    <HoverCardTrigger asChild>{link}</HoverCardTrigger>
                     <ArrowTopRightIcon className="icon h-4 w-4 flex-shrink-0 opacity-0 transition-opacity duration-150 group-hover/link:opacity-100" />
                     <HoverCardContent className="h-[300px] w-[350px] overflow-hidden p-0">
                         <LinkPreview url={tab.url} />
@@ -106,7 +100,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
                 </span>
             </HoverCard>
             <div className="ml-auto max-w-[45cqw] opacity-0 group-focus-within/item:opacity-100 group-hover/item:opacity-100">
-                {additional}
+                {actions}
             </div>
         </div>
     );

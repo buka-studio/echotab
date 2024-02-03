@@ -1,5 +1,5 @@
 import Fuse from "fuse.js";
-import { proxy, useSnapshot } from "valtio";
+import { proxy, subscribe, useSnapshot } from "valtio";
 import { derive, proxySet } from "valtio/utils";
 
 import { ActiveTab, SavedTab } from "../models";
@@ -9,7 +9,7 @@ import { canonicalizeURL, isValidActiveTab } from "../util";
 import { toggle } from "../util/set";
 
 export interface Filter {
-    keywords: string;
+    keywords: string[];
 }
 
 function toActiveTab(tab: Partial<chrome.tabs.Tab> = {}): Partial<ActiveTab> {
@@ -42,6 +42,7 @@ export interface ActiveStore {
     selectedTabIds: Set<number>;
 
     view: { filter: Filter };
+    filtersApplied: boolean;
     filteredTabIds: Set<number>;
     viewDuplicateTabIds: Set<number>;
     viewTabsById: Record<number, ActiveTab>;
@@ -51,6 +52,7 @@ export interface ActiveStore {
     toggleAssignedTagId(tagId: number): void;
     clearAssignedTagIds(): void;
     setFilter(filter: Filter): void;
+    clearFilter(): void;
     setPreviewFilter(filter: Filter): void;
     addTab(tabId: number, tab: ActiveTab): void;
     reorderTab(from: number, to: number, syncBrowser?: boolean): void;
@@ -76,7 +78,7 @@ const store = proxy({
     selectedTabIds: proxySet<number>(),
     view: proxy({
         filter: {
-            keywords: "",
+            keywords: [] as string[],
         },
     }),
     initTabs: async () => {
@@ -183,6 +185,9 @@ const store = proxy({
     setFilter: (filter: Partial<Filter>) => {
         store.view.filter = { ...store.view.filter, ...filter };
     },
+    clearFilter: () => {
+        store.view.filter = { keywords: [] };
+    },
     reorderTab: async (op: { tabId: number; from: ReorderOp; to: ReorderOp }) => {
         await chrome.tabs.move(op.tabId, {
             index: op.to.index,
@@ -222,7 +227,11 @@ export function filterTabs(tabs: ActiveTab[], filter: Filter) {
     const allIds = new Set(tabs.map((t) => t.id));
 
     const fuseIds = filter.keywords.length
-        ? new Set(activeFuse.search(filter.keywords).map((r) => r.item.id))
+        ? new Set(
+              activeFuse
+                  .search(filter.keywords.map((kw) => kw.trim()).join(" "))
+                  .map((r) => r.item.id),
+          )
         : new Set(allIds);
 
     return fuseIds;
@@ -230,6 +239,10 @@ export function filterTabs(tabs: ActiveTab[], filter: Filter) {
 
 derive(
     {
+        filtersApplied: (get) => {
+            const filter = get(store).view.filter;
+            return Boolean(filter.keywords.length);
+        },
         filteredTabIds: (get) => {
             const filter = get(store).view.filter;
             const tabs = get(store).tabs;
@@ -295,6 +308,14 @@ derive(
     },
     { proxy: store },
 );
+
+subscribe(store, (ops) => {
+    const savedTabsUpdated = ops.filter((op) => op[1][0] === "tabs");
+
+    if (savedTabsUpdated.length) {
+        activeFuse.setCollection(store.tabs);
+    }
+});
 
 store.initTabs();
 

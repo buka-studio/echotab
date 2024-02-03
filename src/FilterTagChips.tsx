@@ -1,11 +1,13 @@
-import { TagChipList } from "../TagChip";
-import { useTagStore } from "../TagStore";
-import { Filter } from "./SavedStore";
+import { TagChipList } from "./TagChip";
+import { useTagStore } from "./TagStore";
 
 interface Props {
-    filter: Filter;
-    onRemoveKeyword: (keyword: string) => void;
-    onRemoveTag: (tagId: number) => void;
+    filter: {
+        keywords?: string[];
+        tags?: number[];
+    };
+    onRemoveKeyword?: (keyword: string) => void;
+    onRemoveTag?: (tagId: number) => void;
 }
 
 export default function FilterTagChips({ filter, onRemoveKeyword, onRemoveTag }: Props) {
@@ -13,8 +15,8 @@ export default function FilterTagChips({ filter, onRemoveKeyword, onRemoveTag }:
 
     return (
         <div className="flex items-center gap-5">
-            {filter.keywords.length > 0 && (
-                <div className="text-foreground/75 flex items-center gap-2">
+            {filter.keywords && filter.keywords.length > 0 && (
+                <div className="flex items-center gap-2 text-foreground/75">
                     Keywords:{" "}
                     <TagChipList
                         max={4}
@@ -22,17 +24,17 @@ export default function FilterTagChips({ filter, onRemoveKeyword, onRemoveTag }:
                             id: i,
                             name: kw,
                         }))}
-                        onRemove={(t) => onRemoveKeyword(t.name!)}
+                        onRemove={onRemoveKeyword ? (t) => onRemoveKeyword(t.name!) : undefined}
                     />
                 </div>
             )}
-            {filter.tags.length > 0 && (
-                <div className="text-foreground/75 flex items-center gap-2">
+            {filter.tags && filter.tags.length > 0 && (
+                <div className="flex items-center gap-2 text-foreground/75">
                     Tags:{" "}
                     <TagChipList
                         max={4}
                         tags={filter.tags.map((t) => tagStore.tags.get(t)!)}
-                        onRemove={(tag) => onRemoveTag(tag.id!)}
+                        onRemove={onRemoveTag ? (tag) => onRemoveTag(tag.id!) : undefined}
                     />
                 </div>
             )}
