@@ -132,7 +132,7 @@ export default function SettingsCommand() {
     }, [tagStore.tags, savedStore.tabs, tagSort]);
 
     return (
-        <Command loop value={page} onValueChange={setPage} className="min-h-[425px]">
+        <Command loop value={page} onValueChange={setPage} className="min-h-[450px]">
             <div className="mb-4 flex items-center border-b">
                 <CommandInput placeholder="Search settings..." ref={cmdInputRef} autoFocus />
             </div>

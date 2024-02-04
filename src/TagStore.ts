@@ -1,5 +1,5 @@
 import { proxy, subscribe, useSnapshot } from "valtio";
-import { proxyMap } from "valtio/utils";
+import { derive, proxyMap } from "valtio/utils";
 
 import ChromeLocalStorage from "./ChromeLocalStorage";
 import { version } from "./constants";
@@ -25,10 +25,14 @@ const storageKey = `cmdtab-tag-store-${version}`;
 
 export interface TagStore {
     tags: Map<number, Tag>;
+    tagsByName: Map<string, Tag>;
     initialized: boolean;
+    getNextTagId(): number;
     createTag(name: string): Tag;
     deleteTag(tagId: number): void;
     updateTag(tagId: number, updates: Partial<Pick<Tag, "name" | "color">>): void;
+    toggleTagFavorite(tagId: number): void;
+    import(imported: Partial<ImportedTagStore>): void;
     initStore(): Promise<void>;
 }
 
@@ -38,23 +42,30 @@ type ImportedTagStore = Partial<Pick<TagStore, "tags">>;
 const store = proxy({
     tags: proxyMap<number, Tag>(defaultTags as [number, Tag][]),
     initialized: false,
-    createTag: (name: string, color = defaultTagColor): Tag => {
+    getNextTagId: () => {
         const highestId = Math.max(...store.tags.keys(), 1);
         const newId = highestId + 1;
+
+        return newId;
+    },
+    createTag: (name: string, color = defaultTagColor): Tag => {
+        const newId = store.getNextTagId();
 
         const newTag = {
             color,
             id: newId,
-            name,
+            name: name.trim(),
             favorite: false,
         };
 
-        store.tags.set(newId, {
-            color,
-            id: newId,
-            name,
-            favorite: false,
-        });
+        if (!newTag.name) {
+            toast.error("Tag name cannot be empty");
+        }
+        if (store.tagsByName.has(newTag.name)) {
+            toast.error("Tag with this name already exists");
+        }
+
+        store.tags.set(newId, newTag);
 
         return newTag;
     },
@@ -80,7 +91,7 @@ const store = proxy({
     import: (imported: Partial<ImportedTagStore>) => {
         const conflicts = intersection(imported.tags?.keys() || [], store.tags.keys());
         if (conflicts.size) {
-            toast.error("Failed to import tags");
+            // shouldn't happen
             console.error(conflicts);
         }
 
@@ -104,7 +115,20 @@ const store = proxy({
         }
         store.initialized = true;
     },
-});
+}) as unknown as TagStore;
+
+derive(
+    {
+        tagsByName: (get) => {
+            const tags = get(store).tags;
+
+            const byName = proxyMap([...tags.values()].map((v) => [v.name, v]));
+
+            return byName;
+        },
+    },
+    { proxy: store },
+);
 
 subscribe(store, () => {
     if (store.initialized) {
@@ -115,6 +139,6 @@ subscribe(store, () => {
 
 store.initStore();
 
-export const useTagStore = () => useSnapshot(store);
+export const useTagStore = () => useSnapshot(store) as typeof store;
 
 export default store;

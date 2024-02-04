@@ -1,13 +1,13 @@
 import { ChangeEventHandler, DragEventHandler, useState } from "react";
 import { z } from "zod";
 
-import { Tag } from "../models";
-import { SavedStore, useSavedTabStore } from "../SavedTabs";
-import TagStore, { useTagStore } from "../TagStore";
-import Button from "../ui/Button";
-import { toast } from "../ui/Toast";
-import { cn } from "../util";
-import { intersection } from "../util/set";
+import { Tag } from "../../models";
+import { SavedStore, useSavedTabStore } from "../../SavedTabs";
+import TagStore, { useTagStore } from "../../TagStore";
+import Button from "../../ui/Button";
+import { toast } from "../../ui/Toast";
+import { cn } from "../../util";
+import { intersection } from "../../util/set";
 
 const importHint = `\
 Tab {                 Tag {
@@ -47,31 +47,62 @@ export default function DNDImport() {
     const savedStore = useSavedTabStore();
     const [draggingOver, setDraggingOver] = useState(false);
 
+    // todo: add tests for this
     const handleImport = async (file: File) => {
         try {
             const imported = JSON.parse(await file.text());
-
-            imported.tabs = Object.values(imported.tabs);
-
             const validated = schema.parse(imported);
 
-            const existingTags = intersection(
-                TagStore.tags.keys(),
-                validated.tags.map((t) => t.id),
-            );
-            if (existingTags.size) {
-                toast.error(`Tags with IDs ${Array.from(existingTags).join(", ")} already exist`);
-                return;
+            const tagsByName = new Map(validated.tags.map((t) => [t.name, t]));
+
+            function remapIds(remappedIds: Map<number, number>) {
+                for (const t of validated.tabs) {
+                    if (intersection(remappedIds.keys(), t.tagIds).size) {
+                        t.tagIds = t.tagIds.map((id) => remappedIds.get(id) || id);
+                    }
+                }
+
+                for (const t of validated.tags) {
+                    if (remappedIds.has(t.id)) {
+                        t.id = remappedIds.get(t.id)!;
+                    }
+                }
             }
 
-            if ("tags" in validated) {
-                tagStore.import({
-                    tags: new Map(validated.tags.map((t) => [Number(t.id), t])),
-                });
+            const duplicateNames = intersection(
+                Array.from(TagStore.tags.values()).map((t) => t.name.trim()),
+                validated.tags.map((t) => t.name.trim()),
+            );
+            if (duplicateNames.size) {
+                const remappedIds = new Map(
+                    Array.from(duplicateNames).map((n) => [
+                        TagStore.tagsByName.get(n)!.id,
+                        tagsByName.get(n)!.id,
+                    ]),
+                );
+
+                remapIds(remappedIds);
             }
-            if ("tabs" in imported) {
-                savedStore.import({ tabs: validated.tabs });
+
+            const tagsById = new Map(validated.tags.map((t) => [Number(t.id), t]));
+            const duplicateIds = intersection(TagStore.tags.keys(), tagsById.keys());
+
+            if (duplicateIds.size) {
+                const startId = TagStore.getNextTagId();
+                let i = 1;
+
+                const remappedIds = new Map<number, number>(
+                    Array.from(duplicateIds).map((id) => [id, startId + i++]),
+                );
+
+                remapIds(remappedIds);
             }
+
+            tagStore.import({
+                tags: new Map(validated.tags.map((t) => [Number(t.id), t])),
+            });
+
+            savedStore.import({ tabs: validated.tabs });
 
             toast.success("Imported tabs & tags successfully!");
         } catch (e) {
@@ -121,19 +152,21 @@ export default function DNDImport() {
                     traverseBookmarks(child, [...parents, node.title].filter(Boolean)),
                 );
             } else if (node.url) {
-                bookmarks.push({ title: node.title, url: node.url, folders: parents });
-                parents.forEach((p) => folders.add(p));
+                bookmarks.push({ title: node.title, url: node.url, folders: [...parents] });
+                parents.forEach((p) => folders.add(p.trim()));
             }
         };
 
         bookmarksRoot.forEach((r) => traverseBookmarks(r, []));
 
-        const tags: Record<string, Tag> = {};
-
-        for (const f of folders) {
-            const tag = tagStore.createTag(f);
-            tags[f] = tag;
-        }
+        const tagsByName: Map<string, Tag> = new Map(
+            Array.from(folders).map((f) => {
+                if (!tagStore.tagsByName.has(f)) {
+                    return [f, tagStore.createTag(f)];
+                }
+                return [f, tagStore.tagsByName.get(f)!];
+            }),
+        );
 
         const tabIds = new Set(SavedStore.tabs.map((t) => t.id));
 
@@ -147,7 +180,7 @@ export default function DNDImport() {
             id: nextId++,
             title: b.title,
             url: b.url,
-            tagIds: b.folders.map((f) => tags[f].id),
+            tagIds: b.folders.map((f) => tagsByName.get(f)!.id),
         }));
 
         savedStore.import({ tabs });
@@ -160,7 +193,6 @@ export default function DNDImport() {
             <Button variant="outline" onClick={handleImportBookmarks}>
                 Import bookmarks
             </Button>
-
             <div className="flex flex-col gap-2">
                 <div>Drop a file or click to upload a CmdTab JSON export.</div>
                 <input id="import" className="peer sr-only" type="file" onChange={handleChange} />
