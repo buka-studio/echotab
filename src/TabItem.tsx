@@ -72,10 +72,11 @@ interface Props {
     className?: string;
     icon?: ReactNode;
     link?: ReactNode;
+    children?: ReactNode;
 }
 
 const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
-    { tab, actions, className, icon, link, ...props },
+    { tab, actions, className, icon, link, children, ...props },
     ref,
 ) {
     return (
@@ -99,6 +100,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
                     </HoverCardContent>
                 </span>
             </HoverCard>
+            {children}
             <div className="ml-auto max-w-[45cqw] opacity-0 group-focus-within/item:opacity-100 group-hover/item:opacity-100">
                 {actions}
             </div>

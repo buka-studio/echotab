@@ -38,7 +38,7 @@ import {
 } from "../ui/DropdownMenu";
 import { cn, focusSiblingItem } from "../util";
 import ActiveCommand from "./ActiveCommand";
-import ActiveStore, { useActiveTabStore, useIsTabSelected } from "./ActiveStore";
+import ActiveStore, { useActiveTabStore, useIsTabSelected, usIsTabDuplicate } from "./ActiveStore";
 
 function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
     const getTabIndex = () =>
@@ -103,6 +103,7 @@ const ActiveTabItem = forwardRef<
     const { tags } = useTagStore();
 
     const selected = useIsTabSelected(tab.id);
+    const duplicate = usIsTabDuplicate(tab.id);
 
     const assignedTags = selected
         ? Array.from(assignedTagIds)
@@ -151,8 +152,9 @@ const ActiveTabItem = forwardRef<
                         <Cross2Icon className="h-5 w-5" />
                     </Button>
                 </div>
-            }
-        />
+            }>
+            {duplicate && <Badge variant="secondary">Duplicate</Badge>}
+        </TabItem>
     );
 });
 

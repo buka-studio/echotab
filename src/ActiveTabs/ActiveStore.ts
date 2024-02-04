@@ -339,5 +339,20 @@ export function useIsTabSelected(tabId: number) {
 
     return selected;
 }
+export function usIsTabDuplicate(tabId: number) {
+    const [duplicate, setSelected] = useState(store.viewDuplicateTabIds.has(tabId));
+
+    useEffect(() => {
+        const callback = () => {
+            setSelected(store.viewDuplicateTabIds.has(tabId));
+        };
+        const unsubscribe = subscribe(store, callback);
+        callback();
+
+        return unsubscribe;
+    }, [tabId]);
+
+    return duplicate;
+}
 
 export default store;
