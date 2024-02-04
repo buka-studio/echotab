@@ -49,6 +49,41 @@ export default function ActiveCommand() {
         }
     };
 
+    const handleQuickSave = async () => {
+        const tagName = new Date().toUTCString();
+
+        for (const w of Object.keys(ActiveStore.viewTabIdsByWindowId)) {
+            const windowId = Number(w);
+            if (ActiveStore.viewTabIdsByWindowId[windowId].length === 0) {
+                continue;
+            }
+
+            const quickTag = tagStore.createTag(`${tagName} - ${windowId}`);
+
+            const tabsToSave = ActiveStore.viewTabIdsByWindowId[windowId]
+                .map((tabId) => {
+                    const tab = ActiveStore.viewTabsById[tabId];
+                    if (!tab) {
+                        return null;
+                    }
+
+                    const tabToSave = {
+                        id: tab?.id,
+                        url: tab?.url,
+                        favIconUrl: tab?.favIconUrl,
+                        title: tab?.title,
+                        savedAt: Date.now(),
+                        tagIds: [quickTag.id],
+                    };
+
+                    return tabToSave;
+                })
+                .filter(Boolean) as SavedTab[];
+
+            await tabStore.saveTabs(tabsToSave);
+        }
+    };
+
     const handleSaveAssignedTags = async () => {
         const tabsToSave = Array.from(ActiveStore.selectedTabIds)
             .map((id) => ActiveStore.viewTabsById[id])
@@ -225,7 +260,8 @@ export default function ActiveCommand() {
                                 )}
                             </CommandGroup>
                             <CommandSeparator />
-                            <CommandGroup heading="Misc">
+                            <CommandGroup heading="General">
+                                <CommandItem onSelect={handleQuickSave}>Quick Save</CommandItem>
                                 <CommandItem onSelect={() => pushPage("filter")}>
                                     Filter
                                 </CommandItem>
