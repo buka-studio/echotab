@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 import FilterTagChips from "../FilterTagChips";
 import { Panel } from "../models";
@@ -32,13 +32,6 @@ export default function SavedCommand() {
     const inputRef = useRef<HTMLInputElement>(null);
     const commandRef = useRef<HTMLDivElement>(null);
 
-    const [filter, setFilter] = useState(tabStore.view.filter);
-    const prevFilter = useRef(tabStore.view.filter);
-    if (prevFilter.current !== tabStore.view.filter) {
-        setFilter(tabStore.view.filter);
-        prevFilter.current = tabStore.view.filter;
-    }
-
     const getValue = () => {
         const highlighted = commandRef.current?.querySelector(
             `[cmdk-item=""][aria-selected="true"]`,
@@ -57,11 +50,6 @@ export default function SavedCommand() {
 
         setSearch("");
         setPages(["/"]);
-    };
-
-    const handleApplyFilter = () => {
-        tabStore.setFilter(filter);
-        setSearch("");
     };
 
     const handleCopyToClipboard = () => {
@@ -110,32 +98,27 @@ export default function SavedCommand() {
     };
 
     const handleToggleFilterTag = (id: number) => {
-        let filterTags = new Set(filter.tags);
+        let filterTags = new Set(SavedStore.view.filter.tags);
         toggle(filterTags, id);
 
-        setFilter((f) => ({
-            ...f,
+        tabStore.updateFilter({
             tags: Array.from(filterTags),
-        }));
+        });
     };
 
     const handleToggleFilterKeyword = (keyword: string) => {
-        let filterKeywords = new Set(filter.keywords);
+        let filterKeywords = new Set(SavedStore.view.filter.keywords);
         toggle(filterKeywords, keyword.trim());
 
-        setFilter((f) => ({
-            ...f,
+        tabStore.updateFilter({
             keywords: Array.from(filterKeywords),
-        }));
+        });
         setSearch("");
     };
 
     const handleApply = () => {
         if (activePage === "tag") {
             handleSaveAssignedTags();
-        }
-        if (activePage === "filter") {
-            handleApplyFilter();
         }
     };
 
@@ -169,9 +152,6 @@ export default function SavedCommand() {
                         if (e.key === "Enter" && !getValue() && search) {
                             e.preventDefault();
                             handleToggleFilterKeyword(search);
-                        } else if (e.key === "Enter" && e.metaKey) {
-                            e.preventDefault();
-                            handleApplyFilter();
                         }
                     }
                 }}>
@@ -186,7 +166,7 @@ export default function SavedCommand() {
                         autoFocus
                     />
                     <div className="actions">
-                        {["tag", "filter"].includes(activePage) && (
+                        {["tag"].includes(activePage) && (
                             <div className="flex items-center gap-1">
                                 <button
                                     onClick={handleApply}
@@ -247,7 +227,7 @@ export default function SavedCommand() {
                                 )}
                             </CommandGroup>
                             <CommandSeparator />
-                            <CommandGroup heading="Misc">
+                            <CommandGroup heading="General">
                                 <CommandItem onSelect={() => pushPage("filter")}>
                                     Filter
                                 </CommandItem>
@@ -321,7 +301,7 @@ export default function SavedCommand() {
                         <div>
                             <div className="mb-2 px-2">
                                 <FilterTagChips
-                                    filter={filter}
+                                    filter={tabStore.view.filter}
                                     onRemoveKeyword={handleToggleFilterKeyword}
                                     onRemoveTag={handleToggleFilterTag}
                                 />
@@ -330,7 +310,9 @@ export default function SavedCommand() {
                                 <div className="scrollbar-gray max-h-[min(320px,calc(100vh-180px))] overflow-auto">
                                     <CommandGroup>
                                         {Array.from(tagStore.tags.values())
-                                            .filter((t) => !filter.tags.includes(t.id))
+                                            .filter(
+                                                (t) => !tabStore.view.filter.tags.includes(t.id),
+                                            )
                                             .map((t) => (
                                                 <CommandItem
                                                     value={"#" + t.name}

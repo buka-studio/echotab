@@ -55,7 +55,7 @@ export interface SavedStore {
     toggleAssignedTagId(tagId: number): void;
     clearAssignedTagIds(): void;
     setView(view: Partial<SavedStore["view"]>): void;
-    setFilter(filter: Filter): void;
+    updateFilter(filter: Partial<Filter>): void;
     clearFilter(): void;
     initStorage(): void;
     removeTab(tabId: number): void;
@@ -128,7 +128,7 @@ const store = proxy({
     setView(view: Partial<SavedStore["view"]>) {
         store.view = { ...store.view, ...view };
     },
-    setFilter: (filter: Partial<Filter>) => {
+    updateFilter: (filter: Partial<Filter>) => {
         store.view.filter = { ...store.view.filter, ...filter };
     },
     clearFilter: () => {

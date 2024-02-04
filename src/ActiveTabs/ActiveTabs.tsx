@@ -199,9 +199,8 @@ export default function ActiveTabs() {
     const activeTab = tabStore.viewTabsById[activeId!];
 
     const handleRemoveFilterKeyword = (keyword: string) => {
-        tabStore.setFilter({
-            ...tabStore.view.filter,
-            keywords: tabStore.view.filter.keywords.filter((kw) => kw !== keyword.trim()),
+        tabStore.updateFilter({
+            keywords: ActiveStore.view.filter.keywords.filter((kw) => kw !== keyword.trim()),
         });
     };
 

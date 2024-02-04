@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 import FilterTagChips from "../FilterTagChips";
 import { Panel, SavedTab } from "../models";
@@ -32,13 +32,6 @@ export default function ActiveCommand() {
 
     const inputRef = useRef<HTMLInputElement>(null);
     const commandRef = useRef<HTMLDivElement>(null);
-
-    const [filter, setFilter] = useState(tabStore.view.filter);
-    const prevFilter = useRef(tabStore.view.filter);
-    if (prevFilter.current !== tabStore.view.filter) {
-        setFilter(tabStore.view.filter);
-        prevFilter.current = tabStore.view.filter;
-    }
 
     const getValue = () => {
         const highlighted = commandRef.current?.querySelector(
@@ -108,11 +101,6 @@ export default function ActiveCommand() {
         setPages(["/"]);
     };
 
-    const handleApplyFilter = () => {
-        tabStore.setFilter(filter);
-        setSearch("");
-    };
-
     const handleCopyToClipboard = () => {
         const selectedLinks = tabStore.tabs.filter((tab) => tabStore.selectedTabIds.has(tab.id));
 
@@ -139,22 +127,19 @@ export default function ActiveCommand() {
     };
 
     const handleToggleFilterKeyword = (keyword: string) => {
-        let filterKeywords = new Set(filter.keywords);
+        let filterKeywords = new Set(ActiveStore.view.filter.keywords);
         toggle(filterKeywords, keyword.trim());
 
-        setFilter((f) => ({
-            ...f,
+        tabStore.updateFilter({
             keywords: Array.from(filterKeywords),
-        }));
+        });
+
         setSearch("");
     };
 
     const handleApply = () => {
         if (activePage === "tag") {
             handleSaveAssignedTags();
-        }
-        if (activePage === "filter") {
-            handleApplyFilter();
         }
     };
 
@@ -188,9 +173,6 @@ export default function ActiveCommand() {
                         if (e.key === "Enter" && !getValue() && search) {
                             e.preventDefault();
                             handleToggleFilterKeyword(search);
-                        } else if (e.key === "Enter" && e.metaKey) {
-                            e.preventDefault();
-                            handleApplyFilter();
                         }
                     }
                 }}>
@@ -205,7 +187,7 @@ export default function ActiveCommand() {
                         autoFocus
                     />
                     <div className="actions">
-                        {["tag", "filter"].includes(activePage) && (
+                        {["tag"].includes(activePage) && (
                             <div className="flex items-center gap-1">
                                 <button
                                     onClick={handleApply}
@@ -340,7 +322,7 @@ export default function ActiveCommand() {
                         <div>
                             <div className="mb-2 px-2">
                                 <FilterTagChips
-                                    filter={filter}
+                                    filter={tabStore.view.filter}
                                     onRemoveKeyword={handleToggleFilterKeyword}
                                 />
                             </div>

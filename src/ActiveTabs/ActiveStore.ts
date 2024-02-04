@@ -52,7 +52,7 @@ export interface ActiveStore {
     initTabs(): Promise<void>;
     toggleAssignedTagId(tagId: number): void;
     clearAssignedTagIds(): void;
-    setFilter(filter: Filter): void;
+    updateFilter(filter: Partial<Filter>): void;
     clearFilter(): void;
     setPreviewFilter(filter: Filter): void;
     addTab(tabId: number, tab: ActiveTab): void;
@@ -183,7 +183,7 @@ const store = proxy({
     clearAssignedTagIds: () => {
         store.assignedTagIds = proxySet();
     },
-    setFilter: (filter: Partial<Filter>) => {
+    updateFilter: (filter: Partial<Filter>) => {
         store.view.filter = { ...store.view.filter, ...filter };
     },
     clearFilter: () => {
@@ -339,6 +339,7 @@ export function useIsTabSelected(tabId: number) {
 
     return selected;
 }
+
 export function usIsTabDuplicate(tabId: number) {
     const [duplicate, setSelected] = useState(store.viewDuplicateTabIds.has(tabId));
 
