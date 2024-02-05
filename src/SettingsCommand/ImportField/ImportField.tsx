@@ -53,7 +53,7 @@ export default function DNDImport() {
             const imported = JSON.parse(await file.text());
             const validated = schema.parse(imported);
 
-            const tagsByName = new Map(validated.tags.map((t) => [t.name, t]));
+            const tagsByName = new Map<string, Tag>(validated.tags.map((t) => [t.name.trim(), t]));
 
             function remapIds(remappedIds: Map<number, number>) {
                 for (const t of validated.tabs) {
@@ -76,8 +76,8 @@ export default function DNDImport() {
             if (duplicateNames.size) {
                 const remappedIds = new Map(
                     Array.from(duplicateNames).map((n) => [
-                        TagStore.tagsByName.get(n)!.id,
                         tagsByName.get(n)!.id,
+                        TagStore.tagsByName.get(n)!.id,
                     ]),
                 );
 
@@ -86,7 +86,6 @@ export default function DNDImport() {
 
             const tagsById = new Map(validated.tags.map((t) => [Number(t.id), t]));
             const duplicateIds = intersection(TagStore.tags.keys(), tagsById.keys());
-
             if (duplicateIds.size) {
                 const startId = TagStore.getNextTagId();
                 let i = 1;
