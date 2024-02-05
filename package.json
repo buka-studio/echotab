@@ -79,7 +79,7 @@
             "bookmarks"
         ],
         "host_permissions": [
-            "https://*/*"
+            "*://*/*"
         ]
     }
 }
