@@ -294,15 +294,13 @@ export default function SavedTabs() {
     };
 
     const handleRemoveFilterTag = (tagId: number) => {
-        tabStore.setFilter({
-            ...tabStore.view.filter,
+        tabStore.updateFilter({
             tags: tabStore.view.filter.tags.filter((id) => id !== tagId),
         });
     };
 
     const handleRemoveFilterKeyword = (keyword: string) => {
-        tabStore.setFilter({
-            ...tabStore.view.filter,
+        tabStore.updateFilter({
             keywords: tabStore.view.filter.keywords.filter((kw) => kw !== keyword.trim()),
         });
     };
