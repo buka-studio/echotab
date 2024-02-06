@@ -60,6 +60,7 @@ export interface SavedStore {
     initStorage(): void;
     removeTab(tabId: number): void;
     removeTabs(tabIds: number[]): void;
+    removeAllTabs(): void;
     removeTabTag(tabId: number, tagId: number): void;
     selectTabs(tabIds?: Set<number>): void;
     deselectAllTabs(): void;
@@ -98,6 +99,10 @@ const store = proxy({
         for (const id of idsSet) {
             store.selectedTabIds.delete(id);
         }
+    },
+    removeAllTabs: () => {
+        store.tabs = [];
+        store.selectedTabIds = proxySet();
     },
     toggleSelected: (tabId: number) => {
         toggle(store.selectedTabIds, tabId);

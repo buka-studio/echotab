@@ -30,6 +30,7 @@ export interface TagStore {
     getNextTagId(): number;
     createTag(name: string): Tag;
     deleteTag(tagId: number): void;
+    deleteAllTags(): void;
     updateTag(tagId: number, updates: Partial<Pick<Tag, "name" | "color">>): void;
     toggleTagFavorite(tagId: number): void;
     import(imported: Partial<ImportedTagStore>): void;
@@ -80,6 +81,9 @@ const store = proxy({
     },
     deleteTag: (tagId: number) => {
         store.tags.delete(tagId);
+    },
+    deleteAllTags: () => {
+        store.tags.clear();
     },
     toggleTagFavorite: (tagId: number) => {
         const tag = store.tags.get(tagId);

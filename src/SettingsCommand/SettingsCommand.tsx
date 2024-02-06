@@ -10,6 +10,16 @@ import React, { useMemo, useRef, useState } from "react";
 import { Tag } from "../models";
 import { useSavedTabStore } from "../SavedTabs";
 import { unassignedTag, useTagStore } from "../TagStore";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../ui/AlertDialog";
 import Button from "../ui/Button";
 import {
     Command,
@@ -114,6 +124,12 @@ export default function SettingsCommand() {
         );
     };
 
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const handleConfirmDelete = () => {
+        savedStore.removeAllTabs();
+        tagStore.deleteAllTags();
+    };
+
     const tagSettings: TagSetting[] = useMemo(() => {
         const tabCountsById = new Map(
             Array.from(tagStore.tags.values()).map((t) => [t.id, { ...t, tabCount: 0 }]),
@@ -148,9 +164,33 @@ export default function SettingsCommand() {
                                 <DownloadIcon className="h-4 w-4" />
                             </span>
                         </CommandItem>
+                        <CommandItem
+                            onSelect={() => setDeleteDialogOpen(true)}
+                            className="text-destructive">
+                            Delete Data
+                        </CommandItem>
                     </CommandGroup>
                     <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
                 </CommandList>
+                <AlertDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={() => setDeleteDialogOpen(false)}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will delete all your saved tabs and tags from this computer.
+                                This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleConfirmDelete}>
+                                Delete Data
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
                 <div className="content scrollbar-gray h-full max-h-[350px] flex-1 overflow-auto border-l-[1px] pl-4">
                     {page === "tags" && (
                         <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4 pt-1">
