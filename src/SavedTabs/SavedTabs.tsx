@@ -1,10 +1,4 @@
-import {
-    ArrowDownIcon,
-    ArrowUpIcon,
-    CaretSortIcon,
-    Cross2Icon,
-    MixerHorizontalIcon,
-} from "@radix-ui/react-icons";
+import { CaretSortIcon, Cross2Icon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
     ComponentProps,
@@ -19,6 +13,7 @@ import {
 import FilterTagChips from "../FilterTagChips";
 import { SavedTab, Tag } from "../models";
 import { SelectableItem, SelectableList } from "../SelectableList";
+import SortButton from "../SortButton";
 import TabItem, { Favicon } from "../TabItem";
 import TabListPlaceholder from "../TabsListPlaceholder";
 import { TagChipList } from "../TagChip";
@@ -169,28 +164,6 @@ const SavedTabItem = forwardRef<
         />
     );
 });
-
-interface SortButtonProps {
-    active: boolean;
-    dir: SortDir;
-    onClick(): void;
-}
-
-function SortButton({ active, dir, onClick }: SortButtonProps) {
-    return (
-        <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClick}
-            className={cn({ "text-primary": active })}>
-            {!active || dir === SortDir.Asc ? (
-                <ArrowUpIcon className="h-4 w-4" />
-            ) : (
-                <ArrowDownIcon className="h-4 w-4" />
-            )}
-        </Button>
-    );
-}
 
 function isTagItem(item: unknown) {
     return typeof item === "string" && item.startsWith("t:");
