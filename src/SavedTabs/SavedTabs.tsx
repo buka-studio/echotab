@@ -85,20 +85,20 @@ function TagHeaderItem({ tag, actions }: { tag: Tag; actions?: ReactNode }) {
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button variant="ghost" className="select-none">
-                        Remove All
+                        Remove Tabs
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will delete all tabs in this group.
+                            This will remove all tabs in this group.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={() => tabStore.removeTabs(tabIds)}>
-                            Remove All
+                            Remove Tabs
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
