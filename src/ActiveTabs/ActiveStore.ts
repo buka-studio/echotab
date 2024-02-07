@@ -134,7 +134,7 @@ const store = proxy({
     },
     removeTabs: async (tabIds: number[]) => {
         await chrome.tabs.remove(tabIds);
-        console.log("removing", tabIds);
+
         const idsSet = new Set(tabIds);
         store.tabs = store.tabs.filter((t) => !idsSet.has(t.id));
         for (const id of idsSet) {
