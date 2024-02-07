@@ -29,6 +29,7 @@ async function fetchGoogleFavicon(url: string) {
 export function Favicon({ src, className }: { className?: string; src?: string }) {
     const { data, error } = useSWRImmutable(src || null, fetchGoogleFavicon, {
         shouldRetryOnError: false,
+        dedupingInterval: 1000 * 60 * 60 * 24, // 24 hours
     });
 
     return (

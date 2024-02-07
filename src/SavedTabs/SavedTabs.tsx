@@ -84,7 +84,9 @@ function TagHeaderItem({ tag, actions }: { tag: Tag; actions?: ReactNode }) {
             </div>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="ghost">Remove All</Button>
+                    <Button variant="ghost" className="select-none">
+                        Remove All
+                    </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
