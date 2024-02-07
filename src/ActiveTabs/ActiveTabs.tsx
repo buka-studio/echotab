@@ -12,6 +12,7 @@ import SortableList, {
     SortableItem,
     SortableOverlayItem,
 } from "../SortableList";
+import SortButton from "../SortButton";
 import TabItem, { Favicon } from "../TabItem";
 import TabListPlaceholder from "../TabsListPlaceholder";
 import { TagChipList } from "../TagChip";
@@ -37,6 +38,7 @@ import {
     DropdownMenuTrigger,
 } from "../ui/DropdownMenu";
 import { cn, focusSiblingItem } from "../util";
+import { SortDir } from "../util/sort";
 import ActiveCommand from "./ActiveCommand";
 import ActiveStore, { useActiveTabStore, useIsTabSelected, usIsTabDuplicate } from "./ActiveStore";
 
@@ -204,6 +206,15 @@ export default function ActiveTabs() {
         });
     };
 
+    const handleSort = () => {
+        tabStore.setView({
+            sort: {
+                prop: "index",
+                dir: tabStore.view.sort.dir === SortDir.Desc ? SortDir.Asc : SortDir.Desc,
+            },
+        });
+    };
+
     const hasDuplicates = tabStore.viewDuplicateTabIds.size > 0;
 
     return (
@@ -230,6 +241,20 @@ export default function ActiveTabs() {
                             Close {tabStore.viewDuplicateTabIds.size} Duplicate(s)
                         </Button>
                     )}
+                </div>
+            </div>
+            <div className="mx-auto mb-2 mt-12 flex w-full max-w-4xl items-center justify-start">
+                <div className="flex flex-1 items-center gap-2 text-sm">
+                    <div className="flex gap-5">
+                        <div className="flex items-center gap-2 text-sm">
+                            Tab Order
+                            <SortButton
+                                active
+                                dir={tabStore.view.sort.dir}
+                                onClick={() => handleSort()}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
             {tabStore.tabs.length === 0 && (
@@ -261,7 +286,7 @@ export default function ActiveTabs() {
                     onSortEnd={(items) => tabStore.syncOrder(items)}
                     onActiveIdChange={setActiveId}>
                     {Object.entries(tabIdsByWindowId).map(([windowId, tabIds], i) => (
-                        <div className="mx-auto mt-12 max-w-4xl select-none px-2" key={windowId}>
+                        <div className="mx-auto mt-8 max-w-4xl select-none px-2" key={windowId}>
                             <div className="mb-2 flex justify-between">
                                 <div className="inline-flex items-center gap-2 text-sm">
                                     Window {i + 1}{" "}

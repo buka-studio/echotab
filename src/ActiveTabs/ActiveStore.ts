@@ -8,6 +8,7 @@ import { SavedStore } from "../SavedTabs";
 import { toast } from "../ui/Toast";
 import { canonicalizeURL, isValidActiveTab } from "../util";
 import { toggle } from "../util/set";
+import { SortDir } from "../util/sort";
 
 export interface Filter {
     keywords: string[];
@@ -42,7 +43,13 @@ export interface ActiveStore {
     tabs: ActiveTab[];
     selectedTabIds: Set<number>;
 
-    view: { filter: Filter };
+    view: {
+        filter: Filter;
+        sort: {
+            prop: "index";
+            dir: SortDir;
+        };
+    };
     filtersApplied: boolean;
     filteredTabIds: Set<number>;
     viewDuplicateTabIds: Set<number>;
@@ -52,9 +59,9 @@ export interface ActiveStore {
     initTabs(): Promise<void>;
     toggleAssignedTagId(tagId: number): void;
     clearAssignedTagIds(): void;
+    setView(view: Partial<ActiveStore["view"]>): void;
     updateFilter(filter: Partial<Filter>): void;
     clearFilter(): void;
-    setPreviewFilter(filter: Filter): void;
     addTab(tabId: number, tab: ActiveTab): void;
     reorderTab(from: number, to: number, syncBrowser?: boolean): void;
     syncOrder(tabs: Record<number, number[]>): void;
@@ -83,6 +90,10 @@ const store = proxy({
     view: proxy({
         filter: {
             keywords: [] as string[],
+        },
+        sort: {
+            prop: "index" as const,
+            dir: SortDir.Asc,
         },
     }),
     initTabs: async () => {
@@ -188,6 +199,9 @@ const store = proxy({
     clearAssignedTagIds: () => {
         store.assignedTagIds = proxySet();
     },
+    setView(view: Partial<ActiveStore["view"]>) {
+        store.view = { ...store.view, ...view };
+    },
     updateFilter: (filter: Partial<Filter>) => {
         store.view.filter = { ...store.view.filter, ...filter };
     },
@@ -202,9 +216,13 @@ const store = proxy({
     },
     syncOrder: async (tabs: Record<number, number[]>) => {
         await Promise.all(
-            Object.entries(tabs).map(([windowId, tabs]) =>
-                chrome.tabs.move(Array.from(tabs), { index: 0, windowId: Number(windowId) }),
-            ),
+            Object.entries(tabs).map(([windowId, tabs]) => {
+                const sortedTabs = store.view.sort.dir === SortDir.Asc ? tabs : [...tabs].reverse();
+                return chrome.tabs.move(Array.from(sortedTabs), {
+                    index: 0,
+                    windowId: Number(windowId),
+                });
+            }),
         ).catch((e) => {
             console.error(e);
         });
@@ -298,6 +316,7 @@ derive(
             return ids;
         },
         viewTabIdsByWindowId: (get) => {
+            const view = get(store).view;
             const filteredIds = get(store).filteredTabIds;
             const tabs = get(store.tabs).filter((t) => filteredIds.has(t.id));
 
@@ -307,6 +326,12 @@ derive(
                     ids[t.windowId] = [];
                 }
                 ids[t.windowId].push(t.id);
+            }
+
+            if (view.sort.dir === SortDir.Desc) {
+                for (const windowId of Object.keys(ids)) {
+                    ids[Number(windowId)] = ids[Number(windowId)].reverse();
+                }
             }
 
             return ids;
