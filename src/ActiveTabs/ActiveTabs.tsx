@@ -250,7 +250,7 @@ export default function ActiveTabs() {
             <SelectableList
                 onResetSelection={ActiveStore.deselectAllTabs}
                 getSelected={() => ActiveStore.selectedTabIds}
-                onSelectionChange={(selection) => ActiveStore.selectTabs(selection)}
+                onSelectionChange={(selection) => ActiveStore.selectTabs(selection as Set<number>)}
                 onBeforeStart={() => {
                     return activeIdRef.current === null;
                 }}>

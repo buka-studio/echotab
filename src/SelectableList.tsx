@@ -6,8 +6,8 @@ import { equals } from "./util/set";
 
 interface Props {
     onResetSelection: () => void;
-    getSelected: () => Set<number>;
-    onSelectionChange: (ids: Set<number>) => void;
+    getSelected: () => Set<number | string>;
+    onSelectionChange: (ids: Set<number | string>) => void;
 }
 
 export function SelectableList({
@@ -16,11 +16,15 @@ export function SelectableList({
     onSelectionChange,
     ...props
 }: Props & ComponentProps<typeof SelectionArea>) {
-    const extractIds = (els: Element[]): number[] =>
-        els
-            .map((v) => v.getAttribute("data-key"))
-            .filter(Boolean)
-            .map(Number);
+    const extractIds = (els: Element[]): (number | string)[] => {
+        const ids = els.map((v) => v.getAttribute("data-key")).filter(Boolean) as string[];
+
+        const isNumber = Number.isFinite(Number(ids[0]));
+        if (isNumber) {
+            return ids.map(Number);
+        }
+        return ids;
+    };
 
     const onStart = ({ event, selection }: SelectionEvent) => {
         if (!(event?.ctrlKey || event?.metaKey)) {
@@ -77,7 +81,7 @@ export function SelectableItem({
     asChild,
 }: {
     children: React.ReactNode;
-    id: number;
+    id: number | string;
     asChild?: boolean;
 }) {
     const Comp = asChild ? Slot : "div";

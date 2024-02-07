@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { derive, proxySet } from "valtio/utils";
 
-import { ActiveTab, SavedTab } from "../models";
+import { ActiveTab } from "../models";
 import { SavedStore } from "../SavedTabs";
 import { toast } from "../ui/Toast";
 import { canonicalizeURL, isValidActiveTab } from "../util";
@@ -68,7 +68,10 @@ export interface ActiveStore {
     removeTabs(tabIds: number[]): Promise<void>;
     removeDuplicateTabs(): Promise<void>;
     resetTabs(): Promise<void>;
-    saveTabs(tabs: SavedTab[], autoremove?: boolean): Promise<void>;
+    saveTabs(
+        tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
+        autoremove?: boolean,
+    ): Promise<void>;
     updateTab(tabId: number, options: chrome.tabs.UpdateProperties): Promise<void>;
 }
 
@@ -131,7 +134,7 @@ const store = proxy({
     },
     removeTabs: async (tabIds: number[]) => {
         await chrome.tabs.remove(tabIds);
-
+        console.log("removing", tabIds);
         const idsSet = new Set(tabIds);
         store.tabs = store.tabs.filter((t) => !idsSet.has(t.id));
         for (const id of idsSet) {
@@ -165,9 +168,9 @@ const store = proxy({
     selectAllTabs: () => {
         store.selectedTabIds = proxySet([...store.filteredTabIds]);
     },
-    saveTabs: async (tabs: SavedTab[], remove = true) => {
+    saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
         if (remove) {
-            const tabIds = tabs.map(({ id }) => id);
+            const tabIds = tabs.map(({ id }) => id!).filter(Boolean);
             await store.removeTabs(tabIds).catch(() => {
                 const msg = `Failed to remove tabs: ${tabIds}`;
                 toast.error(msg);
@@ -175,7 +178,9 @@ const store = proxy({
             });
         }
 
-        SavedStore.saveTabs(tabs);
+        const withoutIds = tabs.map(({ id, windowId, ...t }) => t);
+
+        SavedStore.saveTabs(withoutIds);
     },
     toggleAssignedTagId: (tagId: number) => {
         toggle(store.assignedTagIds, tagId);

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 
 import FilterTagChips from "../FilterTagChips";
-import { Panel, SavedTab } from "../models";
+import { Panel } from "../models";
 import { CommandPagination, TabCommandDialog, useTabCommand } from "../TabCommand";
 import TagChip, { TagChipList } from "../TagChip";
 import { defaultTagColor, unassignedTag, useTagStore } from "../TagStore";
@@ -54,41 +54,41 @@ export default function ActiveCommand() {
             const quickTag = tagStore.createTag(`${tagName} - ${windowId}`);
 
             const tabsToSave = ActiveStore.viewTabIdsByWindowId[windowId]
-                .map((tabId) => {
-                    const tab = ActiveStore.viewTabsById[tabId];
-                    if (!tab) {
-                        return null;
-                    }
-
+                .map((id) => ActiveStore.viewTabsById[id])
+                .filter(Boolean)
+                .map((tab) => {
                     const tabToSave = {
-                        id: tab?.id,
-                        url: tab?.url,
+                        id: tab.id,
+                        url: tab.url,
                         favIconUrl: tab?.favIconUrl,
-                        title: tab?.title,
+                        title: tab.title,
                         savedAt: Date.now(),
                         tagIds: [quickTag.id],
                     };
 
                     return tabToSave;
-                })
-                .filter(Boolean) as SavedTab[];
+                });
 
             await tabStore.saveTabs(tabsToSave);
         }
     };
 
     const handleSaveAssignedTags = async () => {
+        if (ActiveStore.assignedTagIds.size === 0) {
+            return;
+        }
+
         const tabsToSave = Array.from(ActiveStore.selectedTabIds)
             .map((id) => ActiveStore.viewTabsById[id])
             .filter(Boolean)
             .map((tab) => {
-                const tabToSave: SavedTab = {
-                    id: tab?.id,
-                    url: tab?.url,
+                const tabToSave = {
+                    id: tab.id,
+                    url: tab.url,
                     favIconUrl: tab?.favIconUrl,
-                    title: tab?.title,
+                    title: tab.title,
                     savedAt: Date.now(),
-                    tagIds: [...tabStore.assignedTagIds],
+                    tagIds: Array.from(ActiveStore.assignedTagIds),
                 };
 
                 return tabToSave;

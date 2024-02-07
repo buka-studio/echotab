@@ -1,6 +1,7 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import Fuse from "fuse.js";
 import { useEffect, useState } from "react";
+import { uuidv7 } from "uuidv7";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { derive, proxySet } from "valtio/utils";
 
@@ -35,7 +36,7 @@ export interface SavedStore {
     initialized: boolean;
     assignedTagIds: Set<number>;
     tabs: SavedTab[];
-    selectedTabIds: Set<number>;
+    selectedTabIds: Set<string>;
     view: {
         filter: Filter;
         grouping: TabGrouping;
@@ -45,10 +46,10 @@ export interface SavedStore {
         };
     };
     filtersApplied: boolean;
-    filteredTabIds: Set<number>;
-    viewTabIds: number[];
-    viewTabsById: Record<number, SavedTab>;
-    filteredTabsByTagId: Record<number, number[]>;
+    filteredTabIds: Set<string>;
+    viewTabIds: string[];
+    viewTabsById: Record<string, SavedTab>;
+    filteredTabsByTagId: Record<number, string[]>;
     viewTagIds: number[];
 
     initStore(): Promise<void>;
@@ -58,16 +59,16 @@ export interface SavedStore {
     updateFilter(filter: Partial<Filter>): void;
     clearFilter(): void;
     initStorage(): void;
-    removeTab(tabId: number): void;
-    removeTabs(tabIds: number[]): void;
+    removeTab(tabId: string): void;
+    removeTabs(tabIds: string[]): void;
     removeAllTabs(): void;
-    removeTabTag(tabId: number, tagId: number): void;
-    selectTabs(tabIds?: Set<number>): void;
+    removeTabTag(tabId: string, tagId: number): void;
+    selectTabs(tabIds?: Set<string>): void;
     deselectAllTabs(): void;
     selectAllTabs(): void;
     reorderTabs(from: number, to: number): void;
-    saveTabs(tabs: SavedTab[]): void;
-    tagTabs(tabsIds: number[], tagIds: number[]): void;
+    saveTabs(tabs: Omit<SavedTab, "id">[]): void;
+    tagTabs(tabsIds: string[], tagIds: number[]): void;
     import(store: { tabs: SavedTab[] }): void;
 }
 
@@ -78,7 +79,7 @@ const store = proxy({
     initialized: false,
     assignedTagIds: proxySet<number>(),
     tabs: [] as SavedTab[],
-    selectedTabIds: proxySet<number>(),
+    selectedTabIds: proxySet<string>(),
     view: proxy({
         filter: {
             tags: [] as number[],
@@ -90,10 +91,10 @@ const store = proxy({
             dir: SortDir.Asc,
         },
     }),
-    removeTab: (tabId: number) => {
+    removeTab: (tabId: string) => {
         store.removeTabs([tabId]);
     },
-    removeTabs: (tabIds: number[]) => {
+    removeTabs: (tabIds: string[]) => {
         const idsSet = new Set(tabIds);
         store.tabs = store.tabs.filter((t) => !idsSet.has(t.id));
         for (const id of idsSet) {
@@ -104,11 +105,11 @@ const store = proxy({
         store.tabs = [];
         store.selectedTabIds = proxySet();
     },
-    toggleSelected: (tabId: number) => {
+    toggleSelected: (tabId: string) => {
         toggle(store.selectedTabIds, tabId);
     },
-    selectTabs: (tabIds?: Set<number>) => {
-        store.selectedTabIds = proxySet(tabIds || store.tabs.keys());
+    selectTabs: (tabIds?: Set<string>) => {
+        store.selectedTabIds = proxySet(tabIds || store.viewTabIds);
     },
     selectAllTabs: () => {
         store.selectedTabIds = proxySet(store.filteredTabIds);
@@ -116,7 +117,7 @@ const store = proxy({
     deselectAllTabs: () => {
         store.selectedTabIds = proxySet();
     },
-    tagTabs: (tabIds: number[], tagIds: number[]) => {
+    tagTabs: (tabIds: string[], tagIds: number[]) => {
         const idSet = new Set(tabIds);
         for (const t of store.tabs) {
             if (idSet.has(t.id)) {
@@ -139,7 +140,7 @@ const store = proxy({
     clearFilter: () => {
         store.view.filter = { tags: [], keywords: [] };
     },
-    removeTabTag: (tabId: number, tagId: number) => {
+    removeTabTag: (tabId: string, tagId: number) => {
         const tab = store.tabs.find((t) => t.id === tabId);
         if (!tab) {
             return;
@@ -153,10 +154,35 @@ const store = proxy({
         store.tabs = arrayMove(store.tabs, from, to);
     },
     import: (imported: ImportedTabStore) => {
-        store.tabs.push(...(imported.tabs || []));
+        const existingById = new Map(store.tabs.map((t) => [t.id, t]));
+        const existingByURLs = new Map(store.tabs.map((t) => [t.url, t]));
+
+        const newTabs = [];
+        for (const tab of imported?.tabs || []) {
+            if (existingById.has(tab.id) || existingByURLs.has(tab.url)) {
+                const t = existingById.get(tab.id) || existingByURLs.get(tab.url)!;
+                t.tagIds = Array.from(new Set([...t.tagIds, ...tab.tagIds]));
+            } else {
+                newTabs.push(tab);
+            }
+        }
+
+        store.tabs.push(...newTabs);
     },
-    saveTabs: (tabs: SavedTab[]) => {
-        store.tabs.push(...tabs);
+    saveTabs: (tabs: Omit<SavedTab, "id">[]) => {
+        const existingByURLs = new Map(store.tabs.map((t) => [t.url, t]));
+
+        const newTabs = [];
+        for (const tab of tabs || []) {
+            if (existingByURLs.has(tab.url)) {
+                const t = existingByURLs.get(tab.url)!;
+                t.tagIds = Array.from(new Set([...t.tagIds, ...tab.tagIds]));
+            } else {
+                newTabs.push(tab);
+            }
+        }
+
+        store.tabs.push(...newTabs.map((t) => ({ ...t, id: uuidv7() }) as SavedTab));
     },
     initStore: async () => {
         let stored = await ChromeLocalStorage.getItem(storageKey);
@@ -182,7 +208,7 @@ const savedFuse = new Fuse(store.tabs, fuseOptions);
 
 export function filterTabs(tabs: SavedTab[], filter: Filter) {
     if (filter.keywords.length + filter.tags.length === 0) {
-        return new Set<number>();
+        return new Set<string>();
     }
 
     const allIds = new Set(tabs.map((t) => t.id));
@@ -227,7 +253,7 @@ derive(
             const filteredIds = get(store).filteredTabIds;
             const tabs = get(store).tabs.filter((t) => filteredIds.has(t.id));
 
-            const ids: Record<number, SavedTab> = {};
+            const ids: Record<string, SavedTab> = {};
             for (const t of tabs) {
                 ids[t.id] = t;
             }
@@ -238,7 +264,7 @@ derive(
             const filteredIds = get(store).filteredTabIds;
             const tabs = get(store).tabs.filter((t) => filteredIds.has(t.id));
 
-            const ids: Record<number, number[]> = {};
+            const ids: Record<number, string[]> = {};
             for (const t of tabs) {
                 for (const tagId of t.tagIds) {
                     if (!ids[tagId]) {
@@ -321,7 +347,7 @@ export function useSavedTabStore() {
     return useSnapshot(store) as typeof store;
 }
 
-export function useIsTabSelected(tabId: number) {
+export function useIsTabSelected(tabId: string) {
     const [selected, setSelected] = useState(store.selectedTabIds.has(tabId));
 
     useEffect(() => {

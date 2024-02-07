@@ -6,18 +6,19 @@ export interface Tag {
 }
 
 export interface Tab {
-    id: number;
     title: string;
     url: string;
     favIconUrl?: string;
 }
 
 export interface ActiveTab extends Tab {
+    id: number;
     windowId: number;
     pinned?: boolean;
 }
 
 export interface SavedTab extends Tab {
+    id: string;
     tagIds: number[];
     savedAt?: number;
 }

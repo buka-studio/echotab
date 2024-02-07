@@ -190,23 +190,24 @@ function SortButton({ active, dir, onClick }: SortButtonProps) {
     );
 }
 
-function calcVisibleTagMembers(
-    items: (string | number)[],
-    range: { startIndex: number; endIndex: number },
-) {
+function isTagItem(item: unknown) {
+    return typeof item === "string" && item.startsWith("t:");
+}
+
+function calcVisibleTagItems(items: string[], range: { startIndex: number; endIndex: number }) {
     const visibleItems = new Set<string>();
 
     for (let i = range.startIndex; i <= range.endIndex; i++) {
         const item = items[i];
-        if (typeof item === "string") {
+        if (isTagItem(item)) {
             visibleItems.add(item);
         }
     }
 
-    if (typeof items[range.startIndex] === "number") {
+    if (!isTagItem(items[range.startIndex])) {
         for (let i = range.startIndex; i > -1; i--) {
             const item = items[i];
-            if (typeof item === "string") {
+            if (isTagItem(item)) {
                 visibleItems.add(item);
                 break;
             }
@@ -341,7 +342,7 @@ export default function SavedTabs() {
 
     const range = virtualizer.calculateRange();
 
-    const visibleItems = range ? calcVisibleTagMembers(items, range) : new Set<string>();
+    const visibleTagItems = range ? calcVisibleTagItems(items, range) : new Set<string>();
     const hasTabs = tabStore.filteredTabIds.size > 0;
 
     const isTagView = tabStore.view.grouping === TabGrouping.Tag;
@@ -456,16 +457,14 @@ export default function SavedTabs() {
             <SelectableList
                 onResetSelection={() => SavedStore.deselectAllTabs()}
                 getSelected={() => SavedStore.selectedTabIds}
-                onSelectionChange={(selection) => SavedStore.selectTabs(selection)}>
+                onSelectionChange={(selection) => SavedStore.selectTabs(selection as Set<string>)}>
                 <div className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr] items-start gap-x-5">
                     <div className="scrollbar-gray sticky top-5 hidden justify-self-end overflow-auto xl:block">
                         {isTagView && (
                             <ul className="flex max-h-screen flex-col gap-2 py-1 pl-2">
                                 {items
                                     .flatMap((item, i) =>
-                                        typeof item === "string"
-                                            ? [[item, i] as [string, number]]
-                                            : [],
+                                        isTagItem(item) ? [[item, i] as [string, number]] : [],
                                     )
                                     .map(([item, i]) => {
                                         const tag = tagStore.tags.get(Number(item.slice(2)));
@@ -477,7 +476,7 @@ export default function SavedTabs() {
                                                     "text-sm leading-4 text-foreground/50 transition-all duration-200",
                                                     {
                                                         "-translate-x-1 text-foreground":
-                                                            visibleItems.has(item),
+                                                            visibleTagItems.has(item),
                                                     },
                                                 )}>
                                                 <button
@@ -507,8 +506,7 @@ export default function SavedTabs() {
                             {virtualizer.getVirtualItems().map((i) => {
                                 const item = items[i.index];
 
-                                const isTagItem = typeof item === "string" && item.startsWith("t:");
-                                if (isTagItem) {
+                                if (isTagItem(item)) {
                                     const tagId = Number(item.slice(2));
                                     prevTagId = tagId;
 
@@ -546,7 +544,7 @@ export default function SavedTabs() {
 
                                 const currentGroupTagId =
                                     tabStore.view.grouping === TabGrouping.All ? 0 : prevTagId;
-                                const tab = tabStore.viewTabsById[item as number];
+                                const tab = tabStore.viewTabsById[item];
 
                                 return (
                                     <SelectableItem asChild id={tab.id} key={i.key}>

@@ -2,7 +2,7 @@ import { ChangeEventHandler, DragEventHandler, useState } from "react";
 import { z } from "zod";
 
 import { Tag } from "../../models";
-import { SavedStore, useSavedTabStore } from "../../SavedTabs";
+import { useSavedTabStore } from "../../SavedTabs";
 import TagStore, { useTagStore } from "../../TagStore";
 import Button from "../../ui/Button";
 import { toast } from "../../ui/Toast";
@@ -10,12 +10,12 @@ import { cn } from "../../util";
 import { intersection } from "../../util/set";
 
 const importHint = `\
-Tab {                 Tag {
-  id: number;           id: number;
-  title: string;        name: string;
-  url: string;        }
-  tags: number[];
-}                           
+Tab {                   Tag {
+  id: number;             id: number;
+  title: string;          name: string;
+  url: string;            color?: string;
+  tagIds: number[];       favorite?: boolean;
+}                       }
 
 Import { 
     savedTabs: Tab[]; 
@@ -34,7 +34,7 @@ const schema = z.object({
     ),
     tabs: z.array(
         z.object({
-            id: z.number(),
+            id: z.string().uuid(),
             title: z.string(),
             url: z.string(),
             tagIds: z.array(z.number()),
@@ -55,7 +55,7 @@ export default function DNDImport() {
 
             const tagsByName = new Map<string, Tag>(validated.tags.map((t) => [t.name.trim(), t]));
 
-            function remapIds(remappedIds: Map<number, number>) {
+            function remapTagIds(remappedIds: Map<number, number>) {
                 for (const t of validated.tabs) {
                     if (intersection(remappedIds.keys(), t.tagIds).size) {
                         t.tagIds = t.tagIds.map((id) => remappedIds.get(id) || id);
@@ -81,7 +81,7 @@ export default function DNDImport() {
                     ]),
                 );
 
-                remapIds(remappedIds);
+                remapTagIds(remappedIds);
             }
 
             const tagsById = new Map(validated.tags.map((t) => [Number(t.id), t]));
@@ -94,7 +94,7 @@ export default function DNDImport() {
                     Array.from(duplicateIds).map((id) => [id, startId + i++]),
                 );
 
-                remapIds(remappedIds);
+                remapTagIds(remappedIds);
             }
 
             tagStore.import({
@@ -167,22 +167,13 @@ export default function DNDImport() {
             }),
         );
 
-        const tabIds = new Set(SavedStore.tabs.map((t) => t.id));
-
-        let nextId = Math.min(...tabIds) - bookmarks.length;
-        if (nextId < 0) {
-            // err, should have used uuids
-            console.warn("Generating negative int IDs for bookmarks", nextId);
-        }
-
         const tabs = bookmarks.map((b) => ({
-            id: nextId++,
             title: b.title,
             url: b.url,
             tagIds: b.folders.map((f) => tagsByName.get(f)!.id),
         }));
 
-        savedStore.import({ tabs });
+        savedStore.saveTabs(tabs);
 
         toast.success("Imported bookmarks successfully!");
     };
