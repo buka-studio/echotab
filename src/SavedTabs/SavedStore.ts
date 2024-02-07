@@ -63,6 +63,7 @@ export interface SavedStore {
     removeTabs(tabIds: string[]): void;
     removeAllTabs(): void;
     removeTabTag(tabId: string, tagId: number): void;
+    removeTags(tagIds: number[]): void;
     selectTabs(tabIds?: Set<string>): void;
     deselectAllTabs(): void;
     selectAllTabs(): void;
@@ -148,6 +149,15 @@ const store = proxy({
         tab.tagIds = tab.tagIds.filter((t) => t !== tagId);
         if (tab.tagIds.length === 0) {
             tab.tagIds = [0];
+        }
+    },
+    removeTags: (tagIds: number[]) => {
+        const tagIdsSet = new Set(tagIds);
+        for (const tab of store.tabs) {
+            tab.tagIds = tab.tagIds.filter((t) => !tagIdsSet.has(t));
+            if (tab.tagIds.length === 0) {
+                tab.tagIds = [0];
+            }
         }
     },
     reorderTabs: (from: number, to: number) => {

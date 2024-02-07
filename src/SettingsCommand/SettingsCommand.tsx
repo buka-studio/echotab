@@ -136,6 +136,9 @@ export default function SettingsCommand() {
         );
         for (const tab of savedStore.tabs) {
             for (const tagId of tab.tagIds) {
+                if (!tabCountsById.has(tagId)) {
+                    continue;
+                }
                 tabCountsById.get(tagId)!.tabCount += 1;
             }
         }
@@ -146,6 +149,11 @@ export default function SettingsCommand() {
         });
         return sorted;
     }, [tagStore.tags, savedStore.tabs, tagSort]);
+
+    const handleDeleteTag = (tag: Tag) => {
+        savedStore.removeTags([tag.id]);
+        tagStore.deleteTag(tag.id);
+    };
 
     return (
         <Command loop value={page} onValueChange={setPage} className="min-h-[450px]">
@@ -218,7 +226,7 @@ export default function SettingsCommand() {
                                     <TagControl
                                         tag={t}
                                         onChange={(update) => tagStore.updateTag(t.id, update)}
-                                        onDelete={() => tagStore.deleteTag(t.id)}
+                                        onDelete={() => handleDeleteTag(t)}
                                         disabled={t.id === unassignedTag.id}
                                     />
                                 </React.Fragment>
