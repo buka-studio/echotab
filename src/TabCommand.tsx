@@ -104,7 +104,7 @@ export function TabCommandDialog({
     const [commandContainer, setCommandContainer] = useState<HTMLDivElement | null>(null);
 
     return (
-        <div ref={setCommandContainer} className={cn("relative mx-auto flex max-w-4xl flex-1")}>
+        <div ref={setCommandContainer} className={cn("relative flex w-full")}>
             <button
                 className={cn(
                     "focus-ring flex flex-1 items-center justify-between rounded-lg border bg-background/20 p-3 text-base shadow-md backdrop-blur-lg transition-all duration-200",

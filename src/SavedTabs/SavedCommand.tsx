@@ -180,7 +180,7 @@ export default function SavedCommand() {
                 </div>
                 <CommandList
                     className={cn(
-                        "absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 bg-popover p-2 text-popover-foreground shadow-lg",
+                        "scrollbar-gray absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 bg-popover p-2 text-popover-foreground shadow-lg",
                     )}>
                     {activePage === "/" && (
                         <>
@@ -307,7 +307,7 @@ export default function SavedCommand() {
                                 />
                             </div>
                             {Boolean(hashtag) && (
-                                <div className="scrollbar-gray max-h-[min(320px,calc(100vh-180px))] overflow-auto">
+                                <div className="">
                                     <CommandGroup>
                                         {Array.from(tagStore.tags.values())
                                             .filter(

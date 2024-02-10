@@ -201,7 +201,7 @@ export default function ActiveCommand() {
                 </div>
                 <CommandList
                     className={cn(
-                        "absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 bg-popover p-2 text-popover-foreground shadow-lg",
+                        "scrollbar-gray absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 bg-popover p-2 text-popover-foreground shadow-lg",
                     )}>
                     {activePage === "/" && (
                         <>

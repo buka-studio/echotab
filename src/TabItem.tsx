@@ -8,6 +8,7 @@ import Spinner from "./ui/Spinner";
 import { cn } from "./util";
 
 async function fetchGoogleFavicon(url: string) {
+    // todo: store the result in indexeddb?
     try {
         const directRes = await fetch(url);
         if (directRes.status === 200) {
