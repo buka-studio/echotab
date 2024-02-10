@@ -123,7 +123,12 @@ const store = proxy({
         const idSet = new Set(tabIds);
         for (const t of store.tabs) {
             if (idSet.has(t.id)) {
-                t.tagIds = Array.from(new Set([...t.tagIds, ...tagIds]));
+                t.tagIds = Array.from(new Set([...t.tagIds, ...tagIds])).filter(
+                    (t) => t !== unassignedTag.id,
+                );
+                if (t.tagIds.length === 0) {
+                    t.tagIds = [unassignedTag.id];
+                }
             }
         }
     },

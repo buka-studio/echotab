@@ -28,11 +28,15 @@ function makeMatrix(n: number): number[][] {
 
 function calcTabMatrix(tabs: SavedTab[], tags: Tag[], countLoops?: boolean) {
     const matrix = makeMatrix(tags.length);
+    if (!(tags.length && tabs.length)) {
+        return matrix;
+    }
     const tagsToIndices = Object.fromEntries(tags.map((t, i) => [t.id, i]));
 
     for (const tab of tabs) {
-        for (const tag of tab.tagIds) {
-            const other = new Set(tab.tagIds);
+        const tagIds = tab.tagIds.filter((id) => id !== unassignedTag.id);
+        for (const tag of tagIds) {
+            const other = new Set(tagIds);
             other.delete(tag);
             if (countLoops) {
                 matrix[tagsToIndices[tag]][tagsToIndices[tag]] += 1;
@@ -178,7 +182,7 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
                     <div className="text-balance text-lg">
                         Currently, there are no tabs with multiple tags.
                     </div>
-                    <div className="text-foreground/75 text-balance text-sm">
+                    <div className="text-balance text-sm text-foreground/75">
                         Add multiple tags to see tag relationships here.
                     </div>
                 </div>
@@ -262,7 +266,7 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
                         color: undefined,
                         padding: undefined,
                     }}
-                    className="bg-background text-foreground z-[60] rounded-lg p-2">
+                    className="z-[60] rounded-lg bg-background p-2 text-foreground">
                     <div>
                         <div className="flex items-center gap-2 p-1 text-sm">
                             <TagChip color={tagsByIndex[tooltip.tooltipData!.from].color}>

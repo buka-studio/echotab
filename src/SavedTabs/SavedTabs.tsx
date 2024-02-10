@@ -118,6 +118,13 @@ const SavedTabItem = forwardRef<
         .map((id) => tags.get(id)!)
         .filter((t) => Number.isFinite(t?.id));
 
+    const handleRemoveTag =
+        tab.tagIds.length === 1 && tab.tagIds[0] === unassignedTag.id
+            ? undefined
+            : (tag: Partial<Tag>) => {
+                  SavedStore.removeTabTag(tab.id, tag.id!);
+              };
+
     return (
         <TabItem
             ref={ref}
@@ -146,13 +153,7 @@ const SavedTabItem = forwardRef<
                         tags={combinedTags.sort((a, b) =>
                             currentTagFirstComparator(a, b, currentGroupTagId),
                         )}
-                        onRemove={
-                            tab.tagIds[0] === unassignedTag.id
-                                ? undefined
-                                : (tag) => {
-                                      SavedStore.removeTabTag(tab.id, tag.id!);
-                                  }
-                        }
+                        onRemove={handleRemoveTag}
                     />
                     <Button
                         variant="ghost"
