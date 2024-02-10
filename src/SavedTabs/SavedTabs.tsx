@@ -66,14 +66,16 @@ function TagHeaderItem({ tag, actions }: { tag: Tag; actions?: ReactNode }) {
     const tabStore = useSavedTabStore();
     const tagStore = useTagStore();
 
-    const tabIds = tabStore.filteredTabsByTagId[tag.id];
-
+    const tabIds = tabStore.filteredTabsByTagId[tag?.id];
+    if (!tagStore.tags.has(Number(tag?.id))) {
+        return null;
+    }
     return (
         <>
             <div className="select-none">
                 <span className="mr-2 inline-flex gap-2">
-                    {tagStore.tags.get(Number(tag?.id))?.name}
-                    <Badge variant="secondary">{tabIds.length}</Badge>
+                    {tagStore.tags.get(Number(tag.id))!.name}
+                    <Badge variant="secondary">{tabIds?.length}</Badge>
                 </span>
                 {actions}
             </div>
@@ -114,7 +116,7 @@ const SavedTabItem = forwardRef<
     const combinedTags = Array.from(tab.tagIds)
         .concat(selected ? Array.from(assignedTagIds) : [])
         .map((id) => tags.get(id)!)
-        .filter(Boolean);
+        .filter((t) => Number.isFinite(t?.id));
 
     return (
         <TabItem
@@ -326,7 +328,7 @@ export default function SavedTabs() {
 
     return (
         <div className={cn("flex h-full flex-col")}>
-            <div className="header sticky top-[20px] z-10">
+            <div className="header sticky top-[20px] z-10 mx-auto flex w-full max-w-4xl">
                 <SavedCommand />
             </div>
             <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-2 py-2">
@@ -443,7 +445,9 @@ export default function SavedTabs() {
                                     )
                                     .map(([item, i]) => {
                                         const tag = tagStore.tags.get(Number(item.slice(2)));
-
+                                        if (!tag) {
+                                            return null;
+                                        }
                                         return (
                                             <li
                                                 key={item}
