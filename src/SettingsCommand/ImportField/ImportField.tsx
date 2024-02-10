@@ -3,19 +3,20 @@ import { z } from "zod";
 
 import { Tag } from "../../models";
 import { useSavedTabStore } from "../../SavedTabs";
-import TagStore, { useTagStore } from "../../TagStore";
+import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
 import Button from "../../ui/Button";
 import { toast } from "../../ui/Toast";
 import { cn } from "../../util";
 import { intersection } from "../../util/set";
 
 const importHint = `\
-Tab {                   Tag {
-  id: number;             id: number;
-  title: string;          name: string;
-  url: string;            color?: string;
-  tagIds: number[];       favorite?: boolean;
-}                       }
+Tab {                     Tag {
+  id: number;               id: number;
+  title: string;            name: string;
+  url: string;              color?: string;
+  tagIds: number[];         favorite?: boolean;
+  faviconUrl?: string;    }       
+}                       
 
 Import { 
     savedTabs: Tab[]; 
@@ -38,6 +39,7 @@ const schema = z.object({
             title: z.string(),
             url: z.string(),
             tagIds: z.array(z.number()),
+            faviconUrl: z.string().optional(),
         }),
     ),
 });
@@ -53,9 +55,10 @@ export default function DNDImport() {
             const imported = JSON.parse(await file.text());
             const validated = schema.parse(imported);
 
-            const tagsByName = new Map<string, Tag>(validated.tags.map((t) => [t.name.trim(), t]));
-
             function remapTagIds(remappedIds: Map<number, number>) {
+                if (!remappedIds.size) {
+                    return;
+                }
                 for (const t of validated.tabs) {
                     if (intersection(remappedIds.keys(), t.tagIds).size) {
                         t.tagIds = t.tagIds.map((id) => remappedIds.get(id) || id);
@@ -69,16 +72,21 @@ export default function DNDImport() {
                 }
             }
 
+            const tagsByName = new Map<string, Tag>(validated.tags.map((t) => [t.name.trim(), t]));
             const duplicateNames = intersection(
                 Array.from(TagStore.tags.values()).map((t) => t.name.trim()),
                 validated.tags.map((t) => t.name.trim()),
             );
             if (duplicateNames.size) {
                 const remappedIds = new Map(
-                    Array.from(duplicateNames).map((n) => [
-                        tagsByName.get(n)!.id,
-                        TagStore.tagsByName.get(n)!.id,
-                    ]),
+                    Array.from(duplicateNames).flatMap((n) => {
+                        const from = tagsByName.get(n)!.id;
+                        const to = TagStore.tagsByName.get(n)!.id;
+                        if (from === to) {
+                            return [];
+                        }
+                        return [[from, to]];
+                    }),
                 );
 
                 remapTagIds(remappedIds);
@@ -86,12 +94,20 @@ export default function DNDImport() {
 
             const tagsById = new Map(validated.tags.map((t) => [Number(t.id), t]));
             const duplicateIds = intersection(TagStore.tags.keys(), tagsById.keys());
+            duplicateIds.delete(unassignedTag.id);
             if (duplicateIds.size) {
                 const startId = TagStore.getNextTagId();
                 let i = 1;
 
                 const remappedIds = new Map<number, number>(
-                    Array.from(duplicateIds).map((id) => [id, startId + i++]),
+                    Array.from(duplicateIds).flatMap((id) => {
+                        console.log(TagStore.tags.get(id)?.name, tagsById.get(id)?.name);
+                        if (TagStore.tags.get(id)?.name === tagsById.get(id)?.name) {
+                            return [];
+                        }
+
+                        return [[id, startId + i++]];
+                    }),
                 );
 
                 remapTagIds(remappedIds);
