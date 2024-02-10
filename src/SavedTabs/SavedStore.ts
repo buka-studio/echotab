@@ -8,8 +8,9 @@ import { derive, proxySet } from "valtio/utils";
 import ChromeLocalStorage from "../ChromeLocalStorage";
 import { version } from "../constants";
 import { SavedTab } from "../models";
-import TagStore from "../TagStore";
+import TagStore, { unassignedTag } from "../TagStore";
 import { toast } from "../ui/Toast";
+import { canonicalizeURL } from "../util";
 import { intersection, toggle } from "../util/set";
 import { numberComparator, SortDir, stringComparator } from "../util/sort";
 
@@ -148,7 +149,7 @@ const store = proxy({
         }
         tab.tagIds = tab.tagIds.filter((t) => t !== tagId);
         if (tab.tagIds.length === 0) {
-            tab.tagIds = [0];
+            tab.tagIds = [unassignedTag.id];
         }
     },
     removeTags: (tagIds: number[]) => {
@@ -156,7 +157,7 @@ const store = proxy({
         for (const tab of store.tabs) {
             tab.tagIds = tab.tagIds.filter((t) => !tagIdsSet.has(t));
             if (tab.tagIds.length === 0) {
-                tab.tagIds = [0];
+                tab.tagIds = [unassignedTag.id];
             }
         }
     },
@@ -165,12 +166,13 @@ const store = proxy({
     },
     import: (imported: ImportedTabStore) => {
         const existingById = new Map(store.tabs.map((t) => [t.id, t]));
-        const existingByURLs = new Map(store.tabs.map((t) => [t.url, t]));
+        const existingByURLs = new Map(store.tabs.map((t) => [canonicalizeURL(t.url), t]));
 
         const newTabs = [];
         for (const tab of imported?.tabs || []) {
-            if (existingById.has(tab.id) || existingByURLs.has(tab.url)) {
-                const t = existingById.get(tab.id) || existingByURLs.get(tab.url)!;
+            const canonicalUrl = canonicalizeURL(tab.url);
+            if (existingById.has(tab.id) || existingByURLs.has(canonicalUrl)) {
+                const t = existingById.get(tab.id) || existingByURLs.get(canonicalUrl)!;
                 t.tagIds = Array.from(new Set([...t.tagIds, ...tab.tagIds]));
             } else {
                 newTabs.push(tab);
@@ -180,12 +182,13 @@ const store = proxy({
         store.tabs.push(...newTabs);
     },
     saveTabs: (tabs: Omit<SavedTab, "id">[]) => {
-        const existingByURLs = new Map(store.tabs.map((t) => [t.url, t]));
+        const existingByURLs = new Map(store.tabs.map((t) => [canonicalizeURL(t.url), t]));
 
         const newTabs = [];
         for (const tab of tabs || []) {
-            if (existingByURLs.has(tab.url)) {
-                const t = existingByURLs.get(tab.url)!;
+            const canonicalUrl = canonicalizeURL(tab.url);
+            if (existingByURLs.has(canonicalUrl)) {
+                const t = existingByURLs.get(canonicalUrl)!;
                 t.tagIds = Array.from(new Set([...t.tagIds, ...tab.tagIds]));
             } else {
                 newTabs.push(tab);

@@ -10,16 +10,13 @@ import { intersection } from "./util/set";
 export const unassignedTag = {
     id: 0,
     color: "#000",
+    name: "Unassigned",
+    favorite: false,
 };
 
 export const defaultTagColor = "#4338ca";
 
-const defaultTags = [
-    [
-        unassignedTag.id,
-        { color: "#000", name: "Unassigned", id: unassignedTag.id, favorite: false },
-    ],
-];
+const defaultTags = [[unassignedTag.id, unassignedTag]] as [number, Tag][];
 
 const storageKey = `cmdtab-tag-store-${version}`;
 
@@ -41,7 +38,7 @@ type PersistedTagStore = Pick<TagStore, "tags">;
 type ImportedTagStore = Partial<Pick<TagStore, "tags">>;
 
 const store = proxy({
-    tags: proxyMap<number, Tag>(defaultTags as [number, Tag][]),
+    tags: proxyMap<number, Tag>(defaultTags),
     initialized: false,
     getNextTagId: () => {
         const highestId = Math.max(...store.tags.keys(), 1);
@@ -80,10 +77,14 @@ const store = proxy({
         store.tags.set(tagId, newTag);
     },
     deleteTag: (tagId: number) => {
+        if (tagId === unassignedTag.id) {
+            return;
+        }
         store.tags.delete(tagId);
     },
     deleteAllTags: () => {
         store.tags.clear();
+        store.tags.set(unassignedTag.id, unassignedTag);
     },
     toggleTagFavorite: (tagId: number) => {
         const tag = store.tags.get(tagId);
@@ -96,7 +97,7 @@ const store = proxy({
         const conflicts = intersection(imported.tags?.keys() || [], store.tags.keys());
         if (conflicts.size) {
             // shouldn't happen
-            console.error(conflicts);
+            console.warn(conflicts);
         }
 
         for (const [k, v] of imported.tags || []) {
@@ -109,9 +110,11 @@ const store = proxy({
         if (stored) {
             try {
                 const init = JSON.parse(stored as string) as PersistedTagStore;
-                store.tags = proxyMap<number, Tag>(
-                    Object.entries(init.tags || []).map(([k, v]) => [Number(k), v]),
-                );
+                const storedTags = Object.entries(init.tags || []).map(([k, v]) => [
+                    Number(k),
+                    v,
+                ]) as [number, Tag][];
+                store.tags = proxyMap<number, Tag>(new Map(defaultTags.concat(storedTags)));
             } catch (e) {
                 toast.error("Failed to load stored tags");
                 console.error(e);
