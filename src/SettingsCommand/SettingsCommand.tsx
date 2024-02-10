@@ -91,6 +91,9 @@ function propComparator<T extends { name: string; tabCount: number; favorite: bo
     }
     return a[prop].localeCompare(b[prop]);
 }
+
+const versionLabel = `Version: ${chrome.runtime.getManifest().version}`;
+
 export default function SettingsCommand() {
     const savedStore = useSavedTabStore();
     const tagStore = useTagStore();
@@ -160,7 +163,7 @@ export default function SettingsCommand() {
             <div className="mb-4 flex items-center border-b">
                 <CommandInput placeholder="Search settings..." ref={cmdInputRef} autoFocus />
             </div>
-            <div className="grid h-full grid-cols-[150px_auto] gap-4">
+            <div className="grid h-full grid-cols-[150px_auto] grid-rows-[1fr_30px] gap-4">
                 <CommandList>
                     <CommandGroup>
                         <CommandItem>Tags</CommandItem>
@@ -180,6 +183,9 @@ export default function SettingsCommand() {
                     </CommandGroup>
                     <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
                 </CommandList>
+                <div className="col-start-1 row-start-2 mt-auto text-muted-foreground">
+                    {versionLabel}
+                </div>
                 <AlertDialog
                     open={deleteDialogOpen}
                     onOpenChange={() => setDeleteDialogOpen(false)}>
@@ -199,7 +205,7 @@ export default function SettingsCommand() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                <div className="content scrollbar-gray h-full max-h-[350px] flex-1 overflow-auto border-l-[1px] pl-4">
+                <div className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4">
                     {page === "tags" && (
                         <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4 pt-1">
                             {sortableColumns.map((c) => (
@@ -213,7 +219,7 @@ export default function SettingsCommand() {
                                 </div>
                             ))}
                             {tagSettings.map((t) => (
-                                <React.Fragment key={t.name}>
+                                <React.Fragment key={t.id}>
                                     <Button
                                         className="mr-auto"
                                         variant="ghost"
