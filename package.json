@@ -77,7 +77,8 @@
         "permissions": [
             "storage",
             "unlimitedStorage",
-            "bookmarks"
+            "bookmarks",
+            "favicon"
         ],
         "host_permissions": [
             "*://*/*"

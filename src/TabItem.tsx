@@ -1,49 +1,24 @@
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { forwardRef, ReactNode } from "react";
-import useSWRImmutable from "swr/immutable";
 
 import { Tab } from "./models";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/HoverCard";
 import Spinner from "./ui/Spinner";
 import { cn } from "./util";
 
-async function fetchGoogleFavicon(url: string) {
-    // todo: store the result in indexeddb?
-    try {
-        const directRes = await fetch(url);
-        if (directRes.status === 200) {
-            return directRes.blob();
-        }
-    } catch (e) {
-        console.error(e);
-    }
+function makeFaviconUrl(pageUrl: string) {
+    const url = new URL(chrome.runtime.getURL("/_favicon/"));
+    url.searchParams.set("pageUrl", pageUrl);
+    url.searchParams.set("size", "64");
 
-    const domain = new URL(url).hostname;
-    const googleRes = await fetch(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
-    if (googleRes.status === 200) {
-        return googleRes.blob();
-    }
-
-    throw new Error("Failed to fetch favicon");
+    return url.toString();
 }
 
 export function Favicon({ src, className }: { className?: string; src?: string }) {
-    const { data, error } = useSWRImmutable(src || null, fetchGoogleFavicon, {
-        shouldRetryOnError: false,
-        dedupingInterval: 1000 * 60 * 60 * 24, // 24 hours
-    });
-
     return (
-        <div
-            className={cn(
-                "h-6 w-6 overflow-hidden rounded shadow-sm",
-                {
-                    loaded: Boolean(data),
-                },
-                className,
-            )}>
-            {data && !error ? (
-                <img src={URL.createObjectURL(data)} className="h-full w-full" />
+        <div className={cn("h-6 w-6 overflow-hidden rounded shadow-sm", className)}>
+            {src ? (
+                <img src={makeFaviconUrl(src)} className="h-full w-full" />
             ) : (
                 <div className="fallback h-6 w-6 bg-gradient-to-b from-neutral-500 to-neutral-700" />
             )}

@@ -126,7 +126,7 @@ const ActiveTabItem = forwardRef<
                         })}
                         disabled={tab.pinned}>
                         <Favicon
-                            src={tab.favIconUrl}
+                            src={tab.url}
                             className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
                         />
                         <DragHandleDots2Icon className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" />

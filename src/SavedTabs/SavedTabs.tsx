@@ -133,7 +133,7 @@ const SavedTabItem = forwardRef<
             })}
             icon={
                 <Favicon
-                    src={tab.favIconUrl}
+                    src={tab.url}
                     className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
                 />
             }
