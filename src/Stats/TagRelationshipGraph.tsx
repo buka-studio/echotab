@@ -38,6 +38,9 @@ function calcTabMatrix(tabs: SavedTab[], tags: Tag[], countLoops?: boolean) {
         for (const tag of tagIds) {
             const other = new Set(tagIds);
             other.delete(tag);
+            if (!tagsToIndices[tag]) {
+                continue;
+            }
             if (countLoops) {
                 matrix[tagsToIndices[tag]][tagsToIndices[tag]] += 1;
             }
