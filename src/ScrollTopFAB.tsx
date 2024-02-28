@@ -1,10 +1,16 @@
 import { ArrowUpIcon } from "@radix-ui/react-icons";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import Button from "./ui/Button";
-import { cn } from "./util";
 
-export default function ScrollTopFAB({ showTrigger = 300 }: { showTrigger?: number }) {
+export default function ScrollTopFAB({
+    className,
+    showTrigger = 300,
+}: {
+    className?: string;
+    showTrigger?: number;
+}) {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
@@ -19,19 +25,28 @@ export default function ScrollTopFAB({ showTrigger = 300 }: { showTrigger?: numb
     }, [showTrigger]);
 
     return (
-        <Button
-            className={cn("fixed bottom-5 right-10 transition-opacity duration-150", {
-                "opacity-0": !visible,
-            })}
-            onClick={() =>
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth",
-                })
-            }
-            size="icon"
-            variant="ghost">
-            <ArrowUpIcon />
-        </Button>
+        <AnimatePresence>
+            {visible && (
+                <Button
+                    asChild
+                    className={className}
+                    onClick={() =>
+                        window.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        })
+                    }
+                    aria-label="Scroll to top"
+                    size="icon"
+                    variant="ghost">
+                    <motion.button
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}>
+                        <ArrowUpIcon />
+                    </motion.button>
+                </Button>
+            )}
+        </AnimatePresence>
     );
 }

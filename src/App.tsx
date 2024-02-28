@@ -22,6 +22,8 @@ import { cn } from "./util";
 
 import "./app.css";
 
+import MobileBottomBar from "./MobileBottomBar";
+
 updateViewport();
 
 export default function App() {
@@ -34,7 +36,7 @@ export default function App() {
     return (
         <TooltipProvider>
             <Layout>
-                <Tabs value={activePanel} className="mx-auto flex w-full flex-col px-4">
+                <Tabs value={activePanel} className="mx-auto flex w-full flex-col px-6">
                     <div className="mx-auto mb-10 flex w-full max-w-4xl items-center justify-between gap-2">
                         <div className="flex gap-2 rounded-lg border border-border p-1">
                             <TabsList className="flex h-auto gap-2 bg-transparent p-0">
@@ -104,7 +106,9 @@ export default function App() {
                 </Tabs>
                 <Toaster />
                 <DynamicViewportVarsSetter />
-                <ScrollTopFAB />
+                <MobileBottomBar>
+                    <ScrollTopFAB className="absolute bottom-4 right-10 " />
+                </MobileBottomBar>
             </Layout>
         </TooltipProvider>
     );

@@ -1,4 +1,9 @@
-import { CaretSortIcon, Cross2Icon, MixerHorizontalIcon } from "@radix-ui/react-icons";
+import {
+    CaretSortIcon,
+    Cross2Icon,
+    HamburgerMenuIcon,
+    MixerHorizontalIcon,
+} from "@radix-ui/react-icons";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
     ComponentProps,
@@ -11,6 +16,8 @@ import {
 } from "react";
 
 import FilterTagChips from "../FilterTagChips";
+import useMatchMedia from "../hooks/useMatchMedia";
+import { MobileBottomBarPortal } from "../MobileBottomBar";
 import { SavedTab, Tag } from "../models";
 import { SelectableItem, SelectableList } from "../SelectableList";
 import SortButton from "../SortButton";
@@ -31,6 +38,7 @@ import {
 } from "../ui/AlertDialog";
 import { Badge } from "../ui/Badge";
 import Button from "../ui/Button";
+import { Drawer, DrawerContent, DrawerTrigger } from "../ui/Drawer";
 import {
     Select,
     SelectContent,
@@ -62,7 +70,15 @@ function getAnimationProps(stagger: number) {
     };
 }
 
-function TagHeaderItem({ tag, actions }: { tag: Tag; actions?: ReactNode }) {
+function TagHeaderItem({
+    tag,
+    actions,
+    highlighted,
+}: {
+    tag: Tag;
+    actions?: ReactNode;
+    highlighted?: boolean;
+}) {
     const tabStore = useSavedTabStore();
     const tagStore = useTagStore();
 
@@ -74,7 +90,12 @@ function TagHeaderItem({ tag, actions }: { tag: Tag; actions?: ReactNode }) {
         <>
             <div className="select-none">
                 <span className="mr-2 inline-flex gap-2">
-                    {tagStore.tags.get(Number(tag.id))!.name}
+                    <span
+                        className={cn("transition-colors duration-300", {
+                            "text-primary": highlighted,
+                        })}>
+                        {tagStore.tags.get(Number(tag.id))!.name}
+                    </span>
                     <Badge variant="secondary">{tabIds?.length}</Badge>
                 </span>
                 {actions}
@@ -167,6 +188,49 @@ const SavedTabItem = forwardRef<
         />
     );
 });
+
+function TagNavigationLinks({
+    visibleTagItems,
+    items,
+    onLinkClick,
+    className,
+}: {
+    visibleTagItems: Set<string>;
+    items: string[];
+    onLinkClick: (i: number) => void;
+    className?: string;
+}) {
+    const tagStore = useTagStore();
+
+    return (
+        <ul className={cn("flex flex-col gap-2 py-1 pl-2", className)}>
+            {items
+                .flatMap((item, i) => (isTagItem(item) ? [[item, i] as [string, number]] : []))
+                .map(([item, i]) => {
+                    const tag = tagStore.tags.get(Number(item.slice(2)));
+                    if (!tag) {
+                        return null;
+                    }
+                    return (
+                        <li
+                            key={item}
+                            className={cn(
+                                "text-sm leading-4 text-foreground/50 transition-all duration-200",
+                                {
+                                    "-translate-x-1 text-foreground": visibleTagItems.has(item),
+                                },
+                            )}>
+                            <button
+                                className="focus-ring w-full select-none truncate rounded text-left"
+                                onClick={() => onLinkClick(i)}>
+                                {tag?.name}
+                            </button>
+                        </li>
+                    );
+                })}
+        </ul>
+    );
+}
 
 function isTagItem(item: unknown) {
     return typeof item === "string" && item.startsWith("t:");
@@ -314,6 +378,32 @@ export default function SavedTabs() {
         scrollMargin: listRef.current?.offsetTop ?? 0,
     });
 
+    const [scrollTargetIndex, setScrollTargetIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        let timeout: ReturnType<typeof setTimeout> | null = null;
+
+        if (scrollTargetIndex !== null) {
+            timeout = setTimeout(() => {
+                setScrollTargetIndex(null);
+            }, 2000);
+        }
+
+        return () => {
+            if (timeout) {
+                clearTimeout(timeout);
+            }
+        };
+    }, [scrollTargetIndex]);
+
+    const handleScrollToItem = (i: number) => {
+        virtualizer.scrollToIndex(i, {
+            align: "center",
+        });
+
+        setScrollTargetIndex(i);
+    };
+
     useEffect(() => {
         virtualizer.measure();
     }, [tabStore.view.grouping, virtualizer]);
@@ -326,6 +416,8 @@ export default function SavedTabs() {
     const isTagView = tabStore.view.grouping === TabGrouping.Tag;
 
     let prevTagId = 0;
+
+    const isXLScreen = useMatchMedia("(min-width: 1440px)");
 
     return (
         <div className={cn("flex h-full flex-col")}>
@@ -437,43 +529,47 @@ export default function SavedTabs() {
                 getSelected={() => SavedStore.selectedTabIds}
                 onSelectionChange={(selection) => SavedStore.selectTabs(selection as Set<string>)}>
                 <div className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr] items-start gap-x-5">
-                    <div className="scrollbar-gray sticky top-5 hidden justify-self-end overflow-auto xl:block">
-                        {isTagView && (
-                            <ul className="flex max-h-screen flex-col gap-2 py-1 pl-2">
-                                {items
-                                    .flatMap((item, i) =>
-                                        isTagItem(item) ? [[item, i] as [string, number]] : [],
-                                    )
-                                    .map(([item, i]) => {
-                                        const tag = tagStore.tags.get(Number(item.slice(2)));
-                                        if (!tag) {
-                                            return null;
-                                        }
-                                        return (
-                                            <li
-                                                key={item}
-                                                className={cn(
-                                                    "text-sm leading-4 text-foreground/50 transition-all duration-200",
-                                                    {
-                                                        "-translate-x-1 text-foreground":
-                                                            visibleTagItems.has(item),
-                                                    },
-                                                )}>
-                                                <button
-                                                    className="focus-ring w-full select-none truncate rounded text-left"
-                                                    onClick={() => {
-                                                        virtualizer.scrollToIndex(i, {
-                                                            align: "center",
-                                                        });
-                                                    }}>
-                                                    {tag?.name}
-                                                </button>
-                                            </li>
-                                        );
-                                    })}
-                            </ul>
-                        )}
-                    </div>
+                    {isTagView && (
+                        <>
+                            {isXLScreen ? (
+                                <div className="scrollbar-gray sticky top-5 hidden justify-self-end overflow-auto xl:block">
+                                    <TagNavigationLinks
+                                        visibleTagItems={visibleTagItems}
+                                        items={items}
+                                        onLinkClick={handleScrollToItem}
+                                        className="max-h-screen [&_li]:max-w-[200px]"
+                                    />
+                                </div>
+                            ) : (
+                                <Drawer
+                                    shouldScaleBackground={false}
+                                    modal={false}
+                                    nested // prevents vaul's default behavior of setting position:fixed on body
+                                    direction="right">
+                                    <MobileBottomBarPortal>
+                                        <DrawerTrigger asChild>
+                                            <Button
+                                                aria-label="Open tag navigation"
+                                                className="absolute bottom-4 left-10"
+                                                size="icon"
+                                                variant="ghost">
+                                                <HamburgerMenuIcon />
+                                            </Button>
+                                        </DrawerTrigger>
+                                    </MobileBottomBarPortal>
+                                    <DrawerContent>
+                                        <div className="scrollbar-gray mx-auto flex w-full flex-col overflow-auto rounded-t-[10px] p-4 px-5">
+                                            <TagNavigationLinks
+                                                visibleTagItems={visibleTagItems}
+                                                items={items}
+                                                onLinkClick={handleScrollToItem}
+                                            />
+                                        </div>
+                                    </DrawerContent>
+                                </Drawer>
+                            )}
+                        </>
+                    )}
                     <div className="col-start-2 mx-auto w-full max-w-4xl px-2">
                         <ul
                             className="flex-col"
@@ -505,6 +601,7 @@ export default function SavedTabs() {
                                             key={i.key}>
                                             <TagHeaderItem
                                                 tag={tag!}
+                                                highlighted={scrollTargetIndex === i.index}
                                                 actions={
                                                     <Button
                                                         variant="ghost"
