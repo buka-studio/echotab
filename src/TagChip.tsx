@@ -42,7 +42,8 @@ export function TagChipList({
                 </ScrollArea>
             )}
 
-            {(tags.length > max || minimal) &&
+            {tags.length > 0 &&
+                (tags.length > max || minimal) &&
                 (expandable || minimal ? (
                     <Popover>
                         <PopoverTrigger asChild>
