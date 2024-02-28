@@ -74,8 +74,8 @@ export interface SavedStore {
     import(store: { tabs: SavedTab[] }): void;
 }
 
-type PersistedTabStore = Pick<SavedStore, "tabs">;
-type ImportedTabStore = Partial<Pick<SavedStore, "tabs">>;
+type PersistedTabStore = Pick<SavedStore, "tabs" | "view">;
+type ImportedTabStore = Partial<Pick<SavedStore, "tabs" | "view">>;
 
 const store = proxy({
     initialized: false,
@@ -208,6 +208,7 @@ const store = proxy({
             try {
                 const init = JSON.parse(stored as string) as PersistedTabStore;
                 store.tabs = init.tabs || [];
+                store.view = { ...store.view, ...init.view };
             } catch (e) {
                 toast.error("Failed to load tags from local storage");
                 console.error(e);
@@ -355,7 +356,10 @@ subscribe(store, (ops) => {
     }
 
     if (store.initialized) {
-        ChromeLocalStorage.setItem(storageKey, JSON.stringify({ tabs: store.tabs }));
+        ChromeLocalStorage.setItem(
+            storageKey,
+            JSON.stringify({ tabs: store.tabs, view: store.view }),
+        );
     }
 });
 
