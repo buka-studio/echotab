@@ -137,6 +137,11 @@ export default function ActiveCommand() {
         setSearch("");
     };
 
+    const handleMoveToNewWindow = async (incognito = false) => {
+        const tabIds = Array.from(ActiveStore.selectedTabIds);
+        await ActiveStore.moveTabsToNewWindow(tabIds, incognito);
+    };
+
     const handleApply = () => {
         if (activePage === "tag") {
             handleSaveAssignedTags();
@@ -237,6 +242,9 @@ export default function ActiveCommand() {
                                         </CommandItem>
                                         <CommandItem onSelect={handleCopyToClipboard}>
                                             Copy to clipboard
+                                        </CommandItem>
+                                        <CommandItem onSelect={() => handleMoveToNewWindow()}>
+                                            Move to new window
                                         </CommandItem>
                                     </>
                                 )}

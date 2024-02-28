@@ -80,6 +80,7 @@ export interface ActiveStore {
         autoremove?: boolean,
     ): Promise<void>;
     updateTab(tabId: number, options: chrome.tabs.UpdateProperties): Promise<void>;
+    moveTabsToNewWindow(tabIds: number[], incognito?: boolean): Promise<void>;
 }
 
 const store = proxy({
@@ -233,6 +234,14 @@ const store = proxy({
     },
     updateTab: async (tabId: number, options: chrome.tabs.UpdateProperties) => {
         await chrome.tabs.update(tabId, options);
+    },
+    moveTabsToNewWindow: async (tabIds: number[], incognito = false) => {
+        await chrome.windows.create({
+            url: tabIds.map((id) => store.viewTabsById[id]?.url).filter(Boolean),
+            incognito,
+        });
+
+        await store.removeTabs(tabIds);
     },
 }) as unknown as ActiveStore;
 
