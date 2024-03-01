@@ -269,7 +269,7 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
                         color: undefined,
                         padding: undefined,
                     }}
-                    className="z-[60] rounded-lg bg-background p-2 text-foreground">
+                    className="z-[60] rounded-md border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
                     <div>
                         <div className="flex items-center gap-2 p-1 text-sm">
                             <TagChip color={tagsByIndex[tooltip.tooltipData!.from].color}>

@@ -149,7 +149,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
                     <div className="text-balance text-lg">
                         Currently, there are no tabs with tags.
                     </div>
-                    <div className="text-foreground/75 text-balance text-sm">
+                    <div className="text-balance text-sm text-foreground/75">
                         Begin organizing by tagging tabs, and the tag count will be displayed here.
                     </div>
                 </div>
@@ -237,7 +237,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
                         color: undefined,
                         padding: undefined,
                     }}
-                    className="bg-background text-foreground z-[60] rounded-lg p-2">
+                    className="z-[60] rounded-md border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
                     <div className="flex items-center gap-2 p-1 text-sm">
                         <TagChip color={activeTag.color}>{activeTag.name}</TagChip> -{" "}
                         {savedStore.filteredTabsByTagId[activeTag.id]?.length ?? 0} tabs
