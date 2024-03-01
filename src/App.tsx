@@ -52,7 +52,7 @@ export default function App() {
                                         {activePanel === panel && (
                                             <motion.span
                                                 layoutId="highlight"
-                                                className="absolute inset-0 rounded bg-primary will-change-transform"
+                                                className="highlight absolute inset-0 rounded will-change-transform"
                                                 transition={{
                                                     type: "spring",
                                                     bounce: 0.2,

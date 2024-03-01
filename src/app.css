@@ -72,15 +72,15 @@
 
 @layer components {
     .focus-ring {
-        @apply focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-1;
+        @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring;
     }
 
     .scrollbar-gray {
-        @apply scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-thumb-rounded-full;
+        @apply scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 scrollbar-thumb-rounded-full;
     }
 
     .keyboard-shortcut {
-        @apply border-border bg-muted text-foreground whitespace-nowrap rounded border p-1 text-xs uppercase;
+        @apply whitespace-nowrap rounded border border-border bg-muted p-1 text-xs uppercase text-foreground;
     }
 }
 
@@ -94,4 +94,13 @@ body,
     background: rgba(252, 108, 46, 0.11);
     border: 1px solid rgba(255, 158, 98, 0.81);
     border-radius: 2px;
+}
+
+.highlight {
+    background: linear-gradient(0deg, hsl(12.34deg 100% 50.71%), hsl(12.34deg 100% 63.71%));
+    box-shadow: 0 -1px 3px 1px rgba(255, 202, 167, 0.624);
+}
+
+.dark .highlight {
+    box-shadow: 0 -1px 3px 1px rgba(47, 19, 0, 0.624) inset;
 }
