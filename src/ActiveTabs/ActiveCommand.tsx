@@ -19,13 +19,18 @@ import { toast } from "../ui/Toast";
 import { useUIStore } from "../UIStore";
 import { cn, formatLinks } from "../util";
 import { toggle } from "../util/set";
-import ActiveStore, { useActiveTabStore } from "./ActiveStore";
+import ActiveStore, {
+    SelectionStore,
+    useActiveSelectionStore,
+    useActiveTabStore,
+} from "./ActiveStore";
 
 // todo: clean this & SavedCommand up
 export default function ActiveCommand() {
     const tabStore = useActiveTabStore();
     const tagStore = useTagStore();
     const uiStore = useUIStore();
+    const selectionStore = useActiveSelectionStore();
 
     const { pages, goToPage, activePage, pushPage, search, setSearch, setPages, goToPrevPage } =
         useTabCommand();
@@ -78,7 +83,7 @@ export default function ActiveCommand() {
             return;
         }
 
-        const tabsToSave = Array.from(ActiveStore.selectedTabIds)
+        const tabsToSave = Array.from(SelectionStore.selectedTabIds)
             .map((id) => ActiveStore.viewTabsById[id])
             .filter(Boolean)
             .map((tab) => {
@@ -102,7 +107,9 @@ export default function ActiveCommand() {
     };
 
     const handleCopyToClipboard = () => {
-        const selectedLinks = tabStore.tabs.filter((tab) => tabStore.selectedTabIds.has(tab.id));
+        const selectedLinks = tabStore.tabs.filter((tab) =>
+            SelectionStore.selectedTabIds.has(tab.id),
+        );
 
         const formatted = formatLinks(selectedLinks, uiStore.settings.clipboardFormat);
 
@@ -123,7 +130,7 @@ export default function ActiveCommand() {
     };
 
     const handleCloseSelected = () => {
-        tabStore.removeTabs(Array.from(ActiveStore.selectedTabIds));
+        tabStore.removeTabs(Array.from(SelectionStore.selectedTabIds));
     };
 
     const handleToggleFilterKeyword = (keyword: string) => {
@@ -138,7 +145,7 @@ export default function ActiveCommand() {
     };
 
     const handleMoveToNewWindow = async (incognito = false) => {
-        const tabIds = Array.from(ActiveStore.selectedTabIds);
+        const tabIds = Array.from(SelectionStore.selectedTabIds);
         await ActiveStore.moveTabsToNewWindow(tabIds, incognito);
     };
 
@@ -217,22 +224,22 @@ export default function ActiveCommand() {
                                         <Badge
                                             variant="secondary"
                                             className={cn({
-                                                "opacity-0": !tabStore.selectedTabIds.size,
+                                                "opacity-0": !selectionStore.selectedTabIds.size,
                                             })}>
-                                            {tabStore.selectedTabIds.size}
+                                            {selectionStore.selectedTabIds.size}
                                         </Badge>
                                     </span>
                                 }>
-                                {tabStore.selectedTabIds.size === 0 ? (
-                                    <CommandItem onSelect={tabStore.selectAllTabs}>
+                                {selectionStore.selectedTabIds.size === 0 ? (
+                                    <CommandItem onSelect={selectionStore.selectAllTabs}>
                                         Select All
                                     </CommandItem>
                                 ) : (
-                                    <CommandItem onSelect={tabStore.deselectAllTabs}>
+                                    <CommandItem onSelect={selectionStore.deselectAllTabs}>
                                         Deselect All
                                     </CommandItem>
                                 )}
-                                {Boolean(tabStore.selectedTabIds.size) && (
+                                {Boolean(selectionStore.selectedTabIds.size) && (
                                     <>
                                         <CommandItem onSelect={() => pushPage("tag")}>
                                             Tag

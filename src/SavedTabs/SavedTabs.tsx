@@ -51,9 +51,11 @@ import { cn, focusSiblingItem } from "../util";
 import { SortDir } from "../util/sort";
 import SavedCommand from "./SavedCommand";
 import SavedStore, {
+    SelectionStore,
     TabGrouping,
     TabSortProp,
     useIsTabSelected,
+    useSavedSelectionStore,
     useSavedTabStore,
 } from "./SavedStore";
 
@@ -273,7 +275,8 @@ function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagI
 }
 
 function SelectButton() {
-    const { filteredTabIds, selectedTabIds } = useSavedTabStore();
+    const { filteredTabIds } = useSavedTabStore();
+    const { selectedTabIds } = useSavedSelectionStore();
 
     const hasTabs = filteredTabIds.size > 0;
     const hasSelectedTabs = selectedTabIds.size > 0;
@@ -281,12 +284,12 @@ function SelectButton() {
     return (
         <>
             {hasSelectedTabs ? (
-                <Button variant="ghost" onClick={SavedStore.deselectAllTabs}>
+                <Button variant="ghost" onClick={SelectionStore.deselectAllTabs}>
                     Deselect All
                 </Button>
             ) : (
                 hasTabs && (
-                    <Button variant="ghost" onClick={SavedStore.selectAllTabs}>
+                    <Button variant="ghost" onClick={SelectionStore.selectAllTabs}>
                         Select All
                     </Button>
                 )
@@ -525,9 +528,11 @@ export default function SavedTabs() {
                 />
             )}
             <SelectableList
-                onResetSelection={() => SavedStore.deselectAllTabs()}
-                getSelected={() => SavedStore.selectedTabIds}
-                onSelectionChange={(selection) => SavedStore.selectTabs(selection as Set<string>)}>
+                onResetSelection={() => SelectionStore.deselectAllTabs()}
+                getSelected={() => SelectionStore.selectedTabIds}
+                onSelectionChange={(selection) =>
+                    SelectionStore.selectTabs(selection as Set<string>)
+                }>
                 <div className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr] items-start gap-x-5">
                     {isTagView && (
                         <>

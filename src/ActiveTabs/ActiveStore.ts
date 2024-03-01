@@ -37,12 +37,27 @@ interface ReorderOp {
     index: number;
 }
 
+export const SelectionStore = proxy({
+    selectedTabIds: proxySet<number>(),
+    toggleSelected: (tabId: number) => {
+        toggle(SelectionStore.selectedTabIds, tabId);
+    },
+    selectTabs: (tabIds?: Set<number>) => {
+        SelectionStore.selectedTabIds = proxySet(tabIds);
+    },
+    selectAllTabs: () => {
+        SelectionStore.selectedTabIds = proxySet(Store.filteredTabIds);
+    },
+    deselectAllTabs: () => {
+        SelectionStore.selectedTabIds = proxySet();
+    },
+});
+
+// todo: deduplicate stores
 export interface ActiveStore {
     initialized: boolean;
     assignedTagIds: Set<number>;
     tabs: ActiveTab[];
-    selectedTabIds: Set<number>;
-
     view: {
         filter: Filter;
         sort: {
@@ -65,10 +80,6 @@ export interface ActiveStore {
     addTab(tabId: number, tab: ActiveTab): void;
     reorderTab(from: number, to: number, syncBrowser?: boolean): void;
     syncOrder(tabs: Record<number, number[]>): void;
-    selectTabs(tabIds: Set<number>): void;
-    deselectAllTabs(): void;
-    selectAllTabs(): void;
-    toggleTabSelection(tabId: number): void;
     removeTab(tabId: number): Promise<void>;
     removeAllTabs(): Promise<void>;
     removeAllInWindow(windowId: number): Promise<void>;
@@ -83,11 +94,10 @@ export interface ActiveStore {
     moveTabsToNewWindow(tabIds: number[], incognito?: boolean): Promise<void>;
 }
 
-const store = proxy({
+const Store = proxy({
     initialized: false,
     assignedTagIds: proxySet<number>(),
     tabs: [] as ActiveTab[],
-    selectedTabIds: proxySet<number>(),
     view: proxy({
         filter: {
             keywords: [] as string[],
@@ -98,7 +108,7 @@ const store = proxy({
         },
     }),
     initTabs: async () => {
-        store.tabs = await getActiveTabs();
+        Store.tabs = await getActiveTabs();
 
         let syncDebounceTimer: null | ReturnType<typeof setTimeout> = null;
         chrome.tabs.onMoved.addListener(() => {
@@ -106,84 +116,68 @@ const store = proxy({
                 clearTimeout(syncDebounceTimer);
             }
             syncDebounceTimer = setTimeout(() => {
-                store.resetTabs();
+                Store.resetTabs();
             }, 200);
         });
 
         chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
-            const tabIndex = store.tabs.findIndex((t) => t.id === tabId);
+            const tabIndex = Store.tabs.findIndex((t) => t.id === tabId);
             if (tabIndex !== -1) {
-                store.tabs[tabIndex] = { ...store.tabs[tabIndex], ...toActiveTab(tab) };
+                Store.tabs[tabIndex] = { ...Store.tabs[tabIndex], ...toActiveTab(tab) };
             } else if (change.status === "complete") {
                 const newTab = toActiveTab(tab);
                 if (isValidActiveTab(newTab)) {
-                    store.tabs.push(newTab as ActiveTab);
+                    Store.tabs.push(newTab as ActiveTab);
                 }
             }
         });
 
         chrome.tabs.onRemoved.addListener((id) => {
-            store.tabs = store.tabs.filter((t) => t.id !== id);
+            Store.tabs = Store.tabs.filter((t) => t.id !== id);
         });
 
-        store.initialized = true;
+        Store.initialized = true;
     },
     addTab: (tabId: number, tab: ActiveTab) => {
         if (!isValidActiveTab(tab)) {
             return;
         }
 
-        let i = store.tabs.findIndex((t) => t.id === tabId);
+        let i = Store.tabs.findIndex((t) => t.id === tabId);
 
         if (i !== -1) {
-            store.tabs[i] = tab;
+            Store.tabs[i] = tab;
         } else {
-            store.tabs.push(tab);
+            Store.tabs.push(tab);
         }
     },
     removeTab: async (tabId: number) => {
-        return store.removeTabs([tabId]);
+        return Store.removeTabs([tabId]);
     },
     removeTabs: async (tabIds: number[]) => {
         await chrome.tabs.remove(tabIds);
 
         const idsSet = new Set(tabIds);
-        store.tabs = store.tabs.filter((t) => !idsSet.has(t.id));
+        Store.tabs = Store.tabs.filter((t) => !idsSet.has(t.id));
         for (const id of idsSet) {
-            store.selectedTabIds.delete(id);
+            SelectionStore.selectedTabIds.delete(id);
         }
     },
     removeAllInWindow: async (windowId: number) => {
-        const tabs = store.tabs.filter((t) => t.windowId === windowId);
-        await store.removeTabs(tabs.map((t) => t.id));
+        const tabs = Store.tabs.filter((t) => t.windowId === windowId);
+        await Store.removeTabs(tabs.map((t) => t.id));
     },
     removeAllTabs: async () => {
-        const tabIds = store.tabs.map((t) => t.id);
-        await store.removeTabs(tabIds);
+        const tabIds = Store.tabs.map((t) => t.id);
+        await Store.removeTabs(tabIds);
     },
     resetTabs: async () => {
-        store.tabs = await getActiveTabs();
-    },
-    selectTabs: (tabIds: Set<number>) => {
-        store.selectedTabIds = proxySet(tabIds);
-    },
-    toggleTabSelection: (tabId: number) => {
-        if (store.selectedTabIds.has(tabId)) {
-            store.selectedTabIds.delete(tabId);
-        } else {
-            store.selectedTabIds.add(tabId);
-        }
-    },
-    deselectAllTabs: () => {
-        store.selectedTabIds = proxySet();
-    },
-    selectAllTabs: () => {
-        store.selectedTabIds = proxySet([...store.filteredTabIds]);
+        Store.tabs = await getActiveTabs();
     },
     saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
         if (remove) {
             const tabIds = tabs.map(({ id }) => id!).filter(Boolean);
-            await store.removeTabs(tabIds).catch(() => {
+            await Store.removeTabs(tabIds).catch(() => {
                 const msg = `Failed to remove tabs: ${tabIds}`;
                 toast.error(msg);
                 console.error(msg);
@@ -195,19 +189,19 @@ const store = proxy({
         SavedStore.saveTabs(withoutIds);
     },
     toggleAssignedTagId: (tagId: number) => {
-        toggle(store.assignedTagIds, tagId);
+        toggle(Store.assignedTagIds, tagId);
     },
     clearAssignedTagIds: () => {
-        store.assignedTagIds = proxySet();
+        Store.assignedTagIds = proxySet();
     },
     setView(view: Partial<ActiveStore["view"]>) {
-        store.view = { ...store.view, ...view };
+        Store.view = { ...Store.view, ...view };
     },
     updateFilter: (filter: Partial<Filter>) => {
-        store.view.filter = { ...store.view.filter, ...filter };
+        Store.view.filter = { ...Store.view.filter, ...filter };
     },
     clearFilter: () => {
-        store.view.filter = { keywords: [] };
+        Store.view.filter = { keywords: [] };
     },
     reorderTab: async (op: { tabId: number; from: ReorderOp; to: ReorderOp }) => {
         await chrome.tabs.move(op.tabId, {
@@ -218,7 +212,7 @@ const store = proxy({
     syncOrder: async (tabs: Record<number, number[]>) => {
         await Promise.all(
             Object.entries(tabs).map(([windowId, tabs]) => {
-                const sortedTabs = store.view.sort.dir === SortDir.Asc ? tabs : [...tabs].reverse();
+                const sortedTabs = Store.view.sort.dir === SortDir.Asc ? tabs : [...tabs].reverse();
                 return chrome.tabs.move(Array.from(sortedTabs), {
                     index: 0,
                     windowId: Number(windowId),
@@ -229,19 +223,19 @@ const store = proxy({
         });
     },
     removeDuplicateTabs: async () => {
-        const duplicates = store.viewDuplicateTabIds;
-        await store.removeTabs(Array.from(duplicates));
+        const duplicates = Store.viewDuplicateTabIds;
+        await Store.removeTabs(Array.from(duplicates));
     },
     updateTab: async (tabId: number, options: chrome.tabs.UpdateProperties) => {
         await chrome.tabs.update(tabId, options);
     },
     moveTabsToNewWindow: async (tabIds: number[], incognito = false) => {
         await chrome.windows.create({
-            url: tabIds.map((id) => store.viewTabsById[id]?.url).filter(Boolean),
+            url: tabIds.map((id) => Store.viewTabsById[id]?.url).filter(Boolean),
             incognito,
         });
 
-        await store.removeTabs(tabIds);
+        await Store.removeTabs(tabIds);
     },
 }) as unknown as ActiveStore;
 
@@ -250,7 +244,7 @@ const fuseOptions = {
     keys: ["title", { name: "url", weight: 2 }],
 };
 
-const activeFuse = new Fuse(store.tabs, fuseOptions);
+const activeFuse = new Fuse(Store.tabs, fuseOptions);
 
 export function filterTabs(tabs: ActiveTab[], filter: Filter) {
     if (!filter.keywords.length) {
@@ -273,12 +267,12 @@ export function filterTabs(tabs: ActiveTab[], filter: Filter) {
 derive(
     {
         filtersApplied: (get) => {
-            const filter = get(store).view.filter;
+            const filter = get(Store).view.filter;
             return Boolean(filter.keywords.length);
         },
         filteredTabIds: (get) => {
-            const filter = get(store).view.filter;
-            const tabs = get(store).tabs;
+            const filter = get(Store).view.filter;
+            const tabs = get(Store).tabs;
 
             const allIds = new Set(tabs.map((t) => t.id));
 
@@ -289,8 +283,8 @@ derive(
             return proxySet(filterTabs(tabs, filter));
         },
         viewDuplicateTabIds: (get) => {
-            const filteredIds = get(store).filteredTabIds;
-            const tabs = get(store.tabs).filter((t) => filteredIds.has(t.id));
+            const filteredIds = get(Store).filteredTabIds;
+            const tabs = get(Store.tabs).filter((t) => filteredIds.has(t.id));
             const savedTabs = get(SavedStore.tabs);
             const activeByUrl = new Map(tabs.map((t) => [canonicalizeURL(t.url), t]));
 
@@ -314,8 +308,8 @@ derive(
             return proxySet(duplicates);
         },
         viewTabsById: (get) => {
-            const filteredIds = get(store).filteredTabIds;
-            const tabs = get(store.tabs).filter((t) => filteredIds.has(t.id));
+            const filteredIds = get(Store).filteredTabIds;
+            const tabs = get(Store.tabs).filter((t) => filteredIds.has(t.id));
 
             const ids: Record<number, ActiveTab> = {};
             for (const t of tabs) {
@@ -325,9 +319,9 @@ derive(
             return ids;
         },
         viewTabIdsByWindowId: (get) => {
-            const view = get(store).view;
-            const filteredIds = get(store).filteredTabIds;
-            const tabs = get(store.tabs).filter((t) => filteredIds.has(t.id));
+            const view = get(Store).view;
+            const filteredIds = get(Store).filteredTabIds;
+            const tabs = get(Store.tabs).filter((t) => filteredIds.has(t.id));
 
             const ids: Record<number, number[]> = {};
             for (const t of tabs) {
@@ -346,31 +340,35 @@ derive(
             return ids;
         },
     },
-    { proxy: store },
+    { proxy: Store },
 );
 
-subscribe(store, (ops) => {
+subscribe(Store, (ops) => {
     const savedTabsUpdated = ops.filter((op) => op[1][0] === "tabs");
 
     if (savedTabsUpdated.length) {
-        activeFuse.setCollection(store.tabs);
+        activeFuse.setCollection(Store.tabs);
     }
 });
 
-store.initTabs();
+Store.initTabs();
 
 export function useActiveTabStore() {
-    return useSnapshot(store) as typeof store;
+    return useSnapshot(Store) as typeof Store;
+}
+
+export function useActiveSelectionStore() {
+    return useSnapshot(SelectionStore);
 }
 
 export function useIsTabSelected(tabId: number) {
-    const [selected, setSelected] = useState(store.selectedTabIds.has(tabId));
+    const [selected, setSelected] = useState(SelectionStore.selectedTabIds.has(tabId));
 
     useEffect(() => {
         const callback = () => {
-            setSelected(store.selectedTabIds.has(tabId));
+            setSelected(SelectionStore.selectedTabIds.has(tabId));
         };
-        const unsubscribe = subscribe(store, callback);
+        const unsubscribe = subscribe(SelectionStore, callback);
         callback();
 
         return unsubscribe;
@@ -380,13 +378,13 @@ export function useIsTabSelected(tabId: number) {
 }
 
 export function usIsTabDuplicate(tabId: number) {
-    const [duplicate, setSelected] = useState(store.viewDuplicateTabIds.has(tabId));
+    const [duplicate, setDuplicate] = useState(Store.viewDuplicateTabIds.has(tabId));
 
     useEffect(() => {
         const callback = () => {
-            setSelected(store.viewDuplicateTabIds.has(tabId));
+            setDuplicate(Store.viewDuplicateTabIds.has(tabId));
         };
-        const unsubscribe = subscribe(store, callback);
+        const unsubscribe = subscribe(Store, callback);
         callback();
 
         return unsubscribe;
@@ -395,4 +393,4 @@ export function usIsTabDuplicate(tabId: number) {
     return duplicate;
 }
 
-export default store;
+export default Store;

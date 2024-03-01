@@ -40,7 +40,13 @@ import {
 import { cn, focusSiblingItem } from "../util";
 import { SortDir } from "../util/sort";
 import ActiveCommand from "./ActiveCommand";
-import ActiveStore, { useActiveTabStore, useIsTabSelected, usIsTabDuplicate } from "./ActiveStore";
+import ActiveStore, {
+    SelectionStore,
+    useActiveSelectionStore,
+    useActiveTabStore,
+    useIsTabSelected,
+    usIsTabDuplicate,
+} from "./ActiveStore";
 
 function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
     const getTabIndex = () =>
@@ -65,7 +71,7 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
     };
 
     const handleTabSelection = () => {
-        ActiveStore.toggleTabSelection(tab.id);
+        SelectionStore.toggleSelected(tab.id);
     };
 
     const handlePinTab = () => {
@@ -161,7 +167,8 @@ const ActiveTabItem = forwardRef<
 });
 
 function SelectButton() {
-    const { filteredTabIds, selectedTabIds } = useActiveTabStore();
+    const { filteredTabIds } = useActiveTabStore();
+    const { selectedTabIds } = useActiveSelectionStore();
 
     const hasTabs = filteredTabIds.size > 0;
     const hasSelectedTabs = selectedTabIds.size > 0;
@@ -169,12 +176,12 @@ function SelectButton() {
     return (
         <>
             {hasSelectedTabs ? (
-                <Button variant="ghost" onClick={ActiveStore.deselectAllTabs}>
+                <Button variant="ghost" onClick={SelectionStore.deselectAllTabs}>
                     Deselect All
                 </Button>
             ) : (
                 hasTabs && (
-                    <Button variant="ghost" onClick={ActiveStore.selectAllTabs}>
+                    <Button variant="ghost" onClick={SelectionStore.selectAllTabs}>
                         Select All
                     </Button>
                 )
@@ -273,14 +280,16 @@ export default function ActiveTabs() {
                 />
             )}
             <SelectableList
-                onResetSelection={ActiveStore.deselectAllTabs}
-                getSelected={() => ActiveStore.selectedTabIds}
-                onSelectionChange={(selection) => ActiveStore.selectTabs(selection as Set<number>)}
+                onResetSelection={SelectionStore.deselectAllTabs}
+                getSelected={() => SelectionStore.selectedTabIds}
+                onSelectionChange={(selection) =>
+                    SelectionStore.selectTabs(selection as Set<number>)
+                }
                 onBeforeStart={() => {
                     return activeIdRef.current === null;
                 }}>
                 <SortableList
-                    getSelectedIds={() => ActiveStore.selectedTabIds}
+                    getSelectedIds={() => SelectionStore.selectedTabIds}
                     items={tabIdsByWindowId}
                     onItemsChange={(items) => setTabIdsByWindowId(items)}
                     onSortEnd={(items) => tabStore.syncOrder(items)}

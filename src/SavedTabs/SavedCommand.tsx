@@ -19,12 +19,13 @@ import { toast } from "../ui/Toast";
 import { useUIStore } from "../UIStore";
 import { cn, formatLinks } from "../util";
 import { toggle } from "../util/set";
-import SavedStore, { useSavedTabStore } from "./SavedStore";
+import SavedStore, { useSavedSelectionStore, useSavedTabStore } from "./SavedStore";
 
 export default function SavedCommand() {
     const tabStore = useSavedTabStore();
     const tagStore = useTagStore();
     const uiStore = useUIStore();
+    const selectionStore = useSavedSelectionStore();
 
     const { pages, goToPage, search, setSearch, activePage, setPages, pushPage, goToPrevPage } =
         useTabCommand();
@@ -43,7 +44,7 @@ export default function SavedCommand() {
 
     const handleSaveAssignedTags = async () => {
         tabStore.tagTabs(
-            Array.from(SavedStore.selectedTabIds),
+            Array.from(selectionStore.selectedTabIds),
             Array.from(SavedStore.assignedTagIds),
         );
         tabStore.clearAssignedTagIds();
@@ -53,7 +54,9 @@ export default function SavedCommand() {
     };
 
     const handleCopyToClipboard = () => {
-        const selectedLinks = tabStore.tabs.filter((tab) => tabStore.selectedTabIds.has(tab.id));
+        const selectedLinks = tabStore.tabs.filter((tab) =>
+            selectionStore.selectedTabIds.has(tab.id),
+        );
 
         const formatted = formatLinks(selectedLinks, uiStore.settings.clipboardFormat);
 
@@ -68,7 +71,9 @@ export default function SavedCommand() {
     };
 
     const handleOpenSelected = (newWindow?: boolean) => {
-        const selectedLinks = tabStore.tabs.filter((tab) => tabStore.selectedTabIds.has(tab.id));
+        const selectedLinks = tabStore.tabs.filter((tab) =>
+            selectionStore.selectedTabIds.has(tab.id),
+        );
         const urls = selectedLinks.map((tab) => tab.url);
         if (newWindow) {
             chrome.windows.create({
@@ -88,7 +93,7 @@ export default function SavedCommand() {
     const hashtag = search.split(" ").at(-1)?.[0] === "#";
 
     const handleRemoveSelected = () => {
-        tabStore.removeTabs(Array.from(SavedStore.selectedTabIds));
+        tabStore.removeTabs(Array.from(selectionStore.selectedTabIds));
     };
 
     const handleCreateTag = () => {
@@ -191,22 +196,22 @@ export default function SavedCommand() {
                                         <Badge
                                             variant="secondary"
                                             className={cn({
-                                                "opacity-0": !tabStore.selectedTabIds.size,
+                                                "opacity-0": !selectionStore.selectedTabIds.size,
                                             })}>
-                                            {tabStore.selectedTabIds.size}
+                                            {selectionStore.selectedTabIds.size}
                                         </Badge>
                                     </span>
                                 }>
-                                {tabStore.selectedTabIds.size === 0 ? (
-                                    <CommandItem onSelect={tabStore.selectAllTabs}>
+                                {selectionStore.selectedTabIds.size === 0 ? (
+                                    <CommandItem onSelect={selectionStore.selectAllTabs}>
                                         Select All
                                     </CommandItem>
                                 ) : (
-                                    <CommandItem onSelect={tabStore.deselectAllTabs}>
+                                    <CommandItem onSelect={selectionStore.deselectAllTabs}>
                                         Deselect All
                                     </CommandItem>
                                 )}
-                                {Boolean(tabStore.selectedTabIds.size) && (
+                                {Boolean(selectionStore.selectedTabIds.size) && (
                                     <>
                                         <CommandItem onSelect={() => pushPage("tag")}>
                                             Tag

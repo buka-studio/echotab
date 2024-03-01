@@ -33,11 +33,26 @@ export enum TabSortProp {
 
 const storageKey = `cmdtab-tab-store-${version}`;
 
+export const SelectionStore = proxy({
+    selectedTabIds: proxySet<string>(),
+    toggleSelected: (tabId: string) => {
+        toggle(SelectionStore.selectedTabIds, tabId);
+    },
+    selectTabs: (tabIds?: Set<string>) => {
+        SelectionStore.selectedTabIds = proxySet(tabIds || Store.viewTabIds);
+    },
+    selectAllTabs: () => {
+        SelectionStore.selectedTabIds = proxySet(Store.filteredTabIds);
+    },
+    deselectAllTabs: () => {
+        SelectionStore.selectedTabIds = proxySet();
+    },
+});
+
 export interface SavedStore {
     initialized: boolean;
     assignedTagIds: Set<number>;
     tabs: SavedTab[];
-    selectedTabIds: Set<string>;
     view: {
         filter: Filter;
         grouping: TabGrouping;
@@ -65,9 +80,6 @@ export interface SavedStore {
     removeAllTabs(): void;
     removeTabTag(tabId: string, tagId: number): void;
     removeTags(tagIds: number[]): void;
-    selectTabs(tabIds?: Set<string>): void;
-    deselectAllTabs(): void;
-    selectAllTabs(): void;
     reorderTabs(from: number, to: number): void;
     saveTabs(tabs: Omit<SavedTab, "id">[]): void;
     tagTabs(tabsIds: string[], tagIds: number[]): void;
@@ -77,11 +89,10 @@ export interface SavedStore {
 type PersistedTabStore = Pick<SavedStore, "tabs" | "view">;
 type ImportedTabStore = Partial<Pick<SavedStore, "tabs" | "view">>;
 
-const store = proxy({
+const Store = proxy({
     initialized: false,
     assignedTagIds: proxySet<number>(),
     tabs: [] as SavedTab[],
-    selectedTabIds: proxySet<string>(),
     view: proxy({
         filter: {
             tags: [] as number[],
@@ -94,34 +105,22 @@ const store = proxy({
         },
     }),
     removeTab: (tabId: string) => {
-        store.removeTabs([tabId]);
+        Store.removeTabs([tabId]);
     },
     removeTabs: (tabIds: string[]) => {
         const idsSet = new Set(tabIds);
-        store.tabs = store.tabs.filter((t) => !idsSet.has(t.id));
+        Store.tabs = Store.tabs.filter((t) => !idsSet.has(t.id));
         for (const id of idsSet) {
-            store.selectedTabIds.delete(id);
+            SelectionStore.selectedTabIds.delete(id);
         }
     },
     removeAllTabs: () => {
-        store.tabs = [];
-        store.selectedTabIds = proxySet();
-    },
-    toggleSelected: (tabId: string) => {
-        toggle(store.selectedTabIds, tabId);
-    },
-    selectTabs: (tabIds?: Set<string>) => {
-        store.selectedTabIds = proxySet(tabIds || store.viewTabIds);
-    },
-    selectAllTabs: () => {
-        store.selectedTabIds = proxySet(store.filteredTabIds);
-    },
-    deselectAllTabs: () => {
-        store.selectedTabIds = proxySet();
+        Store.tabs = [];
+        SelectionStore.selectedTabIds = proxySet();
     },
     tagTabs: (tabIds: string[], tagIds: number[]) => {
         const idSet = new Set(tabIds);
-        for (const t of store.tabs) {
+        for (const t of Store.tabs) {
             if (idSet.has(t.id)) {
                 t.tagIds = Array.from(new Set([...t.tagIds, ...tagIds])).filter(
                     (t) => t !== unassignedTag.id,
@@ -133,22 +132,22 @@ const store = proxy({
         }
     },
     toggleAssignedTagId: (tagId: number) => {
-        toggle(store.assignedTagIds, tagId);
+        toggle(Store.assignedTagIds, tagId);
     },
     clearAssignedTagIds: () => {
-        store.assignedTagIds = proxySet();
+        Store.assignedTagIds = proxySet();
     },
     setView(view: Partial<SavedStore["view"]>) {
-        store.view = { ...store.view, ...view };
+        Store.view = { ...Store.view, ...view };
     },
     updateFilter: (filter: Partial<Filter>) => {
-        store.view.filter = { ...store.view.filter, ...filter };
+        Store.view.filter = { ...Store.view.filter, ...filter };
     },
     clearFilter: () => {
-        store.view.filter = { tags: [], keywords: [] };
+        Store.view.filter = { tags: [], keywords: [] };
     },
     removeTabTag: (tabId: string, tagId: number) => {
-        const tab = store.tabs.find((t) => t.id === tabId);
+        const tab = Store.tabs.find((t) => t.id === tabId);
         if (!tab) {
             return;
         }
@@ -159,7 +158,7 @@ const store = proxy({
     },
     removeTags: (tagIds: number[]) => {
         const tagIdsSet = new Set(tagIds);
-        for (const tab of store.tabs) {
+        for (const tab of Store.tabs) {
             tab.tagIds = tab.tagIds.filter((t) => !tagIdsSet.has(t));
             if (tab.tagIds.length === 0) {
                 tab.tagIds = [unassignedTag.id];
@@ -167,11 +166,11 @@ const store = proxy({
         }
     },
     reorderTabs: (from: number, to: number) => {
-        store.tabs = arrayMove(store.tabs, from, to);
+        Store.tabs = arrayMove(Store.tabs, from, to);
     },
     import: (imported: ImportedTabStore) => {
-        const existingById = new Map(store.tabs.map((t) => [t.id, t]));
-        const existingByURLs = new Map(store.tabs.map((t) => [canonicalizeURL(t.url), t]));
+        const existingById = new Map(Store.tabs.map((t) => [t.id, t]));
+        const existingByURLs = new Map(Store.tabs.map((t) => [canonicalizeURL(t.url), t]));
 
         const newTabs = [];
         for (const tab of imported?.tabs || []) {
@@ -184,10 +183,10 @@ const store = proxy({
             }
         }
 
-        store.tabs.push(...newTabs);
+        Store.tabs.push(...newTabs);
     },
     saveTabs: (tabs: Omit<SavedTab, "id">[]) => {
-        const existingByURLs = new Map(store.tabs.map((t) => [canonicalizeURL(t.url), t]));
+        const existingByURLs = new Map(Store.tabs.map((t) => [canonicalizeURL(t.url), t]));
 
         const newTabs = [];
         for (const tab of tabs || []) {
@@ -200,21 +199,21 @@ const store = proxy({
             }
         }
 
-        store.tabs.push(...newTabs.map((t) => ({ ...t, id: uuidv7() }) as SavedTab));
+        Store.tabs.push(...newTabs.map((t) => ({ ...t, id: uuidv7() }) as SavedTab));
     },
     initStore: async () => {
         let stored = await ChromeLocalStorage.getItem(storageKey);
         if (stored) {
             try {
                 const init = JSON.parse(stored as string) as PersistedTabStore;
-                store.tabs = init.tabs || [];
-                store.view = { ...store.view, ...init.view };
+                Store.tabs = init.tabs || [];
+                Store.view = { ...Store.view, ...init.view };
             } catch (e) {
                 toast.error("Failed to load tags from local storage");
                 console.error(e);
             }
         }
-        store.initialized = true;
+        Store.initialized = true;
     },
 }) as unknown as SavedStore;
 
@@ -223,7 +222,7 @@ const fuseOptions = {
     keys: ["title", { name: "url", weight: 2 }],
 };
 
-const savedFuse = new Fuse(store.tabs, fuseOptions);
+const savedFuse = new Fuse(Store.tabs, fuseOptions);
 
 export function filterTabs(tabs: SavedTab[], filter: Filter) {
     if (filter.keywords.length + filter.tags.length === 0) {
@@ -253,24 +252,24 @@ export function filterTabs(tabs: SavedTab[], filter: Filter) {
 derive(
     {
         filtersApplied: (get) => {
-            const filter = get(store).view.filter;
+            const filter = get(Store).view.filter;
             return filter.keywords.length + filter.tags.length > 0;
         },
         filteredTabIds: (get) => {
-            const view = get(store).view;
-            const tabs = get(store).tabs;
+            const view = get(Store).view;
+            const tabs = get(Store).tabs;
 
             const allIds = new Set(tabs.map((t) => t.id));
 
-            if (!get(store).filtersApplied) {
+            if (!get(Store).filtersApplied) {
                 return proxySet(allIds);
             }
 
             return proxySet(filterTabs(tabs, view.filter));
         },
         viewTabsById: (get) => {
-            const filteredIds = get(store).filteredTabIds;
-            const tabs = get(store).tabs.filter((t) => filteredIds.has(t.id));
+            const filteredIds = get(Store).filteredTabIds;
+            const tabs = get(Store).tabs.filter((t) => filteredIds.has(t.id));
 
             const ids: Record<string, SavedTab> = {};
             for (const t of tabs) {
@@ -280,8 +279,8 @@ derive(
             return ids;
         },
         filteredTabsByTagId: (get) => {
-            const filteredIds = get(store).filteredTabIds;
-            const tabs = get(store).tabs.filter((t) => filteredIds.has(t.id));
+            const filteredIds = get(Store).filteredTabIds;
+            const tabs = get(Store).tabs.filter((t) => filteredIds.has(t.id));
 
             const ids: Record<number, string[]> = {};
             for (const t of tabs) {
@@ -296,9 +295,9 @@ derive(
             return ids;
         },
         viewTagIds: (get) => {
-            const filteredTagIds = get(store).filteredTabsByTagId;
+            const filteredTagIds = get(Store).filteredTabsByTagId;
             const ids = Array.from(Object.keys(filteredTagIds)).map((t) => Number(t));
-            const sort = get(store).view.sort;
+            const sort = get(Store).view.sort;
             const tags = get(TagStore.tags);
 
             if (sort.prop === TabSortProp.TagName) {
@@ -319,9 +318,9 @@ derive(
             return ids;
         },
         viewTabIds: (get) => {
-            const view = get(store).view;
-            const tabs = get(store).tabs;
-            const filteredIds = get(store).filteredTabIds;
+            const view = get(Store).view;
+            const tabs = get(Store).tabs;
+            const filteredIds = get(Store).filteredTabIds;
 
             const tabsById = Object.fromEntries(tabs.map((t) => [t.id, t]));
 
@@ -345,38 +344,42 @@ derive(
             return sorted;
         },
     },
-    { proxy: store },
+    { proxy: Store },
 );
 
-subscribe(store, (ops) => {
+subscribe(Store, (ops) => {
     const savedTabsUpdated = ops.filter((op) => op[1][0] === "tabs");
 
     if (savedTabsUpdated.length) {
-        savedFuse.setCollection(store.tabs);
+        savedFuse.setCollection(Store.tabs);
     }
 
-    if (store.initialized) {
+    if (Store.initialized) {
         ChromeLocalStorage.setItem(
             storageKey,
-            JSON.stringify({ tabs: store.tabs, view: store.view }),
+            JSON.stringify({ tabs: Store.tabs, view: Store.view }),
         );
     }
 });
 
-store.initStore();
+Store.initStore();
 
 export function useSavedTabStore() {
-    return useSnapshot(store) as typeof store;
+    return useSnapshot(Store) as typeof Store;
+}
+
+export function useSavedSelectionStore() {
+    return useSnapshot(SelectionStore);
 }
 
 export function useIsTabSelected(tabId: string) {
-    const [selected, setSelected] = useState(store.selectedTabIds.has(tabId));
+    const [selected, setSelected] = useState(SelectionStore.selectedTabIds.has(tabId));
 
     useEffect(() => {
         const callback = () => {
-            setSelected(store.selectedTabIds.has(tabId));
+            setSelected(SelectionStore.selectedTabIds.has(tabId));
         };
-        const unsubscribe = subscribe(store, callback);
+        const unsubscribe = subscribe(SelectionStore, callback);
         callback();
 
         return unsubscribe;
@@ -385,4 +388,4 @@ export function useIsTabSelected(tabId: string) {
     return selected;
 }
 
-export default store;
+export default Store;
