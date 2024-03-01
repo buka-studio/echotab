@@ -532,7 +532,7 @@ export default function SavedTabs() {
                     {isTagView && (
                         <>
                             {isXLScreen ? (
-                                <div className="scrollbar-gray sticky top-5 hidden justify-self-end overflow-auto xl:block">
+                                <div className="scrollbar-gray sticky top-5 hidden justify-self-end overflow-auto xl:block xl:max-h-[96vh]">
                                     <TagNavigationLinks
                                         visibleTagItems={visibleTagItems}
                                         items={items}
