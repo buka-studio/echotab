@@ -6,14 +6,24 @@ import { cn } from "./util";
 export default function TabListPlaceholder({
     children,
     className,
+    layout = "list",
+    count = 10,
 }: {
     children?: React.ReactNode;
+    layout?: "list" | "grid";
     className?: string;
+    count?: number;
 }) {
     return (
         <div className={cn("relative mx-auto flex w-full max-w-4xl flex-col gap-2", className)}>
-            <div className="tabs-placeholder pointer-events-none flex flex-col gap-2 [&]:[mask-image:linear-gradient(to_top,transparent_0%,rgba(0,0,0,0.5))]">
-                {Array.from({ length: 10 }).map((_, i) => (
+            <div
+                className={cn(
+                    "tabs-placeholder pointer-events-none flex flex-col gap-2 [&]:[mask-image:linear-gradient(to_top,transparent_0%,rgba(0,0,0,0.5))]",
+                    {
+                        "grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))]": layout === "grid",
+                    },
+                )}>
+                {Array.from({ length: count }).map((_, i) => (
                     <motion.div
                         animate={{ opacity: 1 }}
                         transition={{
@@ -24,13 +34,16 @@ export default function TabListPlaceholder({
                         initial={{ opacity: 0 }}
                         key={i}
                         className={cn(
-                            "group/item bg-card border-border hover:bg-card-active [&:has(:focus-within)]:bg-card-active text-card-foreground hover:border-border-active [&:has(:focus-within)]:border-border-active flex min-h-12 w-full items-center gap-5 rounded-lg border p-2 transition-colors duration-200 @container",
+                            "group/item flex min-h-12 w-full items-center gap-5 rounded-lg border border-border bg-card p-2 text-card-foreground transition-colors duration-200 @container hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active",
+                            {
+                                "flex-col items-start": layout === "grid",
+                            },
                         )}>
                         <div className="flex flex-shrink-0">
                             <Favicon />
                         </div>
-                        <span className="bg-foreground/20 h-3 w-full max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap rounded text-sm" />
-                        <span className="group/link bg-foreground/5 flex h-3 w-full max-w-[25cqw] items-center gap-2 rounded transition-colors duration-200" />
+                        <span className="h-3 w-full max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap rounded bg-foreground/20 text-sm" />
+                        <span className="group/link flex h-3 w-full max-w-[25cqw] items-center gap-2 rounded bg-foreground/5 transition-colors duration-200" />
                     </motion.div>
                 ))}
             </div>
