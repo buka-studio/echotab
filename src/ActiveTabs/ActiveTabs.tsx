@@ -1,4 +1,9 @@
-import { Cross2Icon, DotsVerticalIcon, DragHandleDots2Icon } from "@radix-ui/react-icons";
+import {
+    CaretSortIcon,
+    Cross2Icon,
+    DotsVerticalIcon,
+    DragHandleDots2Icon,
+} from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { ComponentProps, ComponentRef, forwardRef, useRef, useState } from "react";
 
@@ -196,11 +201,56 @@ export default function ActiveTabs() {
     const isFirstRender = useIsFirstRender();
 
     const [tabIdsByWindowId, setTabIdsByWindowId] = useState(tabStore.viewTabIdsByWindowId);
+    const [windowsExpanded, setWindowsExpanded] = useState<Record<number, boolean>>(
+        Object.fromEntries(
+            Object.keys(tabStore.viewTabIdsByWindowId).map((id) => [Number(id), true]),
+        ),
+    );
+
     const prevFilteredIds = useRef(tabStore.viewTabIdsByWindowId);
     if (prevFilteredIds.current !== tabStore.viewTabIdsByWindowId) {
         prevFilteredIds.current = tabStore.viewTabIdsByWindowId;
         setTabIdsByWindowId(tabStore.viewTabIdsByWindowId);
+        setWindowsExpanded((w) => {
+            const wipWindows = { ...w };
+            for (const id of Object.keys(tabStore.viewTabIdsByWindowId)) {
+                const windowId = Number(id);
+                if (wipWindows[windowId] === undefined) {
+                    wipWindows[windowId] = true;
+                }
+            }
+
+            for (const id of Object.keys(wipWindows)) {
+                const windowId = Number(id);
+                if (!tabStore.viewTabIdsByWindowId[windowId]) {
+                    delete wipWindows[windowId];
+                }
+            }
+
+            return wipWindows;
+        });
     }
+
+    const allCollapsed = Object.values(windowsExpanded).every((v) => !v);
+
+    const toggleWindowsExpanded = (id: number) => {
+        setWindowsExpanded((e) => ({
+            ...e,
+            [id]: !e[id],
+        }));
+    };
+
+    const handleCollapseAll = () => {
+        setWindowsExpanded(
+            Object.fromEntries(Array.from(Object.keys(windowsExpanded)).map((id) => [id, false])),
+        );
+    };
+
+    const handleExpandAll = () => {
+        setWindowsExpanded(
+            Object.fromEntries(Array.from(Object.keys(windowsExpanded)).map((id) => [id, true])),
+        );
+    };
 
     const [activeId, setActiveId] = useState<number | null>(null);
     const activeIdRef = useRef(activeId);
@@ -224,6 +274,7 @@ export default function ActiveTabs() {
     };
 
     const hasDuplicates = tabStore.viewDuplicateTabIds.size > 0;
+    const hasTabs = tabStore.tabs.length > 0;
 
     return (
         <div className={cn("flex h-full flex-col", {})}>
@@ -244,6 +295,16 @@ export default function ActiveTabs() {
                 )}
                 <div className="ml-auto">
                     <SelectButton />
+                    {hasTabs &&
+                        (allCollapsed ? (
+                            <Button variant="ghost" onClick={handleExpandAll}>
+                                Expand All
+                            </Button>
+                        ) : (
+                            <Button variant="ghost" onClick={handleCollapseAll}>
+                                Collapse All
+                            </Button>
+                        ))}
                     {hasDuplicates && (
                         <Button variant="ghost" onClick={ActiveStore.removeDuplicateTabs}>
                             Close {tabStore.viewDuplicateTabIds.size} Duplicate(s)
@@ -265,7 +326,7 @@ export default function ActiveTabs() {
                     </div>
                 </div>
             </div>
-            {tabStore.tabs.length === 0 && (
+            {!hasTabs && (
                 <TabListPlaceholder
                     className="mt-12"
                     children={
@@ -301,6 +362,14 @@ export default function ActiveTabs() {
                                 <div className="inline-flex items-center gap-2 text-sm">
                                     Window {i + 1}{" "}
                                     <Badge variant="secondary">{tabIds.length}</Badge>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => {
+                                            toggleWindowsExpanded(Number(windowId));
+                                        }}>
+                                        {windowsExpanded[Number(windowId)] ? "Collapse" : "Expand"}
+                                        <CaretSortIcon className="ml-2 h-4 w-4" />
+                                    </Button>
                                 </div>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -318,69 +387,72 @@ export default function ActiveTabs() {
                                             <AlertDialogAction
                                                 onClick={() =>
                                                     tabStore.removeAllInWindow(Number(windowId))
-                                                }>
+                                                }
+                                                variant="destructive">
                                                 Close All
                                             </AlertDialogAction>
                                         </AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>
                             </div>
-                            <DroppableContainer id={windowId} asChild>
-                                <ul
-                                    onKeyDown={(e) => {
-                                        if (activeId) {
-                                            return;
-                                        }
-                                        focusSiblingItem(e, ".item-container");
-                                    }}
-                                    className={cn(
-                                        "flex w-full flex-col gap-2 rounded-xl p-2 data-[over=true]:bg-muted/30",
-                                    )}>
-                                    {tabIds.map((tabId, j) => {
-                                        const tab = tabStore.viewTabsById[tabId];
-                                        if (!tab) {
-                                            return null;
-                                        }
+                            {windowsExpanded[Number(windowId)] && (
+                                <DroppableContainer id={windowId} asChild>
+                                    <ul
+                                        onKeyDown={(e) => {
+                                            if (activeId) {
+                                                return;
+                                            }
+                                            focusSiblingItem(e, ".item-container");
+                                        }}
+                                        className={cn(
+                                            "flex w-full flex-col gap-2 rounded-xl p-2 data-[over=true]:bg-muted/30",
+                                        )}>
+                                        {tabIds.map((tabId, j) => {
+                                            const tab = tabStore.viewTabsById[tabId];
+                                            if (!tab) {
+                                                return null;
+                                            }
 
-                                        return (
-                                            <SelectableItem asChild id={tabId} key={tabId}>
-                                                <motion.li
-                                                    animate={{ opacity: 1 }}
-                                                    transition={
-                                                        isFirstRender
-                                                            ? {
-                                                                  type: "tween",
-                                                                  delay:
-                                                                      activeId === tabId
+                                            const isActive = activeId === tabId;
+
+                                            return (
+                                                <SelectableItem asChild id={tabId} key={tabId}>
+                                                    <motion.li
+                                                        animate={{ opacity: 1 }}
+                                                        transition={
+                                                            isFirstRender
+                                                                ? {
+                                                                      type: "tween",
+                                                                      delay: isActive
                                                                           ? 0
                                                                           : 0.02 * j,
-                                                                  duration:
-                                                                      activeId === tabId ? 0 : 0.5,
-                                                              }
-                                                            : {}
-                                                    }
-                                                    initial={{ opacity: 0 }}
-                                                    className={cn(
-                                                        "item-container select-none rounded-lg",
-                                                    )}>
-                                                    <SortableItem
-                                                        id={tabId}
-                                                        useHandle
-                                                        disabled={tab.pinned}
-                                                        asChild>
-                                                        <div className="group/sortable">
-                                                            <ActiveTabItem
-                                                                tab={tab}
-                                                                className="group-data-[is-dragged=true]/sortable:!opacity-20 group-data-[is-dragged=true]/sortable:blur-sm"
-                                                            />
-                                                        </div>
-                                                    </SortableItem>
-                                                </motion.li>
-                                            </SelectableItem>
-                                        );
-                                    })}
-                                </ul>
-                            </DroppableContainer>
+                                                                      duration: isActive ? 0 : 0.5,
+                                                                  }
+                                                                : {}
+                                                        }
+                                                        initial={{ opacity: 0 }}
+                                                        className={cn(
+                                                            "item-container select-none rounded-lg",
+                                                        )}>
+                                                        <SortableItem
+                                                            id={tabId}
+                                                            useHandle
+                                                            disabled={tab.pinned}
+                                                            asChild>
+                                                            <div className="group/sortable">
+                                                                <ActiveTabItem
+                                                                    tab={tab}
+                                                                    className="group-data-[is-dragged=true]/sortable:!opacity-20 group-data-[is-dragged=true]/sortable:blur-sm"
+                                                                />
+                                                            </div>
+                                                        </SortableItem>
+                                                    </motion.li>
+                                                </SelectableItem>
+                                            );
+                                        })}
+                                    </ul>
+                                </DroppableContainer>
+                            )}
                         </div>
                     ))}
                     <SortableOverlayItem>
