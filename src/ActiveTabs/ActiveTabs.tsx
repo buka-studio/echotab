@@ -143,8 +143,9 @@ const ActiveTabItem = forwardRef<
             link={
                 <button
                     className="focus-ring overflow-hidden text-ellipsis whitespace-nowrap rounded-sm"
-                    onClick={() => {
-                        chrome.tabs.update(tab.id, { active: true });
+                    onClick={async () => {
+                        await chrome.windows.update(tab.windowId, { focused: true });
+                        await chrome.tabs.update(tab.id, { active: true });
                     }}>
                     {tab.url}
                 </button>
