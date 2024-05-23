@@ -107,7 +107,7 @@ export function TabCommandDialog({
         <div ref={setCommandContainer} className={cn("relative flex w-full")}>
             <button
                 className={cn(
-                    "focus-ring flex flex-1 items-center justify-between rounded-lg border bg-background/20 p-3 text-base shadow-md backdrop-blur-lg transition-all duration-200",
+                    "focus-ring flex flex-1 items-center justify-between rounded-lg border bg-background/20 p-3 text-base shadow-sm backdrop-blur-lg transition-all duration-200",
                     {
                         "opacity-0": open,
                     },
