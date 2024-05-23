@@ -196,11 +196,19 @@ export default function DNDImport() {
 
     return (
         <div className="flex flex-col gap-8 p-1">
-            <Button variant="outline" onClick={handleImportBookmarks}>
-                Import bookmarks
-            </Button>
             <div className="flex flex-col gap-2">
-                <div>Drop a file or click to upload a CmdTab JSON export.</div>
+                <div className="text-sm text-muted-foreground">
+                    Import your bookmarks and create a tag for every folder.
+                </div>
+                <Button variant="outline" onClick={handleImportBookmarks}>
+                    Import bookmarks
+                </Button>
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <div className="text-sm text-muted-foreground">
+                    Drop a file or click to upload a CmdTab JSON export.
+                </div>
                 <input id="import" className="peer sr-only" type="file" onChange={handleChange} />
                 <label
                     htmlFor="import"
