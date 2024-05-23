@@ -90,6 +90,40 @@ export function groupBy<T, K extends keyof T, V>(
     return record;
 }
 
+export function getFormattedLinksExample(format: ClipboardFormat, includeTags: boolean) {
+    const tags = includeTags ? "#tag1 #tag2" : "";
+
+    if (format === ClipboardFormat.Markdown) {
+        return Array.from({ length: 3 })
+            .map((_, i) => {
+                return `[title-${i}](https://example.com/${i})${tags}`;
+            })
+            .join("\n");
+    } else if (format === ClipboardFormat.Text) {
+        return Array.from({ length: 3 })
+            .map((_, i) => {
+                return `https://example.com/${i} - title-${i} ${tags}`;
+            })
+            .join("\n");
+    } else if (format === ClipboardFormat.JSON) {
+        return JSON.stringify(
+            Array.from({ length: 3 }).map((_, i) => ({
+                title: `title-${i}`,
+                url: `https://example.com/${i}`,
+                tags: includeTags ? ["tag1", "tag2"] : [],
+            })),
+            undefined,
+            2,
+        );
+    } else if (format === ClipboardFormat.HTML) {
+        return Array.from({ length: 3 })
+            .map((_, i) => {
+                return `<a href="https://example.com/${i}" data-tags="${tags}">\ntitle-${i}\n</a>`;
+            })
+            .join("\n");
+    }
+}
+
 export function formatLinks(links: { title: string; url: string }[], format: ClipboardFormat) {
     switch (format) {
         case ClipboardFormat.Text:
