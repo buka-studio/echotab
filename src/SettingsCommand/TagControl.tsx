@@ -2,6 +2,17 @@ import { TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
 import { Tag } from "../models";
+import TagChip from "../TagChip";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../ui/AlertDialog";
 import Button from "../ui/Button";
 import TagColorPicker from "./TagColorPicker";
 
@@ -26,15 +37,50 @@ interface Props {
 }
 
 export default function TagControl({ tag, onDelete, onChange, disabled }: Props) {
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+    const handleConfirmDelete = () => {
+        setDeleteDialogOpen(false);
+        onDelete();
+    };
+
     return (
         <div className="flex w-full items-center px-1">
             <TagNameInput key={tag.name} name={tag.name} onChange={(name) => onChange({ name })} />
             <div className="ml-auto flex items-center gap-4">
                 <TagColorPicker color={tag.color} onChange={(color) => onChange({ color })} />
-                <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={onDelete}>
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={disabled}
+                    onClick={() => setDeleteDialogOpen(true)}>
                     <TrashIcon className="h-4 w-4" />
                 </Button>
             </div>
+            <AlertDialog open={deleteDialogOpen} onOpenChange={() => setDeleteDialogOpen(false)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div>
+                                This will delete{" "}
+                                <TagChip color={tag.color} className="inline-flex">
+                                    {tag.name}
+                                </TagChip>
+                                . This action cannot be undone. If there are any tabs left without
+                                tags, they will be tagged as{" "}
+                                <TagChip className="inline-flex">Untagged</TagChip>.
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmDelete} variant="destructive">
+                            Delete Tag
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
