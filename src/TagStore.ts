@@ -10,7 +10,7 @@ import { intersection } from "./util/set";
 export const unassignedTag = {
     id: 0,
     color: "#000",
-    name: "Unassigned",
+    name: "Untagged",
     favorite: false,
 };
 
