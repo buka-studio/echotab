@@ -58,7 +58,13 @@ export default function SavedCommand() {
             selectionStore.selectedTabIds.has(tab.id),
         );
 
-        const formatted = formatLinks(selectedLinks, uiStore.settings.clipboardFormat);
+        const linksWithTags = selectedLinks.map((tab) => ({
+            title: tab.title,
+            url: tab.url,
+            tags: tab.tagIds.map((tagId) => tagStore.tags.get(tagId)!.name),
+        }));
+
+        const formatted = formatLinks(linksWithTags, uiStore.settings.clipboardFormat);
 
         navigator.clipboard
             .writeText(formatted)

@@ -91,49 +91,32 @@ export function groupBy<T, K extends keyof T, V>(
 }
 
 export function getFormattedLinksExample(format: ClipboardFormat, includeTags: boolean) {
-    const tags = includeTags ? "#tag1 #tag2" : "";
+    const links = Array.from({ length: 3 }).map((_, i) => ({
+        title: `title-${i}`,
+        url: `https://example.com/${i}`,
+        tags: includeTags ? ["tag1", "tag2"] : [],
+    }));
 
-    if (format === ClipboardFormat.Markdown) {
-        return Array.from({ length: 3 })
-            .map((_, i) => {
-                return `[title-${i}](https://example.com/${i})${tags}`;
-            })
-            .join("\n");
-    } else if (format === ClipboardFormat.Text) {
-        return Array.from({ length: 3 })
-            .map((_, i) => {
-                return `https://example.com/${i} - title-${i} ${tags}`;
-            })
-            .join("\n");
-    } else if (format === ClipboardFormat.JSON) {
-        return JSON.stringify(
-            Array.from({ length: 3 }).map((_, i) => ({
-                title: `title-${i}`,
-                url: `https://example.com/${i}`,
-                tags: includeTags ? ["tag1", "tag2"] : [],
-            })),
-            undefined,
-            2,
-        );
-    } else if (format === ClipboardFormat.HTML) {
-        return Array.from({ length: 3 })
-            .map((_, i) => {
-                return `<a href="https://example.com/${i}" data-tags="${tags}">\ntitle-${i}\n</a>`;
-            })
-            .join("\n");
-    }
+    return formatLinks(links, format);
 }
 
-export function formatLinks(links: { title: string; url: string }[], format: ClipboardFormat) {
+const hashTags = (tags: string[] = []) => tags?.map((t) => `#${t}`)?.join(" ") || "";
+
+export function formatLinks(
+    links: { title: string; url: string; tags?: string[] }[],
+    format: ClipboardFormat,
+) {
     switch (format) {
         case ClipboardFormat.Text:
-            return links.map((l) => l.url).join("\n");
+            return links.map((l) => `${l.url} ${l.title} ${hashTags(l.tags)}`).join("\n");
         case ClipboardFormat.Markdown:
-            return links.map((l) => `[${l.title}](${l.url})`).join("\n\n");
-        case ClipboardFormat.HTML:
-            return links.map((l) => `<a href="${l.url}">${l.title}</a>`).join("\n");
+            return links.map((l) => `[${l.title}](${l.url}) ${hashTags(l.tags)}`).join("\n\n");
         case ClipboardFormat.JSON:
             return JSON.stringify(links);
+        case ClipboardFormat.HTML:
+            return links
+                .map((l) => `<a href="${l.url}" data-tags="${hashTags(l.tags)}">${l.title}</a>`)
+                .join("\n");
     }
 }
 
