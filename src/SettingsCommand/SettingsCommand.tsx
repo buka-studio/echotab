@@ -249,7 +249,7 @@ export default function SettingsCommand() {
                                     />
                                 </React.Fragment>
                             ))}
-                            <div className="sticky bottom-0 z-10 col-span-3 bg-white pt-4">
+                            <div className="sticky bottom-0 z-10 col-span-3 pt-4">
                                 <Button variant="outline" className="w-full" onClick={handleAddTag}>
                                     Add new tag
                                 </Button>
