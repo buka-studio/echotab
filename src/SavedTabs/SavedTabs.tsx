@@ -331,7 +331,8 @@ export default function SavedTabs() {
     const range = virtualizer.calculateRange();
 
     const visibleTagItems = range ? calcVisibleTagItems(items, range) : new Set<string>();
-    const hasTabs = tabStore.filteredTabIds.size > 0;
+    const hasTabs = tabStore.tabs.length > 0;
+    const hasFilteredTabs = tabStore.filteredTabIds.size > 0;
 
     const isTagView = tabStore.view.grouping === TabGrouping.Tag;
 
@@ -359,7 +360,7 @@ export default function SavedTabs() {
                 )}
                 <div className="ml-auto">
                     <SelectButton />
-                    {hasTabs &&
+                    {hasFilteredTabs &&
                         tabStore.view.grouping === TabGrouping.Tag &&
                         (allCollapsed ? (
                             <Button variant="ghost" onClick={handleExpandAll}>
@@ -412,11 +413,7 @@ export default function SavedTabs() {
                             <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
                                 {tabStore.pinnedTabs.map((tab) => (
                                     <div className="@container">
-                                        <SavedTabItem
-                                            tab={tab}
-                                            key={tab.id}
-                                            // icon={<Favicon className="h-8 w-8" src={tab.url} />}
-                                        />
+                                        <SavedTabItem tab={tab} key={tab.id} />
                                     </div>
                                 ))}
                             </div>
@@ -482,7 +479,7 @@ export default function SavedTabs() {
                     </SelectContent>
                 </Select>
             </div>
-            {tabStore.tabs.length === 0 && (
+            {!hasTabs && (
                 <TabListPlaceholder
                     children={
                         <div className="absolute left-1/2 top-1/2 z-[1] w-full translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
@@ -496,12 +493,15 @@ export default function SavedTabs() {
                     }
                 />
             )}
-            {tabStore.viewTabIds.length === 0 && (
+            {hasTabs && !hasFilteredTabs && (
                 <TabListPlaceholder
                     children={
                         <div className="absolute left-1/2 top-1/2 z-[1] w-full translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
                             <div className="text-balance text-lg">
-                                No tabs found for the current filter.
+                                No tabs found for the current filters.
+                            </div>
+                            <div className="text-balance text-sm text-foreground/75">
+                                Try removing some filters or changing the view.
                             </div>
                         </div>
                     }
