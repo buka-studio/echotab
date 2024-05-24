@@ -219,9 +219,11 @@ export default function SettingsCommand() {
                     className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4"
                     ref={contentRef}>
                     {page === "Tags" && (
-                        <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4 pt-1">
+                        <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4">
                             {sortableColumns.map((c) => (
-                                <div className="flex items-center gap-2 text-sm" key={c}>
+                                <div
+                                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                                    key={c}>
                                     {columnLabels[c]}{" "}
                                     <SortButton
                                         active={tagSort.col === c}
@@ -259,7 +261,9 @@ export default function SettingsCommand() {
                     {page === "Misc" && (
                         <div>
                             <div className="">
-                                <div className="">Clipboard Copy Format</div>
+                                <div className="text-sm text-muted-foreground">
+                                    Clipboard Copy Format
+                                </div>
                                 <div className="my-2 flex gap-5">
                                     <Select
                                         value={uiStore.settings?.clipboardFormat}
@@ -297,7 +301,7 @@ export default function SettingsCommand() {
                                         <Label htmlFor="include-tags">Include Tags</Label>
                                     </div>
                                 </div>
-                                <div className="mb-5 text-sm text-muted-foreground">
+                                <div className="mb-5 mt-3 text-sm text-muted-foreground">
                                     Clipboard content preview:
                                 </div>
                                 <pre className="scrollbar-gray ml-5 max-h-[150px] overflow-auto font-mono text-xs text-muted-foreground">
@@ -312,7 +316,7 @@ export default function SettingsCommand() {
 
                     {page === "Import" && <ImportField />}
                     {page === "Export" && (
-                        <div className="flex flex-col gap-5 p-5">
+                        <div className="flex flex-col gap-5">
                             <div className="text-sm text-muted-foreground">
                                 Export all your CmdTab data as a JSON file. This will include all
                                 your saved tabs and tags. You can import this data later to restore
@@ -325,20 +329,20 @@ export default function SettingsCommand() {
                     )}
                     {page === "Feedback" && (
                         <div>
-                            <div className="p-5 text-sm text-muted-foreground">
+                            <div className="text-sm text-muted-foreground">
                                 We'd love to hear from you! If you have any feedback, questions, or
                                 issues, please reach out to us at:
                                 <br />
                                 <a
                                     href="mailto:support@buka.studio?subject=CmdTab Feedback"
-                                    className="mt-2 block text-base text-primary">
+                                    className="mt-2 block">
                                     support@buka.studio
                                 </a>
                             </div>
                         </div>
                     )}
                     {page === "Delete" && (
-                        <div className="flex flex-col gap-5 p-5">
+                        <div className="flex flex-col gap-5">
                             <div className="text-sm text-muted-foreground">
                                 Delete all your CmdTab data. It's recommended to export your data
                                 before deleting it as this action cannot be undone.
