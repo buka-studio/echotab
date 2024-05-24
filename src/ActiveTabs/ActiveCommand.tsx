@@ -50,6 +50,29 @@ export default function ActiveCommand() {
     const handleQuickSave = async () => {
         const tagName = new Date().toUTCString();
 
+        if (selectionStore.selectedTabIds.size) {
+            const quickTag = tagStore.createTag(tagName);
+
+            const tabsToSave = Array.from(SelectionStore.selectedTabIds)
+                .map((id) => ActiveStore.viewTabsById[id])
+                .filter(Boolean)
+                .map((tab) => {
+                    const tabToSave = {
+                        id: tab.id,
+                        url: tab.url,
+                        favIconUrl: tab?.favIconUrl,
+                        title: tab.title,
+                        savedAt: Date.now(),
+                        tagIds: [quickTag.id],
+                    };
+
+                    return tabToSave;
+                });
+
+            await tabStore.saveTabs(tabsToSave);
+            return;
+        }
+
         for (const w of Object.keys(ActiveStore.viewTabIdsByWindowId)) {
             const windowId = Number(w);
             if (ActiveStore.viewTabIdsByWindowId[windowId].length === 0) {
@@ -75,6 +98,7 @@ export default function ActiveCommand() {
                 });
 
             await tabStore.saveTabs(tabsToSave);
+            setSearch("");
         }
     };
 
