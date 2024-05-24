@@ -54,7 +54,7 @@ export function TagChipList({
                                             <div
                                                 key={t.id}
                                                 style={{ backgroundColor: t.color }}
-                                                className="h-4 w-4 rounded-full"
+                                                className="h-4 w-4 rounded-full outline outline-1 outline-card/80 [&:not(:first-child)]:-ml-2"
                                             />
                                         ))}
                                     </div>
