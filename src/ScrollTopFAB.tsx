@@ -33,7 +33,7 @@ export default function ScrollTopFAB({
                     onClick={() =>
                         window.scrollTo({
                             top: 0,
-                            behavior: "smooth",
+                            behavior: "auto",
                         })
                     }
                     aria-label="Scroll to top"
