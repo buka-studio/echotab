@@ -34,6 +34,7 @@ export interface Settings {
     orientation: Orientation;
     cardSize: CardSize;
     clipboardFormat: ClipboardFormat;
+    clipboardIncludeTags: boolean;
     theme: Theme;
 }
 
@@ -55,6 +56,7 @@ const store = proxy({
         cardSize: CardSize.Large,
         orientation: Orientation.Vertical,
         clipboardFormat: ClipboardFormat.Text,
+        clipboardIncludeTags: true,
         theme: Theme.System,
     },
     initialized: false,
