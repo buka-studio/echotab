@@ -21,6 +21,7 @@ export interface SavedTab extends Tab {
     id: string;
     tagIds: number[];
     savedAt?: number;
+    pinned?: boolean;
 }
 
 export enum Panel {

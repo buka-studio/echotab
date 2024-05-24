@@ -16,7 +16,11 @@ function makeFaviconUrl(pageUrl: string) {
 
 export function Favicon({ src, className }: { className?: string; src?: string }) {
     return (
-        <div className={cn("h-6 w-6 overflow-hidden rounded shadow-sm", className)}>
+        <div
+            className={cn(
+                "h-6 w-6 overflow-hidden rounded-full shadow outline outline-1 outline-muted-foreground/10",
+                className,
+            )}>
             {src ? (
                 <img src={makeFaviconUrl(src)} className="h-full w-full" />
             ) : (
@@ -60,16 +64,16 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
         <div
             ref={ref}
             className={cn(
-                "group/item flex min-h-[50px] w-full items-center gap-5 rounded-lg border border-border bg-card p-2 text-card-foreground transition-colors duration-200 @container hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active",
+                "group/item grid min-h-[50px] w-full grid-cols-[auto,1fr] items-center rounded-lg border border-t-border bg-card p-2 text-card-foreground shadow-sm transition-colors duration-200 @[200px]:flex @[200px]:gap-5 hover:border-border-active hover:bg-card-active dark:border-x-0 dark:border-b-0 [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active",
                 className,
             )}
             {...props}>
             <div className="flex flex-shrink-0">{icon}</div>
-            <span className="max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap text-sm">
+            <span className="col-[1/3] row-[2] mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-sm @[200px]:mt-0 @[200px]:max-w-[30cqw]">
                 {tab.title}
             </span>
             <HoverCard openDelay={1000}>
-                <span className="group/link flex max-w-[25cqw] items-center gap-2 transition-colors duration-200">
+                <span className="group/link col-[1/3] row-[3] flex items-center gap-2 text-muted-foreground transition-colors duration-200 @[200px]:max-w-[25cqw]">
                     <HoverCardTrigger asChild>{link}</HoverCardTrigger>
                     <ArrowTopRightIcon className="icon h-4 w-4 flex-shrink-0 opacity-0 transition-opacity duration-150 group-hover/link:opacity-100" />
                     <HoverCardContent className="h-[300px] w-[350px] overflow-hidden p-0">
@@ -78,7 +82,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
                 </span>
             </HoverCard>
             {children}
-            <div className="ml-auto max-w-[45cqw] opacity-0 group-focus-within/item:opacity-100 group-hover/item:opacity-100">
+            <div className="ml-auto opacity-0 group-focus-within/item:opacity-100 group-hover/item:opacity-100 @[200px]:max-w-[45cqw]">
                 {actions}
             </div>
         </div>

@@ -1,30 +1,20 @@
 import {
     CaretSortIcon,
-    Cross2Icon,
+    DrawingPinFilledIcon,
     HamburgerMenuIcon,
     MixerHorizontalIcon,
 } from "@radix-ui/react-icons";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import {
-    ComponentProps,
-    ComponentRef,
-    forwardRef,
-    ReactNode,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 import FilterTagChips from "../FilterTagChips";
 import useMatchMedia from "../hooks/useMatchMedia";
 import { MobileBottomBarPortal } from "../MobileBottomBar";
-import { SavedTab, Tag } from "../models";
+import { Tag } from "../models";
 import { SelectableItem, SelectableList } from "../SelectableList";
 import SortButton from "../SortButton";
-import TabItem, { Favicon } from "../TabItem";
 import TabListPlaceholder from "../TabsListPlaceholder";
-import { TagChipList } from "../TagChip";
-import { unassignedTag, useTagStore } from "../TagStore";
+import { useTagStore } from "../TagStore";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -50,14 +40,14 @@ import {
 import { cn, focusSiblingItem } from "../util";
 import { SortDir } from "../util/sort";
 import SavedCommand from "./SavedCommand";
-import SavedStore, {
+import {
     SelectionStore,
     TabGrouping,
     TabSortProp,
-    useIsTabSelected,
     useSavedSelectionStore,
     useSavedTabStore,
 } from "./SavedStore";
+import SavedTabItem from "./SavedTabItem";
 
 function getAnimationProps(stagger: number) {
     return {
@@ -117,7 +107,9 @@ function TagHeaderItem({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => tabStore.removeTabs(tabIds)}>
+                        <AlertDialogAction
+                            onClick={() => tabStore.removeTabs(tabIds)}
+                            variant="destructive">
                             Remove Tabs
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -126,70 +118,6 @@ function TagHeaderItem({
         </>
     );
 }
-
-const SavedTabItem = forwardRef<
-    ComponentRef<typeof TabItem>,
-    ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId: number }
->(function SavedTabItem({ tab, currentGroupTagId, ...rest }, ref) {
-    const { assignedTagIds } = useSavedTabStore();
-    const { tags } = useTagStore();
-
-    const selected = useIsTabSelected(tab.id);
-
-    const combinedTags = Array.from(tab.tagIds)
-        .concat(selected ? Array.from(assignedTagIds) : [])
-        .map((id) => tags.get(id)!)
-        .filter((t) => Number.isFinite(t?.id));
-
-    const handleRemoveTag =
-        tab.tagIds.length === 1 && tab.tagIds[0] === unassignedTag.id
-            ? undefined
-            : (tag: Partial<Tag>) => {
-                  SavedStore.removeTabTag(tab.id, tag.id!);
-              };
-
-    return (
-        <TabItem
-            ref={ref}
-            className={cn({
-                "border-border-active bg-card-active": selected,
-            })}
-            icon={
-                <Favicon
-                    src={tab.url}
-                    className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
-                />
-            }
-            link={
-                <a
-                    className="focus-ring overflow-hidden text-ellipsis whitespace-nowrap rounded-sm"
-                    target="_blank"
-                    href={tab.url}>
-                    {tab.url}
-                </a>
-            }
-            tab={tab}
-            actions={
-                <div className="flex gap-2">
-                    <TagChipList
-                        minimal
-                        tags={combinedTags.sort((a, b) =>
-                            currentTagFirstComparator(a, b, currentGroupTagId),
-                        )}
-                        onRemove={handleRemoveTag}
-                    />
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => SavedStore.removeTab(tab.id)}>
-                        <Cross2Icon className="h-5 w-5 " />
-                    </Button>
-                </div>
-            }
-            {...rest}
-        />
-    );
-});
 
 function TagNavigationLinks({
     visibleTagItems,
@@ -217,13 +145,14 @@ function TagNavigationLinks({
                         <li
                             key={item}
                             className={cn(
-                                "text-sm leading-4 text-foreground/50 transition-all duration-200",
+                                "text-sm leading-4 text-foreground/50 transition-all duration-200 [.favorite_+_&:not(.favorite)]:mt-5",
                                 {
                                     "-translate-x-1 text-foreground": visibleTagItems.has(item),
+                                    favorite: tag.favorite,
                                 },
                             )}>
                             <button
-                                className="focus-ring w-full select-none truncate rounded text-left"
+                                className="focus-ring flex w-full select-none items-center gap-1 truncate rounded text-left"
                                 onClick={() => onLinkClick(i)}>
                                 {tag?.name}
                             </button>
@@ -261,19 +190,6 @@ function calcVisibleTagItems(items: string[], range: { startIndex: number; endIn
     return visibleItems;
 }
 
-function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagId: number) {
-    if (!currentTagId) {
-        return 0;
-    }
-
-    if (a.id === currentTagId) {
-        return -1;
-    } else if (b.id === currentTagId) {
-        return 1;
-    }
-    return 0;
-}
-
 function SelectButton() {
     const { filteredTabIds } = useSavedTabStore();
     const { selectedTabIds } = useSavedSelectionStore();
@@ -305,6 +221,7 @@ export default function SavedTabs() {
     const [tagsExpanded, setTagsExpanded] = useState(
         Object.fromEntries(tabStore.viewTagIds.map((id) => [id, true])),
     );
+    const [pinnedExpanded, setPinnedExpanded] = useState(true);
 
     const prevView = useRef(tabStore.viewTagIds);
     if (prevView.current !== tabStore.viewTagIds) {
@@ -455,6 +372,58 @@ export default function SavedTabs() {
                         ))}
                 </div>
             </div>
+            <div>
+                <div className="mx-auto my-8 max-w-4xl">
+                    <div className="mb-2 select-none text-sm">
+                        <span className="mr-2 inline-flex gap-2">
+                            <DrawingPinFilledIcon />
+                            <span className={cn("transition-colors duration-300")}>
+                                Pinned Tabs
+                            </span>
+                            <Badge variant="secondary">{tabStore.pinnedTabs?.length}</Badge>
+                        </span>
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                setPinnedExpanded(!pinnedExpanded);
+                            }}>
+                            {pinnedExpanded ? "Collapse" : "Expand"}
+                            <CaretSortIcon className="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
+
+                    {pinnedExpanded && (
+                        <>
+                            {tabStore.pinnedTabs.length === 0 && (
+                                <TabListPlaceholder
+                                    layout="grid"
+                                    count={5}
+                                    className="[&_.tabs-placeholder]:max-h-[110px]">
+                                    <div className="absolute left-1/2 top-1/2 z-[1] w-full translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
+                                        <div className="text-balance text-lg">
+                                            No pinned tabs yet.{" "}
+                                        </div>
+                                        <div className="text-balance text-sm text-foreground/75">
+                                            Pin a tab by clicking the pin icon.{" "}
+                                        </div>
+                                    </div>
+                                </TabListPlaceholder>
+                            )}
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
+                                {tabStore.pinnedTabs.map((tab) => (
+                                    <div className="@container">
+                                        <SavedTabItem
+                                            tab={tab}
+                                            key={tab.id}
+                                            // icon={<Favicon className="h-8 w-8" src={tab.url} />}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
             <div className="mx-auto mb-2 mt-12 flex w-full max-w-4xl items-center justify-start">
                 <div className="flex flex-1 items-center gap-2 text-sm">
                     {isTagView ? (
@@ -522,6 +491,17 @@ export default function SavedTabs() {
                             </div>
                             <div className="text-balance text-sm text-foreground/75">
                                 Once you save a tab by tagging it, it will appear here.
+                            </div>
+                        </div>
+                    }
+                />
+            )}
+            {tabStore.viewTabIds.length === 0 && (
+                <TabListPlaceholder
+                    children={
+                        <div className="absolute left-1/2 top-1/2 z-[1] w-full translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
+                            <div className="text-balance text-lg">
+                                No tabs found for the current filter.
                             </div>
                         </div>
                     }
@@ -602,7 +582,7 @@ export default function SavedTabs() {
                                             }}
                                             data-index={i.index}
                                             ref={virtualizer.measureElement}
-                                            className="tag-group absolute top-0 flex w-full justify-between pt-8 text-sm [&+.tag-group]:pt-2"
+                                            className="tag-group absolute top-0 flex w-full justify-between pt-8 text-sm [.tag-group_+_&]:pt-2"
                                             key={i.key}>
                                             <TagHeaderItem
                                                 tag={tag!}
@@ -632,7 +612,7 @@ export default function SavedTabs() {
                                     <SelectableItem asChild id={tab.id} key={i.key}>
                                         <li
                                             data-index={i.index}
-                                            className="item-container absolute top-0 w-full select-none pt-2"
+                                            className="item-container absolute top-0 w-full select-none pt-2 @container"
                                             style={{
                                                 transform: `translateY(${
                                                     i.start - virtualizer.options.scrollMargin

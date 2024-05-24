@@ -67,6 +67,7 @@ export interface SavedStore {
     viewTabsById: Record<string, SavedTab>;
     filteredTabsByTagId: Record<number, string[]>;
     viewTagIds: number[];
+    pinnedTabs: SavedTab[];
 
     initStore(): Promise<void>;
     toggleAssignedTagId(tagId: number): void;
@@ -83,6 +84,7 @@ export interface SavedStore {
     reorderTabs(from: number, to: number): void;
     saveTabs(tabs: Omit<SavedTab, "id">[]): void;
     tagTabs(tabsIds: string[], tagIds: number[]): void;
+    togglePinTab(tabId: string): void;
     import(store: { tabs: SavedTab[] }): void;
 }
 
@@ -168,6 +170,13 @@ const Store = proxy({
     reorderTabs: (from: number, to: number) => {
         Store.tabs = arrayMove(Store.tabs, from, to);
     },
+    togglePinTab: (tabId: string) => {
+        const tab = Store.tabs.find((t) => t.id === tabId);
+        if (!tab) {
+            return;
+        }
+        tab.pinned = !tab.pinned;
+    },
     import: (imported: ImportedTabStore) => {
         const existingById = new Map(Store.tabs.map((t) => [t.id, t]));
         const existingByURLs = new Map(Store.tabs.map((t) => [canonicalizeURL(t.url), t]));
@@ -229,7 +238,7 @@ export function filterTabs(tabs: SavedTab[], filter: Filter) {
         return new Set<string>();
     }
 
-    const allIds = new Set(tabs.map((t) => t.id));
+    const allIds = new Set(tabs.filter((t) => !t.pinned).map((t) => t.id));
 
     const fuseIds = filter.keywords.length
         ? new Set(
@@ -238,6 +247,7 @@ export function filterTabs(tabs: SavedTab[], filter: Filter) {
                   .map((r) => r.item.id),
           )
         : new Set(allIds);
+
     const tagIds = filter.tags.length
         ? new Set(
               tabs
@@ -259,7 +269,7 @@ derive(
             const view = get(Store).view;
             const tabs = get(Store).tabs;
 
-            const allIds = new Set(tabs.map((t) => t.id));
+            const allIds = new Set(tabs.filter((t) => !t.pinned).map((t) => t.id));
 
             if (!get(Store).filtersApplied) {
                 return proxySet(allIds);
@@ -315,6 +325,9 @@ derive(
                 );
             }
 
+            // keep favorites at the top
+            ids.sort((a, b) => Number(tags.get(b)?.favorite) - Number(tags.get(a)?.favorite));
+
             return ids;
         },
         viewTabIds: (get) => {
@@ -342,6 +355,9 @@ derive(
             }
 
             return sorted;
+        },
+        pinnedTabs: (get) => {
+            return get(Store).tabs.filter((t) => t.pinned);
         },
     },
     { proxy: Store },

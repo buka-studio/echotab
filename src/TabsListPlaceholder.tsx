@@ -20,7 +20,7 @@ export default function TabListPlaceholder({
                 className={cn(
                     "tabs-placeholder pointer-events-none flex flex-col gap-2 [&]:[mask-image:linear-gradient(to_top,transparent_0%,rgba(0,0,0,0.5))]",
                     {
-                        "grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))]": layout === "grid",
+                        "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))]": layout === "grid",
                     },
                 )}>
                 {Array.from({ length: count }).map((_, i) => (
