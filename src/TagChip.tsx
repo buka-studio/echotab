@@ -103,7 +103,7 @@ export default function TagChip({ children, onRemove, className = "", color }: T
                 { "border-border bg-background text-foreground": !color },
                 className,
             )}
-            style={{ borderColor: "rgba(255,255,255,0.2)", background: color }}>
+            style={{ borderColor: color && "rgba(255,255,255,0.2)", background: color }}>
             <div className="label overflow-hidden text-ellipsis whitespace-nowrap text-xs uppercase">
                 {children}
             </div>

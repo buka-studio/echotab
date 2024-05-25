@@ -28,13 +28,13 @@ export default function TabListPlaceholder({
                         animate={{ opacity: 1 }}
                         transition={{
                             type: "tween",
-                            delay: 0.02 * i,
+                            delay: 0.05 * i,
                             duration: 0.5,
                         }}
                         initial={{ opacity: 0 }}
                         key={i}
                         className={cn(
-                            "group/item flex min-h-12 w-full items-center gap-5 rounded-lg border border-border bg-card p-2 text-card-foreground transition-colors duration-200 @container hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active",
+                            "group/item flex min-h-12 w-full items-center gap-5 rounded-lg border border-dashed border-border-active bg-card p-2 text-card-foreground shadow transition-colors duration-200 @container dark:border-border-active/50",
                             {
                                 "flex-col items-start": layout === "grid",
                             },
@@ -42,7 +42,7 @@ export default function TabListPlaceholder({
                         <div className="flex flex-shrink-0">
                             <Favicon />
                         </div>
-                        <span className="h-3 w-full max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap rounded bg-foreground/20 text-sm" />
+                        <span className="h-3 w-full max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap rounded bg-foreground/10 text-sm" />
                         <span className="group/link flex h-3 w-full max-w-[25cqw] items-center gap-2 rounded bg-foreground/5 transition-colors duration-200" />
                     </motion.div>
                 ))}

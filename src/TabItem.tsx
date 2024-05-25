@@ -18,13 +18,18 @@ export function Favicon({ src, className }: { className?: string; src?: string }
     return (
         <div
             className={cn(
-                "h-6 w-6 overflow-hidden rounded-full shadow outline outline-1 outline-muted-foreground/10",
+                "flex h-7 w-7 items-center justify-center overflow-hidden rounded shadow outline outline-1 outline-muted-foreground/10",
                 className,
             )}>
             {src ? (
-                <img src={makeFaviconUrl(src)} className="h-full w-full" />
+                <div className="relative h-6 w-6 overflow-hidden rounded-[3px]">
+                    <img
+                        src={makeFaviconUrl(src)}
+                        className="absolute inset-0 h-full w-full object-cover"
+                    />
+                </div>
             ) : (
-                <div className="fallback h-6 w-6 bg-gradient-to-b from-neutral-500 to-neutral-700" />
+                <div className="fallback h-full w-full bg-gradient-to-b from-foreground/10 to-foreground/5" />
             )}
         </div>
     );

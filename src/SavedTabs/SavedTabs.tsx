@@ -83,12 +83,12 @@ function TagHeaderItem({
             <div className="select-none">
                 <span className="mr-2 inline-flex gap-2">
                     <span
-                        className={cn("transition-colors duration-300", {
+                        className={cn("text-muted-foreground transition-colors duration-300", {
                             "text-primary": highlighted,
                         })}>
                         {tagStore.tags.get(Number(tag.id))!.name}
                     </span>
-                    <Badge variant="secondary">{tabIds?.length}</Badge>
+                    <Badge variant="outline">{tabIds?.length}</Badge>
                 </span>
                 {actions}
             </div>
@@ -375,13 +375,11 @@ export default function SavedTabs() {
             </div>
             <div>
                 <div className="mx-auto my-8 max-w-4xl">
-                    <div className="mb-2 select-none text-sm">
+                    <div className="mb-2 flex select-none items-center text-sm">
                         <span className="mr-2 inline-flex gap-2">
-                            <DrawingPinFilledIcon />
-                            <span className={cn("transition-colors duration-300")}>
-                                Pinned Tabs
-                            </span>
-                            <Badge variant="secondary">{tabStore.pinnedTabs?.length}</Badge>
+                            <DrawingPinFilledIcon className="h-5 w-5" />
+                            <span className="text-muted-foreground">Pinned Tabs</span>
+                            <Badge variant="outline">{tabStore.pinnedTabs?.length}</Badge>
                         </span>
                         <Button
                             variant="ghost"
@@ -412,8 +410,8 @@ export default function SavedTabs() {
                             )}
                             <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
                                 {tabStore.pinnedTabs.map((tab) => (
-                                    <div className="@container">
-                                        <SavedTabItem tab={tab} key={tab.id} />
+                                    <div className="@container" key={tab.id}>
+                                        <SavedTabItem tab={tab} />
                                     </div>
                                 ))}
                             </div>
@@ -425,7 +423,7 @@ export default function SavedTabs() {
                 <div className="flex flex-1 items-center gap-2 text-sm">
                     {isTagView ? (
                         <div className="flex gap-5">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 Tab Count
                                 <SortButton
                                     active={tabStore.view.sort.prop === TabSortProp.TabCount}
@@ -433,7 +431,7 @@ export default function SavedTabs() {
                                     onClick={() => handleSort(TabSortProp.TabCount)}
                                 />
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 Tag Name
                                 <SortButton
                                     active={tabStore.view.sort.prop === TabSortProp.TagName}
@@ -462,7 +460,7 @@ export default function SavedTabs() {
                             </div>
                         </div>
                     )}
-                    <Badge variant="secondary">{tabStore.viewTabIds.length}</Badge>
+                    <Badge variant="outline">{tabStore.viewTabIds.length}</Badge>
                 </div>
                 <Select
                     value={tabStore.view.grouping}

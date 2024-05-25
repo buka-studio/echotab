@@ -195,7 +195,7 @@ export default function DNDImport() {
     };
 
     return (
-        <div className="flex flex-col gap-8 p-1">
+        <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-2">
                 <div className="text-sm text-muted-foreground">
                     Import your bookmarks and create a tag for every folder.

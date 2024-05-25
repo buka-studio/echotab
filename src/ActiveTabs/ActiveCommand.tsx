@@ -246,7 +246,7 @@ export default function ActiveCommand() {
                                     <span>
                                         Selection{" "}
                                         <Badge
-                                            variant="secondary"
+                                            variant="outline"
                                             className={cn({
                                                 "opacity-0": !selectionStore.selectedTabIds.size,
                                             })}>

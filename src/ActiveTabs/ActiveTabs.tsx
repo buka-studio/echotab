@@ -223,8 +223,7 @@ export default function ActiveTabs() {
                         <div className="mx-auto mt-8 max-w-4xl select-none px-2" key={windowId}>
                             <div className="mb-2 flex justify-between">
                                 <div className="inline-flex items-center gap-2 text-sm">
-                                    Window {i + 1}{" "}
-                                    <Badge variant="secondary">{tabIds.length}</Badge>
+                                    Window {i + 1} <Badge variant="outline">{tabIds.length}</Badge>
                                     <Button
                                         variant="ghost"
                                         onClick={() => {
