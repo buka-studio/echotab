@@ -216,7 +216,7 @@ export default function SettingsCommand() {
                     </AlertDialogContent>
                 </AlertDialog>
                 <div
-                    className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4"
+                    className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4 pt-2"
                     ref={contentRef}>
                     {page === "Tags" && (
                         <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4">
