@@ -1,0 +1,38 @@
+/* https://twitter.com/jh3yy/status/1749530664972800089 */
+.carousel {
+  display: flex;
+  max-height: 300px;
+  overflow: hidden;
+  width: 100%;
+  height: fit-content;
+  justify-items: center;
+  flex-direction: column;
+}
+
+.shadow {
+  background: linear-gradient(0deg, black 10%, transparent 40%),
+    linear-gradient(0deg, transparent 60%, black);
+}
+
+.carousel-item {
+  --duration: calc(var(--speed) * 1s);
+  --delay: calc(
+    (var(--duration) / var(--count)) * (var(--index, 0) - (var(--count) * 0.5))
+  );
+  animation: slide var(--duration) calc(var(--delay) - (var(--count) * 0.5s))
+    infinite linear;
+  translate: var(--origin-x) var(--origin-y);
+}
+
+.carousel-item {
+  --origin-x: 0;
+  --origin-y: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
+  --destination-x: 0;
+  --destination-y: calc(calc((var(--index) + 1 + var(--outset, 0)) * -100%));
+}
+
+@keyframes slide {
+  100% {
+    translate: var(--destination-x) var(--destination-y);
+  }
+}

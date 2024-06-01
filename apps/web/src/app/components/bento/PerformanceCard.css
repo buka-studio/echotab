@@ -1,0 +1,37 @@
+.cylinder-container {
+  transform-style: preserve-3d;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.cylinder {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  position: absolute;
+  --pi: 3.14159265358979;
+  --cylinder-height: 300px;
+  --segment-deg: calc(360 / var(--segments));
+  --segment-shift: calc(var(--cylinder-height) / calc(var(--pi) / 2));
+}
+
+.segment {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  right: -150px;
+  transform: rotateX(calc(var(--segment-deg) * var(--index) * 1deg))
+    translateZ(calc(var(--segment-shift) - 6px));
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+  backface-visibility: hidden;
+}
+
+.overlay-mask {
+  background: #101010;
+  mask-image: radial-gradient(transparent 10%, #9198e5 75%);
+}

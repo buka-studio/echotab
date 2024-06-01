@@ -1,0 +1,108 @@
+.shield-container {
+  --easing: cubic-bezier(1, 0, 0, 1);
+}
+
+.shield-outline,
+.shield {
+  color: #2f2e2e;
+}
+
+.shield-outline path:nth-child(2) {
+  position: relative;
+  color: #a3a3a3;
+  z-index: 1;
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+.shield-outline {
+  transition-delay: 0.5s;
+  transition-duration: 0.75s;
+  filter: blur(0px);
+}
+
+.shield-outline path:first-child {
+  opacity: 0;
+}
+
+.shield path {
+  transition: stroke 0.5s;
+  transition-delay: 0;
+}
+
+.shield {
+  transition: opacity 0.5s;
+}
+
+.shield,
+.shield-inner,
+.shield-outline {
+  mask-image: linear-gradient(304deg, transparent 10%, rgba(0, 0, 0, 0.75) 70%);
+}
+
+.shield-dots {
+  color: black;
+  color: #2f2e2e;
+  mask-image: radial-gradient(transparent 40%, black 70%);
+}
+
+.shield-inner {
+  opacity: 1;
+  transition: all 0.5s;
+}
+
+.shield-container:hover {
+  .shield-inner {
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out 0.25s;
+  }
+
+  .shield-outline path:nth-child(2) {
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transition: opacity 0.25s, stroke-dashoffset 1.5s cubic-bezier(1, 0, 0, 1);
+  }
+
+  .shield-outline {
+    filter: blur(6px);
+    opacity: 0;
+    transition: all 0.75s ease-in-out 0.75s;
+  }
+
+  .shield path {
+    stroke: #a3a3a3;
+  }
+
+  .shield path:nth-child(1) {
+    transition: stroke 0.25s ease-in-out 0.25s;
+  }
+
+  .shield path:nth-child(2) {
+    transition: stroke 0.25s ease-in-out 0.5s;
+  }
+
+  .shield path:nth-child(3) {
+    transition: stroke 0.25s ease-in-out 0.75s;
+  }
+}
+
+.switchboard {
+  mask-image: radial-gradient(transparent 50%, black 70%);
+}
+
+.shield-container:not(:hover) .light::before,
+.shield-container:not(:hover) .light::after {
+  box-shadow: none;
+  background: #707070;
+}
+
+.switchboard-canvas {
+  position: absolute;
+  height: calc(100% + 30px);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  opacity: 0.5;
+  mask-image: radial-gradient(circle at center, transparent 30%, black 50%);
+}

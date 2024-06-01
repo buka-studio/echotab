@@ -1,18 +1,20 @@
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-node_modules
+/node_modules
 /.pnp
 .pnp.js
+.yarn/install-state.gz
 
 # testing
 /coverage
 
-#cache
-.turbo
-.next
-.vercel
+# next.js
+/.next/
+/out/
+
+# production
+/build
 
 # misc
 .DS_Store
@@ -22,25 +24,13 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-
 
 # local env files
-.env*
+.env*.local
 
-out/
-build/
-dist/
-
-# plasmo - https://www.plasmo.com
-.plasmo
-
-# bpp - http://bpp.browser.market/
-keys.json
+# vercel
+.vercel
 
 # typescript
-.tsbuildinfo
-
-.turbo
-
-*storybook.log
+*.tsbuildinfo
+next-env.d.ts

@@ -1,10 +1,10 @@
 ![og](./assets/og.png)
 
-# CmdTab
+# EchoTab
 
 ## Overview
 
-CmdTab is a tab management Chrome extension. It is built using [shadcn-ui](https://github.com/shadcn-ui/ui) and heavily utilizes [cmdk](https://github.com/pacocoursey/cmdk) for keyboard interactions.
+EchoTab is a tab management Chrome extension. It is built using [shadcn-ui](https://github.com/shadcn-ui/ui) and heavily utilizes [cmdk](https://github.com/pacocoursey/cmdk) for keyboard interactions.
 
 ### Installing
 
