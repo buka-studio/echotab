@@ -27,14 +27,23 @@ import {
     SelectValue,
 } from "@echotab/ui/Select";
 import Switch from "@echotab/ui/Switch";
+import { ToggleGroup, ToggleGroupItem } from "@echotab/ui/ToggleGroup";
 import { cn } from "@echotab/ui/util";
-import { ArrowDownIcon, ArrowUpIcon, HeartFilledIcon, HeartIcon } from "@radix-ui/react-icons";
+import {
+    ArrowDownIcon,
+    ArrowUpIcon,
+    DesktopIcon,
+    HeartFilledIcon,
+    HeartIcon,
+    MoonIcon,
+    SunIcon,
+} from "@radix-ui/react-icons";
 import React, { useMemo, useRef, useState } from "react";
 
 import { Tag } from "../models";
 import { useSavedTabStore } from "../SavedTabs";
 import { unassignedTag, useTagStore } from "../TagStore";
-import { ClipboardFormat, useUIStore } from "../UIStore";
+import { ClipboardFormat, Theme, useUIStore } from "../UIStore";
 import { downloadJSON, getFormattedLinksExample } from "../util";
 import { SortDir } from "../util/sort";
 import ImportField from "./ImportField";
@@ -175,6 +184,10 @@ export default function SettingsCommand() {
         });
     };
 
+    const setTheme = (theme: Theme) => {
+        uiStore.updateSettings({ theme });
+    };
+
     return (
         <Command loop value={page} onValueChange={setPage} className="min-h-[450px]">
             <div className="mb-4 flex items-center border-b">
@@ -184,6 +197,7 @@ export default function SettingsCommand() {
                 <CommandList>
                     <CommandGroup>
                         <CommandItem>Tags</CommandItem>
+                        <CommandItem>Appearance</CommandItem>
                         <CommandItem>Misc</CommandItem>
                         <CommandItem>Import</CommandItem>
                         <CommandItem>Export</CommandItem>
@@ -217,7 +231,7 @@ export default function SettingsCommand() {
                     </AlertDialogContent>
                 </AlertDialog>
                 <div
-                    className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4 pt-2"
+                    className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4 pr-2 pt-2"
                     ref={contentRef}>
                     {page === "Tags" && (
                         <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4">
@@ -256,6 +270,41 @@ export default function SettingsCommand() {
                                 <Button variant="outline" className="w-full" onClick={handleAddTag}>
                                     Add new tag
                                 </Button>
+                            </div>
+                        </div>
+                    )}
+                    {page === "Appearance" && (
+                        <div>
+                            <div className="flex items-center space-x-2">
+                                <Switch
+                                    id="include-tags"
+                                    checked={uiStore.settings?.clipboardIncludeTags ?? false}
+                                    onCheckedChange={(v) => {
+                                        uiStore.updateSettings({ clipboardIncludeTags: v });
+                                    }}
+                                />
+                                <Label htmlFor="include-tags">Show Favicons</Label>
+                            </div>
+                            <div>
+                                <Label htmlFor="theme">Theme</Label>
+                                <ToggleGroup
+                                    id="theme"
+                                    variant="outline"
+                                    type="single"
+                                    value={uiStore.settings.theme}
+                                    onValueChange={(t) => setTheme(t as Theme)}>
+                                    <ToggleGroupItem value={Theme.Light} aria-label="Toggle bold">
+                                        <SunIcon className="h-4 w-4" />
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem value={Theme.Dark} aria-label="Toggle italic">
+                                        <MoonIcon className="h-4 w-4" />
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem
+                                        value={Theme.System}
+                                        aria-label="Toggle underline">
+                                        <DesktopIcon className="h-4 w-4" />
+                                    </ToggleGroupItem>
+                                </ToggleGroup>
                             </div>
                         </div>
                     )}

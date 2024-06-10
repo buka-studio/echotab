@@ -108,14 +108,21 @@ export function TabCommandDialog({
         <div ref={setCommandContainer} className={cn("relative flex w-full")}>
             <button
                 className={cn(
-                    "focus-ring bg-background/20 flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-sm backdrop-blur-lg transition-all duration-200",
+                    "focus-ring bg-card/40 flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_3px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
                     {
                         "opacity-0": open,
                     },
                 )}
                 onClick={openDialog}>
                 <span>{label}</span>
-                <span className="keyboard-shortcut">⌘ + K</span>
+                <span className="flex items-center gap-1">
+                    <span className="keyboard-shortcut flex h-6 w-6 items-center justify-center text-lg">
+                        ⌘
+                    </span>
+                    <span className="keyboard-shortcut flex h-6 w-6 items-center justify-center">
+                        K
+                    </span>
+                </span>
             </button>
             <Dialog scrollLock={false} open={open} onOpenChange={closeDialog}>
                 <DialogContent

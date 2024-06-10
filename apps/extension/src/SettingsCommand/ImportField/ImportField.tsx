@@ -1,6 +1,8 @@
 import Button from "@echotab/ui/Button";
 import { toast } from "@echotab/ui/Toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { ChangeEventHandler, DragEventHandler, useState } from "react";
 import { z } from "zod";
 
@@ -10,17 +12,24 @@ import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
 import { intersection } from "../../util/set";
 
 const importHint = `\
-Tab {                     Tag {
-  id: number;               id: number;
-  title: string;            name: string;
-  url: string;              color?: string;
-  tagIds: number[];         favorite?: boolean;
-  faviconUrl?: string;    }       
+Tag {
+  id: number; 
+  name: string; 
+  color?: string; 
+  favorite?: boolean;
+}
+
+Tab {
+  id: number;
+  title: string;
+  url: string;
+  tagIds: number[];
+  faviconUrl?: string;
 }                       
 
 Import { 
-    savedTabs: Tab[]; 
-    tags: Tag[];
+  savedTabs: Tab[]; 
+  tags: Tag[];
 }
 `;
 
@@ -206,8 +215,24 @@ export default function DNDImport() {
             </div>
 
             <div className="flex flex-col gap-2">
-                <div className="text-muted-foreground text-sm">
-                    Drop a file or click to upload a echotab JSON export.
+                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                    Drop a file or click to upload a echotab JSON export.{" "}
+                    <Tooltip>
+                        <TooltipTrigger className="focus-visible:ring-ring flex rounded-full focus-visible:outline-none focus-visible:ring-1">
+                            <InfoCircledIcon />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <div className="">
+                                JSON Format shape:
+                                <div
+                                    className={cn(
+                                        "text-muted-foreground scrollbar-gray mt-3 max-h-[150px] overflow-auto whitespace-pre font-mono",
+                                    )}>
+                                    {importHint}
+                                </div>
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
                 <input id="import" className="peer sr-only" type="file" onChange={handleChange} />
                 <label
@@ -218,10 +243,10 @@ export default function DNDImport() {
                     className="group">
                     <div
                         className={cn(
-                            "text-muted-foreground peer-focus-visible:group-[]:border-primary hover:border-primary cursor-pointer whitespace-pre rounded-md border border-dashed bg-opacity-10 p-4 pl-6 font-mono transition-all duration-200 hover:bg-opacity-10",
+                            "peer-focus-visible:group-[]:border-primary hover:border-primary cursor-pointer rounded-md border border-dashed bg-opacity-10 p-10 text-center text-sm transition-all duration-200 hover:bg-opacity-10",
                             { ["border-primary"]: draggingOver },
                         )}>
-                        {importHint}
+                        Drag & drop or click to upload
                     </div>
                 </label>
             </div>

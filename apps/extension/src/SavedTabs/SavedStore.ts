@@ -215,7 +215,19 @@ const Store = proxy({
         if (stored) {
             try {
                 const init = JSON.parse(stored as string) as PersistedTabStore;
-                Store.tabs = init.tabs || [];
+
+                // repair on init
+                // todo: figure out why sometimes tags are missing
+                const tabs = (init.tabs || []).map((t) => {
+                    const validTags = t.tagIds.filter((tagId) => TagStore.tags.has(tagId));
+                    t.tagIds = validTags;
+                    if (!t.tagIds.length) {
+                        t.tagIds = [unassignedTag.id];
+                    }
+                    return t;
+                });
+                Store.tabs = tabs;
+
                 Store.view = { ...Store.view, ...init.view };
             } catch (e) {
                 toast.error("Failed to load tags from local storage");
@@ -377,8 +389,6 @@ subscribe(Store, (ops) => {
         );
     }
 });
-
-Store.initStore();
 
 export function useSavedTabStore() {
     return useSnapshot(Store) as typeof Store;

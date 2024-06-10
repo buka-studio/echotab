@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { ArrowUpIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -26,7 +26,7 @@ export default function ScrollTopFAB({
     return (
         <AnimatePresence>
             {visible && (
-                <Button
+                <ButtonWithTooltip
                     asChild
                     className={className}
                     onClick={() =>
@@ -35,6 +35,7 @@ export default function ScrollTopFAB({
                             behavior: "auto",
                         })
                     }
+                    tooltipText="Scroll to top"
                     aria-label="Scroll to top"
                     size="icon"
                     variant="ghost">
@@ -44,7 +45,7 @@ export default function ScrollTopFAB({
                         exit={{ opacity: 0 }}>
                         <ArrowUpIcon />
                     </motion.button>
-                </Button>
+                </ButtonWithTooltip>
             )}
         </AnimatePresence>
     );

@@ -292,8 +292,8 @@ export default function ActiveCommand() {
                                         Close {tabStore.viewDuplicateTabIds.size} Duplicates
                                     </CommandItem>
                                 )}
-                                <CommandItem onSelect={() => uiStore.activatePanel(Panel.Saved)}>
-                                    Go to Saved Tabs
+                                <CommandItem onSelect={() => uiStore.activatePanel(Panel.Saves)}>
+                                    Go to Saves
                                 </CommandItem>
                             </CommandGroup>
                             <CommandEmpty>No Results</CommandEmpty>

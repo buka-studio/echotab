@@ -144,8 +144,6 @@ subscribe(store, () => {
     }
 });
 
-store.initStore();
-
 export const useTagStore = () => useSnapshot(store) as typeof store;
 
 export default store;

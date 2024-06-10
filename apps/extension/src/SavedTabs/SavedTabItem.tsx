@@ -22,10 +22,13 @@ function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagI
     return 0;
 }
 
-const SavedTabItem = forwardRef<
-    ComponentRef<typeof TabItem>,
-    ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId?: number }
->(function SavedTabItem({ tab, currentGroupTagId, ...rest }, ref) {
+type Props = ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId?: number };
+type Ref = ComponentRef<typeof TabItem>;
+
+const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
+    { tab, currentGroupTagId, ...rest },
+    ref,
+) {
     const { assignedTagIds } = useSavedTabStore();
     const { tags } = useTagStore();
 
@@ -45,6 +48,7 @@ const SavedTabItem = forwardRef<
 
     return (
         <TabItem
+            data-selected={selected}
             ref={ref}
             className={cn({
                 "border-border-active bg-card-active": selected,
@@ -65,7 +69,7 @@ const SavedTabItem = forwardRef<
             }
             tab={tab}
             actions={
-                <div className="@[200px]:flex-row @[200px]:gap-2 flex flex-row-reverse">
+                <div className="@[200px]:flex-row @[200px]:gap-2 flex flex-row-reverse items-center">
                     <Button
                         variant="ghost"
                         size="icon-sm"
@@ -90,7 +94,7 @@ const SavedTabItem = forwardRef<
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => SavedStore.removeTab(tab.id)}>
-                            <Cross2Icon className="h-5 w-5 " />
+                            <Cross2Icon className="h-5 w-5" />
                         </Button>
                     )}
                 </div>

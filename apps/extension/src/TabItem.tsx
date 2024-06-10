@@ -39,7 +39,7 @@ export function Favicon({ src, className }: { className?: string; src?: string }
 const LinkPreview = ({ url }: { url: string }) => {
     return (
         <div className="relative h-full w-full">
-            <Spinner className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 " />
+            <Spinner className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
             <iframe
                 src={url}
                 title={`Preview of ${url}`}
@@ -65,11 +65,12 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
     { tab, actions, className, icon, link, children, ...props },
     ref,
 ) {
+
     return (
         <div
             ref={ref}
             className={cn(
-                "group/item border-t-border bg-card text-card-foreground @[200px]:flex @[200px]:gap-5 hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active grid min-h-[50px] w-full grid-cols-[auto,1fr] items-center rounded-lg border p-2 shadow-sm transition-colors duration-200 dark:border-x-0 dark:border-b-0",
+                "tab-item group/item border-t-border bg-card text-card-foreground @[200px]:flex @[200px]:gap-5 hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active grid min-h-[50px] w-full grid-cols-[auto,1fr] items-center border p-2 shadow-sm transition-colors duration-200",
                 className,
             )}
             {...props}>

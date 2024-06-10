@@ -45,7 +45,7 @@ const DrawerContent = React.forwardRef<
             )}
             {...props}>
             {handle && (
-                <div className="bg-muted mx-auto mt-4 h-2 w-[100px] flex-shrink-0 rounded-full group-[[vaul-drawer-direction=right]]/content:my-auto group-[[vaul-drawer-direction=right]]/content:ml-4 group-[[vaul-drawer-direction=right]]/content:h-[100px] group-[[vaul-drawer-direction=right]]/content:w-2" />
+                <div className="bg-muted-foreground mx-auto mt-4 h-1 w-[100px] flex-shrink-0 rounded-full group-[[vaul-drawer-direction=right]]/content:my-auto group-[[vaul-drawer-direction=right]]/content:ml-4 group-[[vaul-drawer-direction=right]]/content:h-[100px] group-[[vaul-drawer-direction=right]]/content:w-1" />
             )}
             {children}
         </DrawerPrimitive.Content>

@@ -114,7 +114,10 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
                 round: true,
                 domain: [
                     0,
-                    Math.max(...Object.values(savedStore.filteredTabsByTagId).map((t) => t.length)),
+                    Math.max(
+                        ...Object.values(savedStore.filteredTabsByTagId).map((t) => t.length),
+                        0,
+                    ),
                 ],
             }),
         [yMax, savedStore.filteredTabsByTagId],
@@ -149,7 +152,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
                     <div className="text-balance text-lg">
                         Currently, there are no tabs with tags.
                     </div>
-                    <div className="text-balance text-sm text-foreground/75">
+                    <div className="text-foreground/75 text-balance text-sm">
                         Begin organizing by tagging tabs, and the tag count will be displayed here.
                     </div>
                 </div>
@@ -162,7 +165,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
             </div>
         );
     }
-
+    console.log("asd");
     return (
         <svg width={width} height={height} ref={containerRef} className="relative">
             {gradients.map((g) => (
@@ -237,7 +240,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
                         color: undefined,
                         padding: undefined,
                     }}
-                    className="z-[60] rounded-md border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
+                    className="border-border bg-popover text-popover-foreground z-[60] rounded-md border px-3 py-2 text-sm shadow-md">
                     <div className="flex items-center gap-2 p-1 text-sm">
                         <TagChip color={activeTag.color}>{activeTag.name}</TagChip> -{" "}
                         {savedStore.filteredTabsByTagId[activeTag.id]?.length ?? 0} tabs

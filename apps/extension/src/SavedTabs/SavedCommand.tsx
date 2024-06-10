@@ -201,7 +201,7 @@ export default function SavedCommand() {
                                     <span>
                                         Selection{" "}
                                         <Badge
-                                            variant="outline"
+                                            variant="card"
                                             className={cn({
                                                 "opacity-0": !selectionStore.selectedTabIds.size,
                                             })}>
@@ -243,8 +243,8 @@ export default function SavedCommand() {
                                 <CommandItem onSelect={() => pushPage("filter")}>
                                     Filter
                                 </CommandItem>
-                                <CommandItem onSelect={() => uiStore.activatePanel(Panel.Active)}>
-                                    Go to Active Tabs
+                                <CommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
+                                    Go to Tabs
                                 </CommandItem>
                             </CommandGroup>
                             <CommandEmpty>No Results</CommandEmpty>

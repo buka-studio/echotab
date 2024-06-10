@@ -139,7 +139,7 @@ const ActiveTabItem = forwardRef<
                     </Button>
                 </div>
             }>
-            {duplicate && <Badge variant="secondary">Duplicate</Badge>}
+            {duplicate && <Badge variant="card">Duplicate</Badge>}
         </TabItem>
     );
 });

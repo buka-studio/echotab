@@ -60,7 +60,7 @@ const store = proxy({
         theme: Theme.System,
     },
     initialized: false,
-    activePanel: Panel.Active,
+    activePanel: Panel.Tabs,
     updateSettings: (update: Partial<Settings>) => {
         store.settings = { ...store.settings, ...update };
     },
@@ -85,12 +85,34 @@ const store = proxy({
     },
 });
 
+// src https://github.com/pacocoursey/next-themes/blob/main/next-themes/src/index.tsx
+const disableAnimation = () => {
+    const css = document.createElement("style");
+    css.appendChild(
+        document.createTextNode(
+            `*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`,
+        ),
+    );
+    document.head.appendChild(css);
+
+    return () => {
+        // Force restyle
+        (() => window.getComputedStyle(document.body))();
+
+        // Wait for next tick before removing
+        setTimeout(() => {
+            document.head.removeChild(css);
+        }, 1);
+    };
+};
+
 subscribe(store, () => {
     if (store.initialized) {
         ChromeLocalStorage.setItem(storageKey, JSON.stringify(store));
     }
 
     const root = window.document.documentElement;
+    const enable = disableAnimation();
 
     root.classList.remove("light", "dark");
 
@@ -100,13 +122,12 @@ subscribe(store, () => {
             : "light";
 
         root.classList.add(systemTheme);
-        return;
+    } else {
+        root.classList.add(store.settings.theme);
     }
 
-    root.classList.add(store.settings.theme);
+    enable();
 });
-
-store.initStore();
 
 export const useUIStore = () => useSnapshot(store);
 

@@ -27,9 +27,13 @@
         "react-dom": "18.3.1",
         "uuidv7": "^1.0.0",
         "valtio": "~1.13.2",
-        "zod": "^3.23.8"
+        "zod": "^3.23.8",
+        "chroma-js": "^2.4.2",
+        "tweakpane": "^4.0.3"
     },
     "devDependencies": {
+        "@tweakpane/core": "^2.0.3",
+        "@types/chroma-js": "^2.4.2",
         "@echotab/tsconfig": "*",
         "@echotab/ui": "^0.0.1",
         "@ianvs/prettier-plugin-sort-imports": "~4.2.1",

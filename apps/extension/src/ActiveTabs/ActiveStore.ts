@@ -71,7 +71,7 @@ export interface ActiveStore {
     viewTabsById: Record<number, ActiveTab>;
     viewTabIdsByWindowId: Record<number, number[]>;
 
-    initTabs(): Promise<void>;
+    initStore(): Promise<void>;
     toggleAssignedTagId(tagId: number): void;
     clearAssignedTagIds(): void;
     setView(view: Partial<ActiveStore["view"]>): void;
@@ -107,7 +107,7 @@ const Store = proxy({
             dir: SortDir.Asc,
         },
     }),
-    initTabs: async () => {
+    initStore: async () => {
         Store.tabs = await getActiveTabs();
 
         let syncDebounceTimer: null | ReturnType<typeof setTimeout> = null;
@@ -350,8 +350,6 @@ subscribe(Store, (ops) => {
         activeFuse.setCollection(Store.tabs);
     }
 });
-
-Store.initTabs();
 
 export function useActiveTabStore() {
     return useSnapshot(Store) as typeof Store;

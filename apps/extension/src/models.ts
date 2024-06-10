@@ -25,8 +25,8 @@ export interface SavedTab extends Tab {
 }
 
 export enum Panel {
-    Active = "Active",
-    Saved = "Saved",
+    Tabs = "Tabs",
+    Saves = "Saves",
 }
 
 export interface Tag {
