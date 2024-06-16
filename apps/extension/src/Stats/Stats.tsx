@@ -22,10 +22,10 @@ export default function Stats() {
                     <TabsTrigger value={StatTab.Usage}>Usage</TabsTrigger>
                     <TabsTrigger value={StatTab.Relationships}>Relationships</TabsTrigger>
                 </TabsList>
-                <TabsContent value={StatTab.Usage}>
+                <TabsContent value={StatTab.Usage} className="focus-visible:ring-0">
                     <TagUsageGraph height={500} width={dimensions.width!} />
                 </TabsContent>
-                <TabsContent value={StatTab.Relationships}>
+                <TabsContent value={StatTab.Relationships} className="focus-visible:ring-0">
                     <TagRelationshipGraph centerSize={20} height={500} width={dimensions.width!} />
                 </TabsContent>
             </Tabs>

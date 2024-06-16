@@ -37,12 +37,17 @@ const miscTrackingParams = [
 const trackingParamSet = new Set([...UTMParams, ...FacebookParams, ...miscTrackingParams]);
 
 export function stripTrackingParams(url: string): string {
-    const u = new URL(url);
-    for (const p of trackingParamSet) {
-        u.searchParams.delete(p);
-    }
+    try {
+        const u = new URL(url);
+        for (const p of trackingParamSet) {
+            u.searchParams.delete(p);
+        }
 
-    return u.toString();
+        return u.toString();
+    } catch (e) {
+        console.log(url, e);
+        return url;
+    }
 }
 
 export function canonicalizeURL(

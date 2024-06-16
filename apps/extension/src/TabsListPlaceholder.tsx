@@ -38,16 +38,6 @@ export default function TabListPlaceholder({
                 "tab-list-placeholder relative mx-auto flex w-full max-w-4xl flex-col gap-2",
                 className,
             )}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="pointer-events-none absolute">
-                <filter id="noiseFilter">
-                    <feTurbulence
-                        className="turbulence"
-                        type="fractalNoise"
-                        baseFrequency="1.45"
-                        numOctaves="3"
-                        stitchTiles="stitch"></feTurbulence>
-                </filter>
-            </svg>
             <div
                 className={cn(
                     "tabs-placeholder pointer-events-none flex flex-col [&]:[mask-image:var(--fade-gradient)]",
