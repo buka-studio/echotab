@@ -76,8 +76,9 @@ const DropdownMenuItem = React.forwardRef<
     React.ElementRef<typeof DropdownMenuPrimitive.Item>,
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
         inset?: boolean;
+        keepOpen?: boolean;
     }
->(({ className, inset, ...props }, ref) => (
+>(({ className, inset, keepOpen, ...props }, ref) => (
     <DropdownMenuPrimitive.Item
         ref={ref}
         className={cn(
@@ -85,6 +86,7 @@ const DropdownMenuItem = React.forwardRef<
             inset && "pl-8",
             className,
         )}
+        {...(keepOpen && { onSelect: (e) => e.preventDefault() })}
         {...props}
     />
 ));
@@ -141,7 +143,11 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
     <DropdownMenuPrimitive.Label
         ref={ref}
-        className={cn("px-2 py-1.5 text-sm font-semibold", inset && "pl-8", className)}
+        className={cn(
+            "text-muted-foreground px-2 py-1.5 text-xs font-light uppercase tracking-widest",
+            inset && "pl-8",
+            className,
+        )}
         {...props}
     />
 ));

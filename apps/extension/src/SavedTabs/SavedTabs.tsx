@@ -2,19 +2,8 @@ import { Badge } from "@echotab/ui/Badge";
 import Button from "@echotab/ui/Button";
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { Drawer, DrawerContent, DrawerTrigger } from "@echotab/ui/Drawer";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@echotab/ui/DropdownMenu";
 import { cn } from "@echotab/ui/util";
-import {
-    CaretSortIcon,
-    CheckIcon,
-    HamburgerMenuIcon,
-    MixerHorizontalIcon,
-} from "@radix-ui/react-icons";
+import { CaretSortIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Virtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
 
@@ -23,16 +12,15 @@ import useMatchMedia from "../hooks/useMatchMedia";
 import { MobileBottomBarPortal } from "../MobileBottomBar";
 import { Tag } from "../models";
 import { SelectableList } from "../SelectableList";
-import SortButton from "../SortButton";
 import TabListPlaceholder, { TabListPlaceholderCopy } from "../TabsListPlaceholder";
 import { useTagStore } from "../TagStore";
-import { SortDir } from "../util/sort";
 import PinnedTabs from "./PinnedTabs";
 import SavedCommand from "./SavedCommand";
-import { SelectionStore, TabGrouping, TabSortProp, useSavedTabStore } from "./SavedStore";
+import { SelectionStore, TabGrouping, useSavedTabStore } from "./SavedStore";
 import SelectButton from "./SelectButton";
 import TagHeader from "./TagHeader";
 import TagNavigation from "./TagNavigation";
+import ViewControl from "./ViewControl";
 import VirtualTabList from "./VirtualTabList";
 
 export default function SavedTabs() {
@@ -171,24 +159,6 @@ export default function SavedTabs() {
 
     const isXLScreen = useMatchMedia("(min-width: 1440px)");
 
-    const handleSort = (prop: TabSortProp) => {
-        if (tabStore.view.sort.prop === prop) {
-            tabStore.setView({
-                sort: {
-                    prop,
-                    dir: tabStore.view.sort.dir === SortDir.Desc ? SortDir.Asc : SortDir.Desc,
-                },
-            });
-        } else {
-            tabStore.setView({
-                sort: {
-                    prop,
-                    dir: SortDir.Asc,
-                },
-            });
-        }
-    };
-
     return (
         <div className={cn("flex h-full flex-col")}>
             <div className="header sticky top-[20px] z-10 mx-auto flex w-full max-w-4xl">
@@ -256,30 +226,16 @@ export default function SavedTabs() {
                         </>
                     )}
                     <div className="bg-surface-2 border-border col-[2] row-[1/4] h-full rounded-xl border" />
-                    <div className="col-[2] row-[1] mx-3 mb-12 mt-3">
+                    <div className="col-[2] row-[1] mx-3 mb-12 mt-3 select-none">
                         <PinnedTabs />
                     </div>
                     <div className="col-[2] row-[2] mx-4">
                         <div className="mx-auto flex w-full max-w-4xl items-center justify-start gap-2">
                             <div className="flex flex-1 items-center gap-2 px-3 text-sm">
-                                <div className="flex items-center gap-5">
-                                    <span className="text-muted-foreground">Sort by</span>{" "}
-                                    <div className="flex items-center gap-2 text-sm">
-                                        {isTagView ? <span>Tag Name</span> : <span>Tab Title</span>}
-                                        <SortButton
-                                            active
-                                            dir={tabStore.view.sort.dir}
-                                            onClick={() =>
-                                                handleSort(
-                                                    isTagView
-                                                        ? TabSortProp.TagName
-                                                        : TabSortProp.Title,
-                                                )
-                                            }
-                                        />
-
-                                        <Badge variant="card">{tabStore.viewTabIds.length}</Badge>
-                                    </div>
+                                <div className="flex select-none items-center gap-2">
+                                    <span className="text-muted-foreground">Items</span>
+                                    <Badge variant="card">{tabStore.viewTabIds.length}</Badge>
+                                    <ViewControl />
                                 </div>
                                 <div className="ml-auto flex">
                                     <SelectButton />
@@ -294,43 +250,6 @@ export default function SavedTabs() {
                                                 Collapse All
                                             </Button>
                                         ))}
-
-                                    <span className="ml-2 flex items-center">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <ButtonWithTooltip
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    tooltipText="View Settings">
-                                                    <MixerHorizontalIcon className="h-5 w-5" />
-                                                </ButtonWithTooltip>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent>
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        tabStore.setView({
-                                                            grouping: TabGrouping.All,
-                                                        })
-                                                    }>
-                                                    View All
-                                                    {!isTagView && (
-                                                        <CheckIcon className="ml-8 h-4 w-4" />
-                                                    )}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        tabStore.setView({
-                                                            grouping: TabGrouping.Tag,
-                                                        })
-                                                    }>
-                                                    View by Tag
-                                                    {isTagView && (
-                                                        <CheckIcon className="ml-2 h-4 w-4" />
-                                                    )}
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </span>
                                 </div>
                             </div>
                         </div>
