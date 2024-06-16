@@ -103,10 +103,10 @@ export default function App() {
                             <SettingsMenu />
                         </div>
                     </div>
-                    <TabsContent value={Panel.Tabs} className="flex-1 focus-within:outline-none">
+                    <TabsContent value={Panel.Tabs} className="flex-1 focus-visible:ring-0">
                         <ActiveTabs />
                     </TabsContent>
-                    <TabsContent value={Panel.Saves} className="flex-1">
+                    <TabsContent value={Panel.Saves} className="flex-1 focus-visible:ring-0">
                         <SavedTabs />
                     </TabsContent>
                 </Tabs>
