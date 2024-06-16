@@ -33,6 +33,7 @@
         "./Logo": "./src/Logo.tsx",
         "./Popover": "./src/Popover.tsx",
         "./RadioGroup": "./src/RadioGroup.tsx",
+        "./RichEditor": "./src/RichEditor/index.ts",
         "./ScrollArea": "./src/ScrollArea.tsx",
         "./Select": "./src/Select.tsx",
         "./SortableVirtualGrid": "./src/SortableVirtualGrid.tsx",
@@ -48,6 +49,7 @@
         "./tailwind.config": "./tailwind.config.ts"
     },
     "dependencies": {
+        "@lexical/react": "^0.16.0",
         "@radix-ui/react-alert-dialog": "^1.0.5",
         "@radix-ui/react-collapsible": "^1.0.3",
         "@radix-ui/react-dialog": "~1.0.5",
@@ -68,6 +70,7 @@
         "@radix-ui/react-tooltip": "^1.0.7",
         "class-variance-authority": "^0.7.0",
         "clsx": "~2.1.1",
+        "lexical": "^0.16.0",
         "react": "18.3.1",
         "react-dom": "18.3.1",
         "sonner": "^1.4.41",
