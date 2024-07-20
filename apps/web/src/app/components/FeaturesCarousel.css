@@ -9,18 +9,15 @@
   flex-direction: column;
 }
 
-.shadow {
-  background: linear-gradient(0deg, black 10%, transparent 40%),
-    linear-gradient(0deg, transparent 60%, black);
+.carousel-shadow {
+  background: linear-gradient(0deg, hsl(var(--base-background)) 10%, transparent 40%),
+    linear-gradient(0deg, transparent 60%, hsl(var(--base-background)));
 }
 
 .carousel-item {
   --duration: calc(var(--speed) * 1s);
-  --delay: calc(
-    (var(--duration) / var(--count)) * (var(--index, 0) - (var(--count) * 0.5))
-  );
-  animation: slide var(--duration) calc(var(--delay) - (var(--count) * 0.5s))
-    infinite linear;
+  --delay: calc((var(--duration) / var(--count)) * (var(--index, 0) - (var(--count) * 0.5)));
+  animation: slide var(--duration) calc(var(--delay) - (var(--count) * 0.5s)) infinite linear;
   translate: var(--origin-x) var(--origin-y);
 }
 

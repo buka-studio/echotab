@@ -60,7 +60,9 @@
   .shield-outline path:nth-child(2) {
     stroke-dashoffset: 0;
     opacity: 1;
-    transition: opacity 0.25s, stroke-dashoffset 1.5s cubic-bezier(1, 0, 0, 1);
+    transition:
+      opacity 0.25s,
+      stroke-dashoffset 1.5s cubic-bezier(1, 0, 0, 1);
   }
 
   .shield-outline {
