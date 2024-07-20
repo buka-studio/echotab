@@ -1,15 +1,10 @@
 {
-    "name": "@echotab/tsconfig",
-    "private": true,
-    "version": "1.0.0",
-    "files": [
-        "base.json"
-    ],
-    "devDependencies": {
-        "@echotab/ui": "^0.0.1",
-        "@tailwindcss/container-queries": "^0.1.1",
-        "@tailwindcss/line-clamp": "^0.4.4",
-        "tailwind-scrollbar": "^3.1.0",
-        "tailwindcss-animate": "^1.0.7"
-    }
+  "name": "@echotab/tsconfig",
+  "private": true,
+  "version": "1.0.0",
+  "files": [
+    "base.json",
+    "next.json",
+    "react-library.json"
+  ]
 }
