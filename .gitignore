@@ -44,3 +44,5 @@ keys.json
 .turbo
 
 *storybook.log
+
+supabase.md
