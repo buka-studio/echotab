@@ -1,0 +1,56 @@
+.circle-pulse {
+  opacity: 0.7;
+  animation: ping 6s cubic-bezier(0, 0, 0.2, 1) var(--pulse-delay) infinite;
+  pointer-events: none;
+}
+
+.mid {
+  animation: pingmid 6s cubic-bezier(0, 0, 0.2, 1) 0s infinite;
+}
+
+@keyframes pingmid {
+  0% {
+    transform: scale(0.9);
+  }
+  10% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ping {
+  33% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.pulse-container {
+  --factor: 8;
+  --width: 300;
+  --height: 300;
+  --n-mouse-x: clamp(calc(var(--width) * -1), var(--mouse-x), var(--width) * 2);
+  --n-mouse-y: clamp(calc(var(--height) * -1), var(--mouse-y), var(--height) * 2);
+  mask-image: radial-gradient(circle, black 50%, transparent 70%);
+
+  width: calc(var(--width) * 1px);
+  height: calc(var(--height) * 1px);
+  transform: perspective(var(--width)) rotateX(0deg) rotateY(0deg) translateZ(-30px);
+  transition: all 0.2s;
+  z-index: 1;
+  padding: 4px;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: initial;
+
+  --rotate-x: calc(var(--factor) / 2 - var(--n-mouse-x) / var(--width) * var(--factor));
+  --rotate-y: calc(var(--n-mouse-y) / var(--width) * var(--factor) - var(--factor) / 2);
+
+  transform: perspective(calc(var(--width) * 1px)) rotateX(calc(var(--rotate-y) * -1deg))
+    rotateY(calc(var(--rotate-x) * -1deg)) translateZ(30px);
+}
