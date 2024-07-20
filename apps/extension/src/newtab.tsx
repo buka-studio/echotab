@@ -1,5 +1,5 @@
 import App from "./App";
 
 export default function Newtab() {
-    return <App />;
+  return <App />;
 }

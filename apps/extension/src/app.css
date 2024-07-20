@@ -1,19 +1,20 @@
 :root {
-    --font-sans: "IBM Plex Sans", sans-serif;
-    background: hsl(var(--base-background));
+  --font-sans: "Inter", sans-serif;
+  /* --font-sans: "IBM Plex Sans", sans-serif; */
+  background: hsl(var(--base-background));
 }
 
 .selection-area {
-    background: rgba(252, 108, 46, 0.11);
-    border: 1px solid rgba(255, 158, 98, 0.81);
-    border-radius: 2px;
+  background: rgba(252, 108, 46, 0.11);
+  border: 1px solid rgba(255, 158, 98, 0.81);
+  border-radius: 2px;
 }
 
 .highlight {
-    background: linear-gradient(0deg, hsl(12.34deg 100% 50.71%), hsl(12.34deg 100% 63.71%));
-    box-shadow: 0 -1px 3px 1px rgba(255, 202, 167, 0.624);
+  background: linear-gradient(0deg, hsl(12.34deg 100% 50.71%), hsl(12.34deg 100% 63.71%));
+  box-shadow: 0 -1px 3px 1px rgba(255, 202, 167, 0.624);
 }
 
 .dark .highlight {
-    box-shadow: 0 -1px 3px 1px rgba(47, 19, 0, 0.624) inset;
+  box-shadow: 0 -1px 3px 1px rgba(47, 19, 0, 0.624) inset;
 }
