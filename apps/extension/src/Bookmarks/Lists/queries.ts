@@ -7,7 +7,7 @@ import { useUIStore } from "~/src/UIStore";
 import { replaceBy } from "~/src/util";
 
 import BookmarkStore, { useBookmarkStore } from "../BookmarkStore";
-import { getLists, publishList, updateList } from "./api";
+import { getLists, publishList, unpublishLists, updateList } from "./api";
 
 function getListPayload(list: List) {
   return {
@@ -79,6 +79,22 @@ export function useUpdateListMutation() {
       queryClient.setQueryData(["lists"], (prev: UserList[]) => {
         return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
       });
+    },
+  });
+}
+
+export function useUnpublishAllListsMutation({ onSuccess }: { onSuccess?: () => void }) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: unpublishLists,
+    onSuccess: () => {
+      queryClient.setQueryData(["lists"], () => {
+        return [];
+      });
+
+      toast.success("Lists unpublished successfully");
+      onSuccess?.();
     },
   });
 }
