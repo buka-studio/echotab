@@ -12,23 +12,20 @@ import {
 import { Label } from "@echotab/ui/Label";
 import Spinner from "@echotab/ui/Spinner";
 import Switch from "@echotab/ui/Switch";
-import { toast } from "@echotab/ui/Toast";
 import {
   ArrowTopRightIcon,
   BookmarkIcon,
   EyeOpenIcon,
   InfoCircledIcon,
 } from "@radix-ui/react-icons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { ComponentProps, ReactNode, useRef, useState } from "react";
 
 import { List } from "~/src/models";
-import { replaceBy } from "~/src/util";
 
 import { formatDate } from "../../util/date";
 import BookmarkStore from "../BookmarkStore";
-import { updateList } from "./api";
-import { usePublishListMutation, useUpdateListMutation } from "./queries";
+import { usePublishListMutation, useUnpublishMutation, useUpdateListMutation } from "./queries";
 import { getPublicListURL } from "./util";
 
 type Props = {
@@ -61,19 +58,9 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
     });
   };
 
-  const unpublishMutation = useMutation({
-    mutationFn: () => updateList(list.id, { published: false }),
-    onError: (e) => {
-      console.error(e);
-      toast.error("Failed to unpublish list. Please try again.");
-    },
-    onSuccess: (updatedList) => {
-      queryClient.setQueryData(["lists"], (prev: UserList[]) => {
-        return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
-      });
-
+  const unpublishMutation = useUnpublishMutation(list.id, {
+    onSuccess: () => {
       setOpen(false);
-      toast.success("List unpublished successfully");
     },
   });
 

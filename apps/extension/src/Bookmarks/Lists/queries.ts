@@ -98,3 +98,30 @@ export function useUnpublishAllListsMutation({ onSuccess }: { onSuccess?: () => 
     },
   });
 }
+
+export function useUnpublishMutation(
+  listId: string,
+  {
+    onSuccess,
+  }: {
+    onSuccess?: () => void;
+  },
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => updateList(listId, { published: false }),
+    onError: (e) => {
+      console.error(e);
+      toast.error("Failed to unpublish list. Please try again.");
+    },
+    onSuccess: (updatedList) => {
+      queryClient.setQueryData(["lists"], (prev: UserList[]) => {
+        return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
+      });
+
+      toast.success("List unpublished successfully");
+      onSuccess?.();
+    },
+  });
+}
