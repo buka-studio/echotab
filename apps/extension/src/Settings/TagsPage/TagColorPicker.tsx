@@ -1,8 +1,19 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
-import { CSSProperties, useState } from "react";
+import { CSSProperties } from "react";
+import resolveConfig from "tailwindcss/resolveConfig";
 
-import { tagColors } from "./constants";
+import tailwindConfig from "../../../tailwind.config";
+
+const twConfig = resolveConfig(tailwindConfig);
+
+export const tagColors = Object.entries(twConfig.theme!.colors!)
+  .filter(
+    ([k, v]) =>
+      typeof v !== "string" && !["stone", "zinc", "gray", "rose", "sky", "purple"].includes(k),
+  )
+  .map(([k, v]) => v["600"])
+  .filter(Boolean);
 
 interface Props {
   color: string;
@@ -10,8 +21,6 @@ interface Props {
 }
 
 export default function TagColorPicker({ color, onChange }: Props) {
-  const [currentColor, setColor] = useState(color);
-
   return (
     <Popover>
       <PopoverTrigger
@@ -27,12 +36,6 @@ export default function TagColorPicker({ color, onChange }: Props) {
                 "focus-ring h-4 w-4 rounded-full border border-transparent bg-[--color] grayscale-[0.3] transition-all duration-200 hover:scale-110",
               )}
               style={{ "--color": c } as CSSProperties}
-              onMouseOver={() => {
-                setColor(c);
-              }}
-              onFocus={() => {
-                setColor(c);
-              }}
               onClick={() => {
                 onChange(c);
               }}

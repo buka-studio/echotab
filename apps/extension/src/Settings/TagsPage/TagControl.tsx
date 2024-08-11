@@ -14,8 +14,8 @@ import Input from "@echotab/ui/Input";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
-import TagChip from "../components/TagChip";
-import { Tag } from "../models";
+import TagChip from "../../components/TagChip";
+import { Tag } from "../../models";
 import TagColorPicker from "./TagColorPicker";
 
 function TagNameInput({ name, onChange }: { name: string; onChange(name: string): void }) {

@@ -1,16 +1,4 @@
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@echotab/ui/AlertDialog";
-import Button from "@echotab/ui/Button";
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
-import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -18,472 +6,98 @@ import {
   CommandItem,
   CommandList,
 } from "@echotab/ui/Command";
-import { Label } from "@echotab/ui/Label";
+import { Palette as PaletteIcon, Tag as TagIcon } from "@phosphor-icons/react";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@echotab/ui/Select";
-import Switch from "@echotab/ui/Switch";
-import { toast } from "@echotab/ui/Toast";
-import { ToggleGroup, ToggleGroupItem } from "@echotab/ui/ToggleGroup";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
-import { Palette } from "@phosphor-icons/react";
-import {
-  DesktopIcon,
-  HeartFilledIcon,
-  HeartIcon,
-  InfoCircledIcon,
-  MoonIcon,
-  SunIcon,
+  DownloadIcon,
+  ExclamationTriangleIcon,
+  MixerHorizontalIcon,
+  UploadIcon,
 } from "@radix-ui/react-icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useMemo, useRef, useState } from "react";
+import { ComponentProps, useRef, useState } from "react";
 
-import { useBookmarkStore } from "../Bookmarks";
-import { getLists, unpublishLists } from "../Bookmarks/Lists/api";
-import SortButton from "../components/SortButton";
-import { Tag } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
-import { ClipboardFormat, Theme, useUIStore } from "../UIStore";
-import { downloadJSON, getFormattedLinksExample } from "../util";
-import { SortDir } from "../util/sort";
-import ImportField from "./ImportField";
-import TagControl from "./TagControl";
+import AppearancePage from "./AppearancePage";
+import DeletePage from "./DeletePage";
+import ExportPage from "./ExportPage";
+import FeedbackPage from "./FeedbackPage";
+import ImportPage from "./ImportPage";
+import MiscPage from "./MiscPage";
+import TagsPage from "./TagsPage";
 
-interface TagSetting extends Tag {
-  tabCount: number;
-}
-
-const sortableColumns = ["favorite", "tabCount", "name"] as const;
-type Column = (typeof sortableColumns)[number];
-
-const columnLabels: Record<Column, string> = {
-  favorite: "Favorite",
-  tabCount: "# Tabs",
-  name: "Name",
-};
-
-function propComparator<T extends { name: string; tabCount: number; favorite: boolean }>(
-  a: T,
-  b: T,
-  prop: "tabCount" | "name" | "favorite",
-): number {
-  if (prop === "tabCount") {
-    return a[prop] - b[prop];
-  }
-  if (prop === "favorite") {
-    return Number(a[prop] ?? 0) - Number(b[prop] ?? 0);
-  }
-  return a[prop].localeCompare(b[prop]);
-}
+const BukaIcon = (props: ComponentProps<"svg">) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" fill="none" {...props}>
+    <path
+      fill="currentColor"
+      fill-rule="evenodd"
+      d="M2 2.533c0-.57.463-1.033 1.033-1.033h10.832c.591 0 1.092.509 1.012 1.134a10.422 10.422 0 0 1-4.26 7.127c1.18-.328 2.274-.848 3.205-1.655C14.256 7.73 15 8 15 8.637v4.83c0 .57-.463 1.033-1.033 1.033H3.033C2.463 14.5 2 14.037 2 13.467V2.533ZM3.033 2.5A.033.033 0 0 0 3 2.533v10.934c0 .018.015.033.033.033h10.934a.033.033 0 0 0 .033-.033V9.244c-1.716 1.275-3.794 1.773-5.836 1.952a.566.566 0 0 1-.605-.452.57.57 0 0 1 .353-.65 9.439 9.439 0 0 0 5.973-7.587.02.02 0 0 0-.007-.005.03.03 0 0 0-.013-.002H3.033Z"
+      clip-rule="evenodd"
+    />
+  </svg>
+);
 
 const versionLabel = `Version: ${chrome.runtime.getManifest().version}`;
 
+const pages = ["Tags", "Appearance", "Misc", "Import", "Export", "Feedback", "Delete"] as const;
+
+type Page = (typeof pages)[number];
+
 export default function Settings() {
-  const bookmarkStore = useBookmarkStore();
-  const tagStore = useTagStore();
-  const uiStore = useUIStore();
-
   const cmdInputRef = useRef<HTMLInputElement>(null);
-  const [page, setPage] = useState("Tags");
-
-  const [tagSort, setTagSort] = useState<{ col: (typeof sortableColumns)[number]; dir: SortDir }>({
-    col: "tabCount",
-    dir: SortDir.Desc,
-  });
-
-  const handleSort = (col: (typeof sortableColumns)[number]) => {
-    if (tagSort.col === col) {
-      setTagSort({ col, dir: tagSort.dir === SortDir.Desc ? SortDir.Asc : SortDir.Desc });
-    } else {
-      setTagSort({ col, dir: SortDir.Desc });
-    }
-  };
-
-  const handleExport = () => {
-    downloadJSON(
-      {
-        tabs: bookmarkStore.tabs,
-        tags: Array.from(tagStore.tags.values()).filter((t) => t.id !== unassignedTag.id),
-      },
-      `echotab-${Date.now()}.json`,
-    );
-  };
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const handleConfirmDelete = () => {
-    bookmarkStore.removeAllItems();
-    tagStore.deleteAllTags();
-  };
-
-  const tagSettings: TagSetting[] = useMemo(() => {
-    const tabCountsById = new Map(
-      Array.from(tagStore.tags.values()).map((t) => [t.id, { ...t, tabCount: 0 }]),
-    );
-    for (const tab of bookmarkStore.tabs) {
-      for (const tagId of tab.tagIds) {
-        if (!tabCountsById.has(tagId)) {
-          continue;
-        }
-        tabCountsById.get(tagId)!.tabCount += 1;
-      }
-    }
-
-    const sorted = Array.from(tabCountsById.values()).sort((a, b) => {
-      const tags = tagSort.dir === SortDir.Desc ? ([b, a] as const) : ([a, b] as const);
-      return propComparator(...tags, tagSort.col);
-    });
-    return sorted;
-  }, [tagStore.tags, bookmarkStore.tabs, tagSort]);
-
-  const handleDeleteTag = (tag: Tag) => {
-    bookmarkStore.removeTags([tag.id]);
-    tagStore.deleteTag(tag.id);
-  };
+  const [page, setPage] = useState<Page>("Tags");
 
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleAddTag = () => {
-    const tag = tagStore.createTag(`Tag ${tagStore.tags.size + 1}`);
-    setTimeout(() => {
-      // todo: do via ref
-      contentRef?.current?.scrollTo({
-        top: contentRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-
-      const input = contentRef.current?.querySelector(
-        `input[value="${tag.name}"`,
-      ) as HTMLInputElement;
-
-      input?.focus();
-      input?.select();
-    });
-  };
-
-  const setTheme = (theme: Theme) => {
-    uiStore.updateSettings({ theme });
-  };
-
-  const publicLists = useQuery({
-    queryKey: ["lists"],
-    queryFn: getLists,
-    retry: 0,
-    enabled: bookmarkStore.lists.length > 0,
-    refetchOnWindowFocus: false,
-  });
-
-  const [unpublishDialogOpen, setUnpublishDialogOpen] = useState(false);
-  const queryClient = useQueryClient();
-
-  const unpublishMutation = useMutation({
-    mutationFn: unpublishLists,
-    onSuccess: () => {
-      queryClient.setQueryData(["lists"], () => {
-        return [];
-      });
-
-      toast.success("Lists unpublished successfully");
-      setUnpublishDialogOpen(false);
-    },
-  });
-
-  const handleConfirmUnpublish = () => {
-    unpublishMutation.mutate();
-  };
-
-  const handleShuffleTagColors = () => {
-    tagStore.shuffleTagColors();
-  };
-
   return (
-    <Command loop value={page} onValueChange={setPage} className="min-h-[450px]">
+    <Command loop value={page} onValueChange={(p) => setPage(p as Page)} className="min-h-[450px]">
       <div className="mb-4 flex items-center border-b">
         <CommandInput placeholder="Search settings..." ref={cmdInputRef} autoFocus />
       </div>
       <div className="grid h-full grid-cols-[150px_auto] grid-rows-[1fr_30px] gap-4">
         <CommandList>
           <CommandGroup>
-            <CommandItem>Tags</CommandItem>
-            <CommandItem>Appearance</CommandItem>
-            <CommandItem>Misc</CommandItem>
-            <CommandItem>Import</CommandItem>
-            <CommandItem>Export</CommandItem>
-            <CommandItem>Feedback</CommandItem>
+            <CommandItem>
+              <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+              Tags
+            </CommandItem>
+            <CommandItem>
+              <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+              Appearance
+            </CommandItem>
+            <CommandItem>
+              <MixerHorizontalIcon className="text-muted-foreground mr-2" />
+              Misc
+            </CommandItem>
+            <CommandItem>
+              <DownloadIcon className="text-muted-foreground mr-2" />
+              Import
+            </CommandItem>
+            <CommandItem>
+              <UploadIcon className="text-muted-foreground mr-2" />
+              Export
+            </CommandItem>
+            <CommandItem>
+              <BukaIcon className="text-muted-foreground mr-2" />
+              Feedback
+            </CommandItem>
             <CommandItem value="Delete" className="text-destructive">
+              <ExclamationTriangleIcon className="mr-2" />
               Delete Data
             </CommandItem>
           </CommandGroup>
           <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
         </CommandList>
-        <div className="text-muted-foreground col-start-1 row-start-2 mt-auto">{versionLabel}</div>
-        <AlertDialog open={deleteDialogOpen} onOpenChange={() => setDeleteDialogOpen(false)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will delete all your saved tabs and tags from this computer. This action cannot
-                be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete} variant="destructive">
-                Delete Data
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <div className="text-muted-foreground col-start-1 row-start-2 mt-auto font-mono">
+          {versionLabel}
+        </div>
         <div
           className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4 pr-2 pt-2"
           ref={contentRef}>
-          {page === "Tags" && (
-            <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4">
-              {sortableColumns.map((c, i) => (
-                <div className="text-muted-foreground flex items-center gap-2 text-sm" key={c}>
-                  {columnLabels[c]}{" "}
-                  <SortButton
-                    active={tagSort.col === c}
-                    dir={tagSort.dir}
-                    onClick={() => handleSort(c)}
-                  />
-                  {i === sortableColumns.length - 1 && (
-                    <ButtonWithTooltip
-                      onClick={handleShuffleTagColors}
-                      size="icon-sm"
-                      className="ml-auto mr-[42px]"
-                      variant="ghost"
-                      tooltipText="Shuffle tag colors">
-                      <Palette size={18} />
-                    </ButtonWithTooltip>
-                  )}
-                </div>
-              ))}
-              {tagSettings.map((t) => (
-                <React.Fragment key={t.id}>
-                  <Button
-                    className="mr-auto"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Favorite ${t.name}`}
-                    onClick={() => tagStore.toggleTagFavorite(t.id)}>
-                    {t.favorite ? <HeartFilledIcon /> : <HeartIcon />}
-                  </Button>
-                  <span className="">{t.tabCount}</span>
-                  <TagControl
-                    tag={t}
-                    onChange={(update) => tagStore.updateTag(t.id, update)}
-                    onDelete={() => handleDeleteTag(t)}
-                    disabled={t.id === unassignedTag.id}
-                  />
-                </React.Fragment>
-              ))}
-              <div className="sticky bottom-0 z-10 col-span-3 pt-4">
-                <Button variant="outline" className="w-full" onClick={handleAddTag}>
-                  Add new tag
-                </Button>
-              </div>
-            </div>
-          )}
-          {page === "Appearance" && (
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <span className="text-muted-foreground text-sm">Favicons</span>
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="hide-favicons">
-                    Hide Favicons in <span>Tabs</span>
-                  </Label>
-                  <Switch
-                    id="hide-tabs-favicons"
-                    checked={uiStore.settings?.hideTabsFavicons ?? false}
-                    onCheckedChange={(v) => {
-                      uiStore.updateSettings({ hideTabsFavicons: v });
-                    }}
-                  />
-                </div>
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="hide-favicons">
-                    Hide Favicons in <span>Bookmarks</span>
-                  </Label>
-                  <Switch
-                    id="hide-bookmarks-favicons"
-                    checked={uiStore.settings?.hideBookmarkFavicons ?? false}
-                    onCheckedChange={(v) => {
-                      uiStore.updateSettings({ hideBookmarkFavicons: v });
-                    }}
-                  />
-                </div>
-              </div>
-              <hr />
-              <div className="text-muted-foreground flex flex-col gap-2 text-sm">
-                <Label htmlFor="theme">Theme</Label>
-                <ToggleGroup
-                  className="justify-start"
-                  id="theme"
-                  variant="outline"
-                  type="single"
-                  value={uiStore.settings.theme}
-                  onValueChange={(t) => setTheme(t as Theme)}>
-                  <ToggleGroupItem value={Theme.Light} aria-label="Set light theme">
-                    <SunIcon className="h-4 w-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value={Theme.Dark} aria-label="Set dark theme">
-                    <MoonIcon className="h-4 w-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value={Theme.System} aria-label="Set system theme">
-                    <DesktopIcon className="h-4 w-4" />
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-          )}
-          {page === "Misc" && (
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <div className="text-muted-foreground text-sm">Clipboard</div>
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="include-tags">Include Tags</Label>
-                  <Switch
-                    id="include-tags"
-                    checked={uiStore.settings?.clipboardIncludeTags ?? false}
-                    onCheckedChange={(v) => {
-                      uiStore.updateSettings({ clipboardIncludeTags: v });
-                    }}
-                  />
-                </div>
-                <div className="my-2 flex items-center justify-between space-x-2">
-                  <span className="flex items-center gap-1">
-                    <Label htmlFor="clipboard-format">Clipboard Format</Label>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <InfoCircledIcon className="text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="mb-5 text-sm">Clipboard content preview:</div>
-                        <pre className="scrollbar-gray text-muted-foreground font-mono text-xs">
-                          {getFormattedLinksExample(
-                            uiStore.settings.clipboardFormat,
-                            uiStore.settings.clipboardIncludeTags,
-                          )}
-                        </pre>
-                      </TooltipContent>
-                    </Tooltip>
-                  </span>
-                  <Select
-                    value={uiStore.settings?.clipboardFormat}
-                    onValueChange={(v) => {
-                      uiStore.updateSettings({
-                        clipboardFormat: v as ClipboardFormat,
-                      });
-                    }}>
-                    <SelectTrigger className="w-[180px]" id="clipboard-format">
-                      <SelectValue placeholder="Select a format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {Object.values(ClipboardFormat).map((format) => (
-                          <SelectItem key={format} value={format} className="">
-                            {format}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <hr className="last:hidden" />
-              {process.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
-                <div className="flex flex-col gap-2">
-                  <div className="text-muted-foreground mb-2 text-sm">Lists</div>
-                  <div className="flex items-center justify-between space-x-2">
-                    <span className="flex items-center gap-1">
-                      <Label htmlFor="disable-list-sharing">Disable list sharing</Label>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <InfoCircledIcon className="text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="max-w-[250px]">
-                            Disables list sharing features for a completely offline experience.
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </span>
-                    <Switch
-                      id="disable-list-sharing"
-                      checked={uiStore.settings?.disableListSharing ?? false}
-                      onCheckedChange={(v) => {
-                        uiStore.updateSettings({ disableListSharing: v });
-                        if (v && publicLists.data?.some((l) => l.published)) {
-                          setUnpublishDialogOpen(true);
-                        }
-                      }}
-                    />
-                    <AlertDialog
-                      open={unpublishDialogOpen}
-                      onOpenChange={() => setUnpublishDialogOpen(false)}>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>You have published lists</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            You have published lists. Do you also want to unpublish them?
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Keep Published</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleConfirmUnpublish} variant="destructive">
-                            Unpublish
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {page === "Import" && <ImportField />}
-          {page === "Export" && (
-            <div className="flex flex-col gap-5">
-              <div className="text-muted-foreground text-sm">
-                Export all your echotab data as a JSON file. This will include all your saved tabs
-                and tags. You can import this data later to restore your echotab data.
-              </div>
-              <Button variant="outline" onClick={handleExport}>
-                Export
-              </Button>
-            </div>
-          )}
-          {page === "Feedback" && (
-            <div>
-              <div className="text-muted-foreground text-sm">
-                We&apos;d love to hear from you! If you have any feedback, questions, or issues,
-                please reach out to us at:
-                <br />
-                <a
-                  href="mailto:support@buka.studio?subject=EchoTab Feedback"
-                  className="mt-2 block">
-                  support@buka.studio
-                </a>
-              </div>
-            </div>
-          )}
-          {page === "Delete" && (
-            <div className="flex flex-col gap-5">
-              <div className="text-muted-foreground text-sm">
-                Delete all your echotab data. It&apos;s recommended to export your data before
-                deleting it as this action cannot be undone.
-              </div>
-              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
-                Delete
-              </Button>
-            </div>
-          )}
+          {page === "Tags" && <TagsPage />}
+          {page === "Appearance" && <AppearancePage />}
+          {page === "Misc" && <MiscPage />}
+          {page === "Import" && <ImportPage />}
+          {page === "Export" && <ExportPage />}
+          {page === "Feedback" && <FeedbackPage />}
+          {page === "Delete" && <DeletePage />}
         </div>
       </div>
     </Command>
