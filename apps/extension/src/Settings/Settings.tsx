@@ -395,53 +395,55 @@ export default function Settings() {
                   </Select>
                 </div>
               </div>
-              <hr />
-              <div className="flex flex-col gap-2">
-                <div className="text-muted-foreground mb-2 text-sm">Lists</div>
-                <div className="flex items-center justify-between space-x-2">
-                  <span className="flex items-center gap-1">
-                    <Label htmlFor="disable-list-sharing">Disable list sharing</Label>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <InfoCircledIcon className="text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="max-w-[250px]">
-                          Disables list sharing features for a completely offline experience.
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </span>
-                  <Switch
-                    id="disable-list-sharing"
-                    checked={uiStore.settings?.disableListSharing ?? false}
-                    onCheckedChange={(v) => {
-                      uiStore.updateSettings({ disableListSharing: v });
-                      if (v && publicLists.data?.some((l) => l.published)) {
-                        setUnpublishDialogOpen(true);
-                      }
-                    }}
-                  />
-                  <AlertDialog
-                    open={unpublishDialogOpen}
-                    onOpenChange={() => setUnpublishDialogOpen(false)}>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>You have published lists</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          You have published lists. Do you also want to unpublish them?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Keep Published</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmUnpublish} variant="destructive">
-                          Unpublish
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+              <hr className="last:hidden" />
+              {process.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
+                <div className="flex flex-col gap-2">
+                  <div className="text-muted-foreground mb-2 text-sm">Lists</div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <span className="flex items-center gap-1">
+                      <Label htmlFor="disable-list-sharing">Disable list sharing</Label>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <InfoCircledIcon className="text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="max-w-[250px]">
+                            Disables list sharing features for a completely offline experience.
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </span>
+                    <Switch
+                      id="disable-list-sharing"
+                      checked={uiStore.settings?.disableListSharing ?? false}
+                      onCheckedChange={(v) => {
+                        uiStore.updateSettings({ disableListSharing: v });
+                        if (v && publicLists.data?.some((l) => l.published)) {
+                          setUnpublishDialogOpen(true);
+                        }
+                      }}
+                    />
+                    <AlertDialog
+                      open={unpublishDialogOpen}
+                      onOpenChange={() => setUnpublishDialogOpen(false)}>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>You have published lists</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            You have published lists. Do you also want to unpublish them?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Keep Published</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleConfirmUnpublish} variant="destructive">
+                            Unpublish
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 

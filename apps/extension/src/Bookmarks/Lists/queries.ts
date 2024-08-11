@@ -1,12 +1,13 @@
 import { UserList } from "@echotab/lists/models";
 import { toast } from "@echotab/ui/Toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { List } from "~/src/models";
+import { useUIStore } from "~/src/UIStore";
 import { replaceBy } from "~/src/util";
 
-import BookmarkStore from "../BookmarkStore";
-import { publishList, updateList } from "./api";
+import BookmarkStore, { useBookmarkStore } from "../BookmarkStore";
+import { getLists, publishList, updateList } from "./api";
 
 function getListPayload(list: List) {
   return {
@@ -23,6 +24,27 @@ function getListPayload(list: List) {
       };
     }),
   };
+}
+
+export function useGetPublicLists() {
+  const bookmarkStore = useBookmarkStore();
+  const {
+    settings: { disableListSharing },
+  } = useUIStore();
+
+  const enabled = Boolean(
+    process.env.PLASMO_PUBLIC_LIST_SHARING_FF &&
+      !disableListSharing &&
+      bookmarkStore.lists.length > 0,
+  );
+
+  return useQuery({
+    queryKey: ["lists"],
+    queryFn: getLists,
+    retry: 0,
+    enabled,
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function usePublishListMutation() {

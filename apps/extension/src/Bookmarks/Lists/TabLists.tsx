@@ -3,14 +3,13 @@ import Button from "@echotab/ui/Button";
 import { DialogTrigger } from "@echotab/ui/Dialog";
 import { cn } from "@echotab/ui/util";
 import { CaretSortIcon, FilePlusIcon, FileTextIcon } from "@radix-ui/react-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../../components/ItemListPlaceholder";
 import { useBookmarkStore } from "../BookmarkStore";
 import ItemGrid from "../ItemGrid";
-import { getLists } from "./api";
 import ListFormDialog from "./ListFormDialog";
+import { useGetPublicLists } from "./queries";
 import TabListItem from "./TabListItem";
 
 export default function SavedTabs() {
@@ -18,13 +17,7 @@ export default function SavedTabs() {
 
   const [expanded, setExpanded] = useState(true);
 
-  const publicLists = useQuery({
-    queryKey: ["lists"],
-    queryFn: getLists,
-    retry: 0,
-    enabled: bookmarkStore.lists.length > 0,
-    refetchOnWindowFocus: false,
-  });
+  const publicLists = useGetPublicLists();
 
   const publicListsById = useMemo(() => {
     return Object.fromEntries(publicLists.data?.map((list) => [list.localId, list]) ?? []);
