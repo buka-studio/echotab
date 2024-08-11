@@ -150,7 +150,7 @@ export default function ActiveCommand() {
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast("Copied links to clipboard!");
+        toast(`Copied ${selectedLinks.length} links to clipboard!`);
       })
       .catch(() => {
         toast("Failed to copy links to clipboard!");

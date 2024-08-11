@@ -158,7 +158,7 @@ const Store = proxy({
       SelectionStore.selectedItemIds.delete(id);
     }
 
-    toast.success(`Removed ${pluralize(tabIds.length, "tab")}`, {
+    toast.success(`Deleted ${pluralize(tabIds.length, "tab")}`, {
       action: {
         label: "Undo",
         onClick: () => {
