@@ -18,7 +18,6 @@ import {
   EyeOpenIcon,
   InfoCircledIcon,
 } from "@radix-ui/react-icons";
-import { useQueryClient } from "@tanstack/react-query";
 import { ComponentProps, ReactNode, useRef, useState } from "react";
 
 import { List } from "~/src/models";
@@ -38,7 +37,6 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
   const formRef = useRef<HTMLFormElement>(null);
 
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
 
   const publishMutation = usePublishListMutation();
   const handlePublishList = () => {
