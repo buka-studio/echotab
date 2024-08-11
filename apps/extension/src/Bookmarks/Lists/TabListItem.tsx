@@ -31,6 +31,10 @@ function PublishIndicator({ list, publicList }: { list: List; publicList?: UserL
     settings: { disableListSharing },
   } = useUIStore();
 
+  if (!process.env.PLASMO_PUBLIC_LIST_SHARING_FF) {
+    return null;
+  }
+
   const isUpToDate = publicList && publicList.published && publicList.content === list.content;
   const isOutdated = publicList && publicList.published && publicList.content !== list.content;
   const isUnpublished = !publicList || !publicList.published;
@@ -82,13 +86,15 @@ function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
           </DialogTrigger>
         </ListFormDialog>
-        <ListPublishDialog list={list} publicList={publicList}>
-          <DialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={disableListSharing}>
-              Publish
-            </DropdownMenuItem>
-          </DialogTrigger>
-        </ListPublishDialog>
+        {process.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
+          <ListPublishDialog list={list} publicList={publicList}>
+            <DialogTrigger asChild>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={disableListSharing}>
+                Publish
+              </DropdownMenuItem>
+            </DialogTrigger>
+          </ListPublishDialog>
+        )}
         <DropdownMenuSeparator />
         <ListDeleteDialog list={list}>
           <AlertDialogTrigger asChild>
