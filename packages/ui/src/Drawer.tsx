@@ -40,7 +40,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "group/content bg-background focus-visible:ring-ring fixed bottom-0 z-[51] mt-24 flex h-auto rounded-t-[10px] border focus-visible:outline-none [&[vaul-drawer-direction=bottom]]:inset-x-0 [&[vaul-drawer-direction=bottom]]:max-h-[90dvh] [&[vaul-drawer-direction=bottom]]:flex-col [&[vaul-drawer-direction=right]]:right-0 [&[vaul-drawer-direction=right]]:h-screen [&[vaul-drawer-direction=right]]:w-[400px]",
+        "group/content bg-background focus-visible:ring-ring fixed bottom-0 z-[51] mt-24 flex h-auto rounded-t-[10px] border focus-visible:outline-none [&[vaul-drawer-direction=bottom]]:inset-x-0 [&[vaul-drawer-direction=bottom]]:max-h-[90dvh] [&[vaul-drawer-direction=bottom]]:flex-col [&[vaul-drawer-direction=right]]:right-0 [&[vaul-drawer-direction=right]]:h-screen [&[vaul-drawer-direction=right]]:w-[400px] [&[vaul-drawer-direction=right]]:rounded-t-none",
         className,
       )}
       {...props}>

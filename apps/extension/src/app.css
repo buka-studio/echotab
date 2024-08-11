@@ -1,6 +1,5 @@
 :root {
   --font-sans: "Inter", sans-serif;
-  /* --font-sans: "IBM Plex Sans", sans-serif; */
   background: hsl(var(--base-background));
 }
 

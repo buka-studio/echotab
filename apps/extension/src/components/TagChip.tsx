@@ -113,7 +113,7 @@ export default function TagChip({ children, onRemove, className = "", color }: T
   return (
     <div
       className={cn(
-        "flex max-w-[150px] items-center gap-1 rounded-md border bg-opacity-30 px-1 py-[2px] text-white grayscale-[0.3] transition-colors duration-150",
+        "flex max-w-[150px] items-center gap-1 rounded border bg-opacity-30 px-1 py-[2px] text-white grayscale-[0.3] transition-colors duration-150",
         { "border-border bg-background text-foreground": !color },
         className,
       )}

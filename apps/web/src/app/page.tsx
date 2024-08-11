@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@echotab/ui/Button";
+import { cn } from "@echotab/ui/util";
 
 import { PerformanceCard, WorkflowCard } from "./components/bento";
 import { extensionStoreURL } from "./constants";
@@ -8,9 +9,9 @@ import CTA from "./CTA";
 import FeaturesCarousel from "./FeaturesCarousel";
 import Hero from "./Hero";
 
-function Heading() {
+function Heading({ className }: { className?: string }) {
   return (
-    <div className="relative flex w-full flex-col items-center gap-5 pt-[150px] md:pt-[200px]">
+    <div className={cn("relative flex w-full flex-col items-center gap-5", className)}>
       <div className="flex w-full flex-col items-center gap-8">
         <div className="flex items-center gap-4 font-mono uppercase">
           <div className="bg-foreground h-4 w-4 rounded-full" />
@@ -54,7 +55,7 @@ export default function Home() {
     <div className="flex min-h-screen max-w-[100vw] flex-col overflow-hidden">
       <div className="flex-1 flex-col items-center justify-between">
         <main className="relative z-10 my-auto flex flex-col items-center gap-[150px] text-center md:gap-[200px]">
-          <Heading />
+          <Heading className="pt-[150px]" />
           <Hero />
           <FeaturesCarousel />
           <div className="bento relative z-[2] flex max-w-screen-lg flex-col gap-5 p-5 md:flex-row">
