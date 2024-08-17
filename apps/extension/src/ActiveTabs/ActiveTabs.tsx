@@ -107,7 +107,7 @@ export default function ActiveTabs() {
 
   return (
     <div className={cn("flex h-full flex-col", {})}>
-      <div className="header sticky top-[20px] z-10 mx-auto flex w-full max-w-4xl">
+      <div className="header sticky top-[20px] z-10 mx-auto flex w-full max-w-[57rem]">
         <ActiveCommand />
       </div>
       <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-2 py-2">

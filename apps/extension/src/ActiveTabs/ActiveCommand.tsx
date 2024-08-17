@@ -229,7 +229,7 @@ export default function ActiveCommand() {
             }
           }
         }}>
-        <div className="bg-popover text-popover-foreground flex max-w-4xl flex-1 items-center rounded-lg rounded-b-none border p-3 px-4 text-base">
+        <div className="bg-popover text-popover-foreground flex max-w-[57rem] flex-1 items-center rounded-lg rounded-b-none border p-3 px-4 text-base">
           <CommandPagination pages={pages} goToPage={goToPage} className="mr-2" />
           <CommandInput
             ref={inputRef}
