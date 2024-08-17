@@ -260,7 +260,7 @@ const fuseOptions = {
   keys: ["title", { name: "url", weight: 2 }],
 };
 
-const activeFuse = new Fuse(Store.tabs, fuseOptions);
+const tabsFuse = new Fuse(Store.tabs, fuseOptions);
 
 export function filterTabs(tabs: ActiveTab[], filter: Filter) {
   if (!filter.keywords.length) {
@@ -271,7 +271,7 @@ export function filterTabs(tabs: ActiveTab[], filter: Filter) {
 
   const fuseIds = filter.keywords.length
     ? new Set(
-        activeFuse.search(filter.keywords.map((kw) => kw.trim()).join(" ")).map((r) => r.item.id),
+        tabsFuse.search(filter.keywords.map((kw) => kw.trim()).join(" ")).map((r) => r.item.id),
       )
     : new Set(allIds);
 
@@ -360,7 +360,7 @@ subscribe(Store, (ops) => {
   const savedTabsUpdated = ops.filter((op) => op[1][0] === "tabs");
 
   if (savedTabsUpdated.length) {
-    activeFuse.setCollection(Store.tabs);
+    tabsFuse.setCollection(Store.tabs);
   }
 });
 

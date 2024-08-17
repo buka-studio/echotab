@@ -16,6 +16,13 @@ import { intersection, toggle } from "../util/set";
 import { numberComparator, SortDir, stringComparator } from "../util/sort";
 import { canonicalizeURL } from "../util/url";
 
+const fuseOptions = {
+  useExtendedSearch: true,
+  keys: [{ name: "title", weight: 2 }, "url"],
+};
+
+const bookmarkFuse = new Fuse([] as SavedTab[], fuseOptions);
+
 export interface Filter {
   tags: number[];
   keywords: string[];
@@ -312,6 +319,8 @@ const Store = proxy({
         Store.tabs = tabs;
         Store.lists = init.lists || [];
 
+        bookmarkFuse.setCollection(Store.tabs);
+
         Store.view = { ...Store.view, ...init.view };
       } catch (e) {
         toast.error("Failed to load tags from local storage");
@@ -322,13 +331,6 @@ const Store = proxy({
   },
 }) as unknown as BookmarkStore;
 
-const fuseOptions = {
-  useExtendedSearch: true,
-  keys: [{ name: "title", weight: 2 }, "url"],
-};
-
-const savedFuse = new Fuse(Store.tabs || [], fuseOptions);
-
 export function filterTabs(tabs: SavedTab[], filter: Filter) {
   if (filter.keywords.length + filter.tags.length === 0) {
     return new Set<string>();
@@ -338,7 +340,7 @@ export function filterTabs(tabs: SavedTab[], filter: Filter) {
 
   const fuseIds = filter.keywords.length
     ? new Set(
-        savedFuse.search(filter.keywords.map((kw) => kw.trim()).join(" ")).map((r) => r.item.id),
+        bookmarkFuse.search(filter.keywords.map((kw) => kw.trim()).join(" ")).map((r) => r.item.id),
       )
     : new Set(allIds);
 
@@ -469,7 +471,7 @@ subscribe(Store, (ops) => {
   const tabsUpdated = ops.filter((op) => op[1][0] === "tabs");
 
   if (tabsUpdated.length) {
-    savedFuse.setCollection(Store.tabs);
+    bookmarkFuse.setCollection(Store.tabs);
     // reconcile lists
   }
 
