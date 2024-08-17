@@ -58,6 +58,63 @@ export default function AppearancePage() {
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
+      <div className="text-muted-foreground flex flex-col gap-2 text-sm">
+        <Label htmlFor="color">Primary color</Label>
+        <div className="flex items-center justify-between gap-2">
+          <ToggleGroup
+            className="justify-start"
+            id="color"
+            variant="outline"
+            type="single"
+            value={uiStore.settings.primaryColor}
+            onValueChange={(c) => uiStore.updateSettings({ primaryColor: c })}>
+            <ToggleGroupItem
+              value="20.5 90.2% 48.2%"
+              aria-label="Set orange color"
+              className="h-auto rounded-full p-1">
+              <div
+                className="h-5 w-5 rounded-full"
+                style={{
+                  backgroundColor: `hsl(20.5, 90.2%, 48.2%)`,
+                }}
+              />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="241 95% 63%"
+              aria-label="Set blue color"
+              className="h-auto rounded-full p-1">
+              <div
+                className="h-5 w-5 rounded-full"
+                style={{
+                  backgroundColor: `hsl(241, 95%, 63%)`,
+                }}
+              />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="158.11 86.05% 41.91%"
+              aria-label="Set green color"
+              className="h-auto rounded-full p-1">
+              <div
+                className="h-5 w-5 rounded-full"
+                style={{
+                  backgroundColor: `hsl(158.11 86.05% 41.91%)`,
+                }}
+              />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="311.35 93.94% 41.49%"
+              aria-label="Set purple color"
+              className="h-auto rounded-full p-1">
+              <div
+                className="h-5 w-5 rounded-full"
+                style={{
+                  backgroundColor: `hsl(311.35 93.94% 41.49%)`,
+                }}
+              />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      </div>
     </div>
   );
 }

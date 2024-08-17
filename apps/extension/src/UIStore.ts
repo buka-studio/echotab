@@ -39,6 +39,7 @@ export interface Settings {
   clipboardFormat: ClipboardFormat;
   clipboardIncludeTags: boolean;
   theme: Theme;
+  primaryColor?: string;
   disableListSharing: boolean;
 }
 
@@ -65,6 +66,7 @@ const store = proxy({
     clipboardFormat: ClipboardFormat.Text,
     clipboardIncludeTags: true,
     theme: Theme.System,
+    primaryColor: undefined as string | undefined,
     disableListSharing: false,
   },
   initialized: false,
@@ -132,6 +134,10 @@ subscribe(store, () => {
     root.classList.add(systemTheme);
   } else {
     root.classList.add(store.settings.theme);
+  }
+
+  if (store.settings.primaryColor) {
+    root.style.setProperty("--primary", store.settings.primaryColor);
   }
 
   enable();
