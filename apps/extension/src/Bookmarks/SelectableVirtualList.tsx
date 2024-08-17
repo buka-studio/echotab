@@ -22,7 +22,7 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
 
   const virtualizer = useWindowVirtualizer({
     count: items.length,
-    estimateSize: useCallback(() => 54, []),
+    estimateSize: useCallback(() => 50, []),
     overscan: 0,
     scrollMargin: listRef.current?.offsetTop ?? 0,
   });
