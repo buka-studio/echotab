@@ -54,31 +54,6 @@ function calcTabMatrix(tabs: SavedTab[], tags: Tag[], options: { countLoops?: bo
   return matrix;
 }
 
-interface Gradient {
-  from: string;
-  to: string;
-  id: string;
-}
-
-const calcGradients = (
-  tabMatrix: number[][],
-  tagsByIndex: Record<number, Tag>,
-): Record<string, Gradient> => {
-  const gradients: Record<string, Gradient> = {};
-
-  for (let i = 0; i < tabMatrix.length; i++) {
-    for (let j = 0; j < tabMatrix[i].length; j++) {
-      if (!tabMatrix[i][j]) {
-        continue;
-      }
-      const id = `${i}-${j}`;
-      gradients[id] = { from: tagsByIndex[i]?.color, to: tagsByIndex[j]?.color, id };
-    }
-  }
-
-  return gradients;
-};
-
 export type Props = {
   width: number;
   height: number;
@@ -142,7 +117,7 @@ function PlaceholderGraph({
 
 export default function TagRelationshipGraph({ width, height, centerSize = 20 }: Props) {
   const outerRadius = Math.min(width, height) * 0.5 - (centerSize + 10);
-  const innerRadius = outerRadius - centerSize;
+  const innerRadius = outerRadius - centerSize + 10;
 
   const bookmarkStore = useBookmarkStore();
   const tagStore = useTagStore();
@@ -156,26 +131,15 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
     scroll: true,
   });
 
-  const { tabMatrix, gradientMap, tagsByIndex, tabCounts } = useMemo(() => {
+  const { tabMatrix, tagsByIndex } = useMemo(() => {
     const tabMatrix = calcTabMatrix(bookmarkStore.tabs, tags, {
       countLoops: showLoops,
     });
     const tagsByIndex = Object.fromEntries(tags.map((t, i) => [i, t]));
-    const gradientMap = calcGradients(tabMatrix, tagsByIndex);
-    const tabCounts = new Map(tags.map((t) => [t.id, { ...t, tabCount: 0 }]));
-    for (const tab of bookmarkStore.tabs) {
-      for (const tagId of tab.tagIds) {
-        if (tabCounts.has(tagId)) {
-          tabCounts.get(tagId)!.tabCount += 1;
-        }
-      }
-    }
 
     return {
       tabMatrix,
-      gradientMap,
       tagsByIndex,
-      tabCounts,
     };
   }, [bookmarkStore.tabs, tags, showLoops]);
 
@@ -201,27 +165,38 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
       </div>
     );
   }
+
   return (
     <svg width={width} height={height} ref={containerRef} className="relative">
-      {Object.values(gradientMap).map((g) => (
-        <LinearGradient {...g} vertical={false} key={g.id} />
-      ))}
       <Group top={height / 2} left={width / 2}>
-        <Chord matrix={tabMatrix} padAngle={0} sortSubgroups={descending}>
+        <Chord matrix={tabMatrix} padAngle={0.001}>
           {({ chords }) => (
             <g>
-              {chords.groups.map((group, i) => {
-                return (
-                  <Arc
-                    key={`arc-${i}`}
-                    data={group}
-                    innerRadius={innerRadius}
-                    outerRadius={outerRadius}
-                    fill={`${tagsByIndex[i]?.color}`}
-                    rx={4}
-                  />
-                );
-              })}
+              <defs>
+                {chords.map((chord, i) => {
+                  const sourceColor = tagsByIndex[chord.source.index]?.color;
+                  const targetColor = tagsByIndex[chord.target.index]?.color;
+                  const gradientId = `ribbon-gradient-${i}`;
+                  const sourceAngle = (chord.source.startAngle + chord.source.endAngle) / 2;
+                  const targetAngle = (chord.target.startAngle + chord.target.endAngle) / 2;
+
+                  return (
+                    <radialGradient
+                      key={gradientId}
+                      id={gradientId}
+                      gradientUnits="userSpaceOnUse"
+                      cx={0}
+                      cy={0}
+                      r={innerRadius}
+                      fx={innerRadius * Math.cos(sourceAngle - Math.PI / 2)}
+                      fy={innerRadius * Math.sin(sourceAngle - Math.PI / 2)}>
+                      <stop offset="0%" stopColor={sourceColor} />
+                      <stop offset="100%" stopColor={targetColor} />
+                    </radialGradient>
+                  );
+                })}
+              </defs>
+
               {chords.map((chord, i) => {
                 const key = `ribbon-${i}`;
                 return (
@@ -232,7 +207,7 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
                     key={key}
                     chord={chord}
                     radius={innerRadius}
-                    fill={`url(#${chord.target.index}-${chord.source.index})`}
+                    fill={`url(#ribbon-gradient-${i})`}
                     fillOpacity={hover?.key === key ? 1 : 0.5}
                     onMouseMove={(e) => {
                       const coords = localPoint((e.target as SVGElement).ownerSVGElement!, e);
@@ -250,6 +225,19 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
                       tooltip.hideTooltip();
                       setHover(null);
                     }}
+                  />
+                );
+              })}
+              {chords.groups.map((group, i) => {
+                return (
+                  <Arc
+                    key={`arc-${i}`}
+                    data-i={i}
+                    data={group}
+                    innerRadius={innerRadius - 10}
+                    outerRadius={outerRadius - 5}
+                    fill={`${tagsByIndex[i]?.color}`}
+                    rx={4}
                   />
                 );
               })}
