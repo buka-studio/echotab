@@ -130,7 +130,7 @@ export function TabCommandDialog({
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] absolute top-[-1px] max-w-[57rem] translate-y-0 overflow-visible p-0 data-[state=open]:border-transparent">
+          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] absolute top-[-1px] max-w-[57rem] translate-y-0 overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none">
           {children}
         </DialogContent>
       </Dialog>
