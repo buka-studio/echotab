@@ -15,6 +15,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@echotab/ui/DropdownMenu";
@@ -35,12 +36,12 @@ function UntagConfirmDialog({
   onConfirm,
   children,
   tag,
-  tabCount,
+  affectedCount,
 }: {
   onConfirm: () => void;
   children: ReactNode;
   tag: Tag;
-  tabCount: number;
+  affectedCount: number;
 }) {
   return (
     <AlertDialog>
@@ -54,7 +55,7 @@ function UntagConfirmDialog({
               <TagChip color={tag.color} className="inline-flex">
                 {tag.name}
               </TagChip>{" "}
-              from {pluralize(tabCount, "tab")}.
+              from {pluralize(affectedCount, "tab")}.
               <div className="border-border text-muted-foreground mt-5 rounded border border-dashed p-4">
                 <InfoCircledIcon className="mr-1 inline text-balance" /> Note: if there are no other
                 tags left, the tabs will be tagged as{" "}
@@ -77,7 +78,9 @@ function UntagConfirmDialog({
 function DeleteConfirmDialog({
   onConfirm,
   children,
+  affectedCount,
 }: {
+  affectedCount: number;
   onConfirm: () => void;
   children: ReactNode;
 }) {
@@ -88,7 +91,7 @@ function DeleteConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete all tabs in this group.
+            This will permanently delete {pluralize(affectedCount, "tab")} in this group.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -123,7 +126,10 @@ export default function TagHeader({
   const tabIds = bookmarkStore.filteredTabsByTagId[tag?.id];
   const selectedTabIds = intersection(selection.selectedItemIds, tabIds);
   const affectedTabIds = new Set(selectedTabIds.size ? selectedTabIds : tabIds);
-  const affectedLabel = selectedTabIds.size ? pluralize(affectedTabIds.size, "tab") : "All";
+  const affectedLabel =
+    selectedTabIds.size && selectedTabIds.size !== tabIds.length
+      ? pluralize(affectedTabIds.size, "tab")
+      : "all tabs";
 
   const handleCopyToClipboard = () => {
     const selectedLinks = bookmarkStore.tabs.filter((tab) => affectedTabIds.has(tab.id));
@@ -188,6 +194,9 @@ export default function TagHeader({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          {Boolean(selectedTabIds.size) && (
+            <DropdownMenuLabel>Selected: {selectedTabIds.size}</DropdownMenuLabel>
+          )}
           <DropdownMenuItem onClick={handleCopyToClipboard}>Copy to clipboard</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => handleOpen()}>Open in this window</DropdownMenuItem>
@@ -196,21 +205,19 @@ export default function TagHeader({
           <UntagConfirmDialog
             tag={tag}
             onConfirm={() => bookmarkStore.removeTabsTag(tabIds, tag.id)}
-            tabCount={affectedTabIds.size}>
+            affectedCount={affectedTabIds.size}>
             {tag.id !== unassignedTag.id && (
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  Untag {affectedLabel}
-                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Untag</DropdownMenuItem>
               </AlertDialogTrigger>
             )}
           </UntagConfirmDialog>
 
-          <DeleteConfirmDialog onConfirm={() => bookmarkStore.removeTabs(tabIds)}>
+          <DeleteConfirmDialog
+            affectedCount={affectedTabIds.size}
+            onConfirm={() => bookmarkStore.removeTabs(tabIds)}>
             <AlertDialogTrigger asChild>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                Delete {affectedLabel}
-              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
             </AlertDialogTrigger>
           </DeleteConfirmDialog>
         </DropdownMenuContent>
