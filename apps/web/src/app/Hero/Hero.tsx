@@ -110,7 +110,7 @@ export default function Hero() {
             <CommandMenu />
             {glow && <GlowOutline className="rounded-xl" width={2} />}
           </div>
-          <div className="herotabs border-border relative mx-auto flex max-w-[650px] flex-col rounded-xl border p-3">
+          <div className="herotabs border-border bg-surface-1 relative mx-auto flex max-w-[650px] flex-col rounded-xl border p-3">
             <div className="mb-3 flex items-center text-left text-sm">
               Window 1{" "}
               <Badge variant="card" className="ml-2">
