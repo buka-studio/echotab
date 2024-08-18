@@ -1,4 +1,4 @@
-![og](./assets/og.png)
+![og](./apps/extension/assets/og.png)
 
 # EchoTab
 
@@ -29,16 +29,6 @@ After obtaining the build, follow [these](https://developer.chrome.com/docs/exte
 1. Open the extensions page in Chrome (`chrome://extensions or edge://extensions`).
 2. Enable Developer Mode.
 3. Drag the downloaded build folder onto the extensions page to import it. Do not delete the folder afterward.
-
-### Why yet another tab management extension?
-
-Previously, I've used [OneTab](https://chromewebstore.google.com/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) and [Toby](https://chromewebstore.google.com/detail/toby-for-chrome/hddnkoipeenegfoeaoibdmnaalmgkpip) but wanted something in-between with the following characteristics:
-
-- No sign-up required for data import/export and other extra features.
-- Simple and clean UI.
-- Basic search/filtering capabilities.
-- Intuitive tagging with excellent keyboard support.
-- Smooth performance even with a large number (1000+) of saved tabs.
 
 ## Development
 
@@ -74,6 +64,17 @@ openssl rsa -in key.pem -pubout -outform DER | shasum -a 256 | head -c32 | tr 0-
 Some features planned for future releases include:
 
 - AI powered auto-tagging
+- Firefox support
+
+### Why yet another tab management extension?
+
+Previously, I've used [OneTab](https://chromewebstore.google.com/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) and [Toby](https://chromewebstore.google.com/detail/toby-for-chrome/hddnkoipeenegfoeaoibdmnaalmgkpip) but wanted something in-between with the following characteristics:
+
+- No sign-up required for data import/export and other extra features.
+- Simple and clean UI.
+- Basic search/filtering capabilities.
+- Intuitive tagging with excellent keyboard support.
+- Smooth performance even with a large number (1000+) of saved tabs.
 
 ## License
 
