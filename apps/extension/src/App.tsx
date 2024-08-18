@@ -108,9 +108,9 @@ export default function App() {
                       {activePanel === Panel.Tabs && <Highlight />}
                       <span className="relative z-[1] flex items-center gap-1">
                         {activePanel === Panel.Tabs ? (
-                          <BookmarkFilledIcon className="h-4 w-4" />
+                          <BrowserIcon weight="fill" className="h-4 w-4" />
                         ) : (
-                          <BookmarkIcon className="h-4 w-4" />
+                          <BrowserIcon className="h-4 w-4" />
                         )}
                         Tabs
                       </span>
@@ -121,9 +121,9 @@ export default function App() {
                       {activePanel === Panel.Bookmarks && <Highlight />}
                       <span className="relative z-[1] flex items-center gap-1">
                         {activePanel === Panel.Bookmarks ? (
-                          <BrowserIcon weight="fill" className="h-4 w-4" />
+                          <BookmarkFilledIcon className="h-4 w-4" />
                         ) : (
-                          <BrowserIcon className="h-4 w-4" />
+                          <BookmarkIcon className="h-4 w-4" />
                         )}
                         Bookmarks
                       </span>
