@@ -55,8 +55,8 @@ export default function Hero() {
           type: "spring",
           delay: 0.5,
           damping: 30,
-          stiffness: 50,
-          restDelta: 0.2,
+          stiffness: 60,
+          restDelta: 0.1,
         },
       ],
       [
@@ -90,7 +90,7 @@ export default function Hero() {
           at: "-0.5",
           damping: 30,
           stiffness: 100,
-          //   restDelta: 0.001,
+          // restDelta: 0.001,
         },
       ],
     ]).then(() => {
