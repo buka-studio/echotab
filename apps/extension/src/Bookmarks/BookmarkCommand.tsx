@@ -39,7 +39,7 @@ import FilterTagChips from "../components/FilterTagChips";
 import { CommandPagination, TabCommandDialog, useTabCommand } from "../components/TabCommand";
 import TagChip, { TagChipList } from "../components/TagChip";
 import { Panel, SavedTab } from "../models";
-import { defaultTagColor, unassignedTag, useTagStore } from "../TagStore";
+import { unassignedTag, useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
 import { formatLinks } from "../util";
 import { toggle } from "../util/set";
@@ -369,7 +369,7 @@ export default function BookmarkCommand() {
                   {search ? (
                     <span className="inline-flex gap-2">
                       Create{" "}
-                      <TagChip className="text-sm" color={defaultTagColor}>
+                      <TagChip className="text-sm" color="#000">
                         {search}
                       </TagChip>
                     </span>
