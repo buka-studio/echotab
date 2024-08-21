@@ -1,7 +1,7 @@
 {
   "name": "@echotab/extension",
-  "displayName": "Echo Tab - Extension",
-  "version": "0.0.10",
+  "displayName": "EchoTab - Extension",
+  "version": "0.0.21",
   "description": "An open-source Chrome tab manager",
   "author": "Buka Studio",
   "scripts": {
@@ -39,6 +39,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@echotab/eslint": "*",
     "@echotab/tsconfig": "*",
     "@eslint/js": "^9.5.0",
     "@tailwindcss/container-queries": "^0.1.1",
