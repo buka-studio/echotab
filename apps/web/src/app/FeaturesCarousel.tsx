@@ -19,7 +19,7 @@ const features = [
 
 function Upcoming() {
   return (
-    <span className="bg-background text-foreground border-border flex items-center rounded-lg border px-2 py-1 font-mono text-base font-normal uppercase tracking-wide md:text-xl">
+    <span className="bg-background text-foreground border-border flex items-center rounded-lg border px-2 py-1 font-mono text-base font-normal uppercase tracking-wide">
       Upcoming
     </span>
   );
@@ -52,7 +52,9 @@ export default function FeaturesCarousel() {
   return (
     <div className="flex flex-col items-center gap-8">
       <h2 className="font-mono uppercase">Features</h2>
-      <div className="relative w-[min(1024px,100vw)] overflow-hidden" ref={ref}>
+      <div
+        className="relative w-[min(1024px,100vw)] overflow-hidden [mask-image:linear-gradient(90deg,transparent,black,transparent)]"
+        ref={ref}>
         <div className="track flex justify-center">
           <motion.ul className="items flex flex-nowrap gap-12" style={{ x }}>
             {features.map((feature) => (
@@ -71,7 +73,6 @@ export default function FeaturesCarousel() {
             ))}
           </motion.ul>
         </div>
-        <div className="carousel-shadow pointer-events-none absolute inset-0" />
       </div>
     </div>
   );
