@@ -1,6 +1,6 @@
 {
   "name": "@echotab/supabase",
-  "displayName": "Echo Tab Supabase package",
+  "displayName": "EchoTab Supabase package",
   "version": "0.0.1",
   "author": "Buka Studio",
   "scripts": {

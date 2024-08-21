@@ -45,8 +45,8 @@ export default function HeaderCTA() {
     return (
       <ButtonWithTooltip
         className="cursor-not-allowed opacity-50"
-        tooltipText="Echo Tab is currently only available for Chromium browsers.">
-        Install Echo Tab
+        tooltipText="EchoTab is currently only available for Chromium browsers.">
+        Install EchoTab
       </ButtonWithTooltip>
     );
   }
@@ -65,7 +65,7 @@ export default function HeaderCTA() {
         href={`https://chromewebstore.google.com/detail/cmdtab/${process.env.NEXT_PUBLIC_EXTENSION_ID}`}
         target="_blank"
         rel="noopener noreferrer">
-        Install Echo Tab
+        Install EchoTab
       </a>
     </Button>
   );

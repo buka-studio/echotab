@@ -28,8 +28,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: `Echo Tab - ${list.title}`,
-    description: "A list of links curated by the Echo Tab community.",
+    title: `EchoTab - ${list.title}`,
+    description: "A list of links curated by the EchoTab community.",
     openGraph: {
       images: {
         url: getSupabaseListOGUrl(listId),

@@ -55,7 +55,7 @@ export default function OnboardingDialog() {
     <Dialog defaultOpen>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Welcome to Echo Tab!</DialogTitle>
+          <DialogTitle>Welcome to EchoTab!</DialogTitle>
           <DialogDescription>
             EchoTab is a Chrome extensions that helps you manage your tabs.
           </DialogDescription>

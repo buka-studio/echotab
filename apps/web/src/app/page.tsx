@@ -16,7 +16,7 @@ function Heading({ className }: { className?: string }) {
         <div className="flex items-center gap-4 font-mono uppercase">
           <div className="bg-foreground h-4 w-4 rounded-full" />
           <div>
-            Echo Tab <span className="align-super text-xs">tm</span>
+            EchoTab <span className="align-super text-xs">tm</span>
           </div>
         </div>
         <h1 className="max-w-[700px] text-pretty text-center font-serif text-4xl md:text-5xl">

@@ -1,6 +1,6 @@
 {
   "name": "@echotab/db",
-  "displayName": "Echo Tab Database access",
+  "displayName": "EchoTab Database access",
   "version": "0.0.1",
   "author": "Buka Studio",
   "scripts": {

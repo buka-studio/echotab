@@ -22,7 +22,7 @@ export async function upsertListOGImage(userId: string, list: UserList & { linkC
           <div tw="flex justify-between">
             <div tw="flex items-center">
               <div tw="flex rounded-full bg-[#EA580B] h-7 w-7"></div>
-              <div tw="py-1 px-6 bg-[#282828] rounded-full ml-4">Echo Tab</div>
+              <div tw="py-1 px-6 bg-[#282828] rounded-full ml-4">EchoTab</div>
             </div>
             <span tw="">{formatDate(list.updated_at)}</span>
           </div>

@@ -16,7 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <Link
               href="/"
               className="bg-card border-border text-foreground focus-ring rounded-full border px-5 py-1">
-              Echo Tab
+              EchoTab
             </Link>
           </div>
 
