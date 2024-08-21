@@ -85,7 +85,10 @@ const store = proxy({
           ...store.settings,
           ...init.settings,
         };
-        store.activePanel = init.activePanel || store.activePanel;
+        store.activePanel =
+          init.activePanel && Object.values(Panel).includes(init.activePanel)
+            ? init.activePanel
+            : store.activePanel;
       } catch (e) {
         toast.error("Failed to load stored settings");
         console.error(e);
