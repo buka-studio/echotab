@@ -1,0 +1,10 @@
+:root {
+  --font-sans: "Inter", sans-serif;
+  background: hsl(var(--background-base));
+}
+
+.selection-area {
+  background: hsl(var(--primary) / 0.07);
+  border: 1px solid hsla(var(--primary) / 0.7);
+  border-radius: 2px;
+}

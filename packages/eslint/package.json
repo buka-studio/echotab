@@ -1,0 +1,11 @@
+{
+  "name": "@echotab/eslint",
+  "private": true,
+  "version": "1.0.0",
+  "files": [
+    "index.js"
+  ],
+  "devDependencies": {
+    "eslint-config-turbo": "~2.0.14"
+  }
+}

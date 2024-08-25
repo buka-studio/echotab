@@ -1,0 +1,25 @@
+{
+  "name": "@echotab/supabase",
+  "displayName": "EchoTab Supabase package",
+  "version": "0.0.1",
+  "author": "Buka Studio",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "build": "tsc"
+  },
+  "private": true,
+  "sideEffects": false,
+  "files": [],
+  "exports": {
+    "./client": "./src/client.ts",
+    "./util": "./src/util.ts",
+    "./constants": "./src/constants.ts"
+  },
+  "devDependencies": {
+    "supabase": "~1.183.5"
+  },
+  "dependencies": {
+    "@supabase/ssr": "~0.4.0",
+    "@supabase/supabase-js": "~2.44.3"
+  }
+}

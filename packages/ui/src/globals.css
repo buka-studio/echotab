@@ -1,0 +1,41 @@
+@import "./theme.css";
+
+@tailwind base;
+@layer theme;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-foreground;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+}
+
+@layer components {
+  .focus-ring {
+    @apply focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-1;
+  }
+
+  .scrollbar-gray {
+    @apply scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#c1c1c1] scrollbar-thumb-rounded-full hover:scrollbar-thumb-neutral-500;
+  }
+
+  .dark .scrollbar-gray {
+    @apply scrollbar-thumb-neutral-700 hover:scrollbar-thumb-neutral-600;
+  }
+
+  .keyboard-shortcut {
+    @apply border-border bg-card text-foreground whitespace-nowrap rounded border p-1 px-2 font-mono text-xs uppercase;
+  }
+}

@@ -1,0 +1,24 @@
+:root {
+  background: hsl(var(--background-base));
+}
+
+.lines-container {
+  position: absolute;
+  top: 0;
+  height: 800px;
+  width: 100%;
+  mask-image: linear-gradient(180deg, black, transparent);
+}
+
+.lines {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d7d7da' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 10px;
+}
+
+.dark .lines {
+  background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%234b4b4b' fill-opacity='0.6' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 10px;
+}
