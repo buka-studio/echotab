@@ -1,5 +1,9 @@
 import { ClipboardFormat } from "../UIStore";
 
+export function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function downloadJSON(obj: Record<string, unknown>, name: string) {
   const a = document.createElement("a");
   const url = URL.createObjectURL(
