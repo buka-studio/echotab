@@ -1,3 +1,7 @@
+# 🚧 WIP 🚧
+
+V2 is under active development in the `feat/v2` branch. It introduces a polished UI, new features and _ideally_ no breaking changes!
+
 ![og](./apps/extension/assets/og.png)
 
 # EchoTab
