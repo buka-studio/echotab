@@ -3,23 +3,36 @@ import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 
 import { useUIStore } from "../UIStore";
 
-const dynamicColCountFromGrid = (row: Element) => {
+function dynamicColCountFromGrid(row: Element) {
   const colCount = window
     .getComputedStyle(row)
     .getPropertyValue("grid-template-columns")
     .split(" ").length;
 
   return colCount;
-};
+}
 
-const dynamicRowCountFromGrid = (row: Element) => {
+function dynamicRowCountFromGrid(row: Element) {
   const rowCount = window
     .getComputedStyle(row)
     .getPropertyValue("grid-template-rows")
     .split(" ").length;
 
   return rowCount;
-};
+}
+
+function getEdgeElements(grid?: Element) {
+  if (!grid) {
+    return defaultEdgeElements;
+  }
+  const edgeElements = grid.children;
+  return {
+    topLeft: 0,
+    topRight: dynamicColCountFromGrid(grid) - 1,
+    bottomRight: edgeElements.length - 1,
+    bottomLeft: edgeElements.length - dynamicColCountFromGrid(grid),
+  };
+}
 
 const defaultEdgeElements = {
   topLeft: 0,
@@ -39,19 +52,6 @@ function encodeSVG(svg: string) {
   // Using encodeURIComponent() as replacement function
   // allows to keep result code readable
   return svg.replace(symbols, encodeURIComponent);
-}
-
-function getEdgeElements(grid?: Element) {
-  if (!grid) {
-    return defaultEdgeElements;
-  }
-  const edgeElements = grid.children;
-  return {
-    topLeft: 0,
-    topRight: dynamicColCountFromGrid(grid) - 1,
-    bottomRight: edgeElements.length - 1,
-    bottomLeft: edgeElements.length - dynamicColCountFromGrid(grid),
-  };
 }
 
 function PlaceholderItem({ className = "" }) {

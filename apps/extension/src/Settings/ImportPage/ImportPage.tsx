@@ -7,6 +7,7 @@ import { ChangeEventHandler, DragEventHandler, useState } from "react";
 import { z } from "zod";
 
 import { getUtcISO } from "~/src/util/date";
+import { normalizedComparator } from "~/src/util/string";
 
 import { useBookmarkStore } from "../../Bookmarks";
 import { Tag } from "../../models";
@@ -101,16 +102,18 @@ export default function DNDImport() {
         }
       }
 
-      const tagsByName = new Map<string, Tag>(validated.tags.map((t) => [t.name.trim(), t]));
+      const tagsByNormalizedName = new Map<string, Tag>(
+        validated.tags.map((t) => [t.name.trim().toLowerCase(), t]),
+      );
       const duplicateNames = intersection(
-        Array.from(TagStore.tags.values()).map((t) => t.name.trim()),
-        validated.tags.map((t) => t.name.trim()),
+        Array.from(TagStore.tagsByNormalizedName.keys()),
+        Array.from(tagsByNormalizedName.keys()),
       );
       if (duplicateNames.size) {
         const remappedIds = new Map(
           Array.from(duplicateNames).flatMap((n) => {
-            const from = tagsByName.get(n)!.id;
-            const to = TagStore.tagsByName.get(n)!.id;
+            const from = tagsByNormalizedName.get(n)!.id;
+            const to = TagStore.tagsByNormalizedName.get(n)!.id;
             if (from === to) {
               return [];
             }
@@ -130,8 +133,9 @@ export default function DNDImport() {
 
         const remappedIds = new Map<number, number>(
           Array.from(duplicateIds).flatMap((id) => {
-            console.log(TagStore.tags.get(id)?.name, tagsById.get(id)?.name);
-            if (TagStore.tags.get(id)?.name === tagsById.get(id)?.name) {
+            const a = TagStore.tags.get(id)?.name;
+            const b = tagsById.get(id)?.name;
+            if (normalizedComparator(a, b) === 0) {
               return [];
             }
 
@@ -207,10 +211,10 @@ export default function DNDImport() {
 
     const tagsByName: Map<string, Tag> = new Map(
       Array.from(folders).map((f) => {
-        if (!tagStore.tagsByName.has(f)) {
+        if (!tagStore.tagsByNormalizedName.has(f)) {
           return [f, tagStore.createTag(f)];
         }
-        return [f, tagStore.tagsByName.get(f)!];
+        return [f, tagStore.tagsByNormalizedName.get(f)!];
       }),
     );
 

@@ -56,11 +56,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
     });
   };
 
-  const unpublishMutation = useUnpublishMutation(list.id, {
-    onSuccess: () => {
-      setOpen(false);
-    },
-  });
+  const unpublishMutation = useUnpublishMutation();
 
   const handleFormChange = () => {
     const formData = new FormData(formRef.current!);
@@ -126,7 +122,13 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
             <Button
               variant="ghost"
               className="mr-auto"
-              onClick={() => unpublishMutation.mutate()}
+              onClick={() =>
+                unpublishMutation.mutate(list.id, {
+                  onSuccess: () => {
+                    setOpen(false);
+                  },
+                })
+              }
               disabled={unpublishMutation.isPending}>
               {unpublishMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}Unpublish
             </Button>

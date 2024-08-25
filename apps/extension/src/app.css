@@ -1,6 +1,6 @@
 :root {
   --font-sans: "Inter", sans-serif;
-  background: hsl(var(--base-background));
+  background: hsl(var(--background-base));
 }
 
 .selection-area {

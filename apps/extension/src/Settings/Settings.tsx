@@ -6,7 +6,11 @@ import {
   CommandItem,
   CommandList,
 } from "@echotab/ui/Command";
-import { Palette as PaletteIcon, Tag as TagIcon } from "@phosphor-icons/react";
+import {
+  Palette as PaletteIcon,
+  Sparkle as SparkleIcon,
+  Tag as TagIcon,
+} from "@phosphor-icons/react";
 import {
   DownloadIcon,
   ExclamationTriangleIcon,
@@ -15,6 +19,7 @@ import {
 } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
+import AIPage from "./AIPage";
 import AppearancePage from "./AppearancePage";
 import DeletePage from "./DeletePage";
 import ExportPage from "./ExportPage";
@@ -36,7 +41,16 @@ const BukaIcon = (props: ComponentProps<"svg">) => (
 
 const versionLabel = `Version: ${chrome.runtime.getManifest().version}`;
 
-const pages = ["Tags", "Appearance", "Misc", "Import", "Export", "Feedback", "Delete"] as const;
+const pages = [
+  "Tags",
+  "Appearance",
+  "AI",
+  "Misc",
+  "Import",
+  "Export",
+  "Feedback",
+  "Delete",
+] as const;
 
 type Page = (typeof pages)[number];
 
@@ -61,6 +75,10 @@ export default function Settings() {
             <CommandItem>
               <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
               Appearance
+            </CommandItem>
+            <CommandItem>
+              <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+              AI
             </CommandItem>
             <CommandItem>
               <MixerHorizontalIcon className="text-muted-foreground mr-2" />
@@ -92,6 +110,7 @@ export default function Settings() {
           className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4 pr-2 pt-2"
           ref={contentRef}>
           {page === "Tags" && <TagsPage />}
+          {page === "AI" && <AIPage />}
           {page === "Appearance" && <AppearancePage />}
           {page === "Misc" && <MiscPage />}
           {page === "Import" && <ImportPage />}

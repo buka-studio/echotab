@@ -33,14 +33,14 @@ export default function MiscPage() {
 
   const [unpublishDialogOpen, setUnpublishDialogOpen] = useState(false);
 
-  const unpublishMutation = useUnpublishAllListsMutation({
-    onSuccess: () => {
-      setUnpublishDialogOpen(false);
-    },
-  });
+  const unpublishMutation = useUnpublishAllListsMutation();
 
   const handleConfirmUnpublish = () => {
-    unpublishMutation.mutate();
+    unpublishMutation.mutate(undefined, {
+      onSuccess: () => {
+        setUnpublishDialogOpen(false);
+      },
+    });
   };
 
   return (

@@ -26,8 +26,9 @@ const storageKey = `cmdtab-tag-store-${version}`;
 
 export interface TagStore {
   tags: Map<number, Tag>;
-  tagsByName: Map<string, Tag>;
+  tagsByNormalizedName: Map<string, Tag>;
   initialized: boolean;
+  getTagByName(name: string): Tag | undefined;
   getNextTagId(): number;
   createTag(name: string, color?: string): Tag;
   createTags(tags: { name: string; color?: string }[]): Tag[];
@@ -52,6 +53,9 @@ const store = proxy({
 
     return newId;
   },
+  getTagByName: (name: string) => {
+    return store.tagsByNormalizedName.get(name.trim().toLowerCase());
+  },
   createTags: (tags: { name: string; color?: string }[]) => {
     const createdTags = [];
 
@@ -72,8 +76,9 @@ const store = proxy({
         continue;
       }
 
-      if (store.tagsByName.has(newTag.name)) {
-        toast.error(`Tag with this name already exists: ${newTag.name}`);
+      const existing = store.getTagByName(newTag.name);
+      if (existing) {
+        createdTags.push(existing);
         continue;
       }
 
@@ -157,10 +162,13 @@ const store = proxy({
 
 derive(
   {
-    tagsByName: (get) => {
+    /**
+     * Lowercased and trimmed tag names -> tags
+     */
+    tagsByNormalizedName: (get) => {
       const tags = get(store).tags;
 
-      const byName = proxyMap([...tags.values()].map((v) => [v.name, v]));
+      const byName = proxyMap([...tags.values()].map((v) => [v.name.trim().toLowerCase(), v]));
 
       return byName;
     },

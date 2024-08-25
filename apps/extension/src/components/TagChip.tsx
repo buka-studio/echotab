@@ -119,7 +119,7 @@ export default function TagChip({ children, onRemove, className = "", color }: T
       )}
       style={
         {
-          borderColor: color && "rgba(255,255,255,0.2)",
+          borderColor: `color-mix(in hsl, ${color}, white 10%)`,
           "--color": color,
         } as CSSProperties
       }>

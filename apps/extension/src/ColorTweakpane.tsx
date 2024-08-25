@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Pane } from "tweakpane";
 
 const colorVariables = [
-  "--base-background",
+  "--background-base",
   "--background",
   "--foreground",
   "--card",

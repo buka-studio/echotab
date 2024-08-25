@@ -83,7 +83,7 @@ export function useUpdateListMutation() {
   });
 }
 
-export function useUnpublishAllListsMutation({ onSuccess }: { onSuccess?: () => void }) {
+export function useUnpublishAllListsMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -94,23 +94,15 @@ export function useUnpublishAllListsMutation({ onSuccess }: { onSuccess?: () => 
       });
 
       toast.success("Lists unpublished successfully");
-      onSuccess?.();
     },
   });
 }
 
-export function useUnpublishMutation(
-  listId: string,
-  {
-    onSuccess,
-  }: {
-    onSuccess?: () => void;
-  },
-) {
+export function useUnpublishMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => updateList(listId, { published: false }),
+    mutationFn: (listId: string) => updateList(listId, { published: false }),
     onError: (e) => {
       console.error(e);
       toast.error("Failed to unpublish list. Please try again.");
@@ -121,7 +113,6 @@ export function useUnpublishMutation(
       });
 
       toast.success("List unpublished successfully");
-      onSuccess?.();
     },
   });
 }

@@ -12,7 +12,7 @@ export const tagColors = Object.entries(twConfig.theme!.colors!)
     ([k, v]) =>
       typeof v !== "string" && !["stone", "zinc", "gray", "rose", "sky", "purple"].includes(k),
   )
-  .map(([k, v]) => v["600"])
+  .map(([k, v]) => v["500"])
   .filter(Boolean);
 
 interface Props {
