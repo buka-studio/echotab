@@ -41,6 +41,10 @@ export interface Settings {
   theme: Theme;
   primaryColor?: string;
   disableListSharing: boolean;
+  aiApiProvider?: "openai" | "custom";
+  aiApiKey?: string;
+  aiApiBaseURL?: string;
+  aiApiModel?: string;
 }
 
 const storageKey = `cmdtab-ui-store-${version}`;
@@ -66,9 +70,13 @@ const store = proxy({
     clipboardFormat: ClipboardFormat.Text,
     clipboardIncludeTags: true,
     theme: Theme.System,
-    primaryColor: undefined as string | undefined,
+    primaryColor: undefined,
     disableListSharing: false,
-  },
+    aiApiProvider: undefined,
+    aiApiKey: undefined,
+    aiApiBaseURL: undefined,
+    aiApiModel: undefined,
+  } as Settings,
   initialized: false,
   activePanel: Panel.Tabs,
   updateSettings: (update: Partial<Settings>) => {

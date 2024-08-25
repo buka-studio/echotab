@@ -8,15 +8,18 @@ import {
   CommandList,
   CommandSeparator,
 } from "@echotab/ui/Command";
+import Spinner from "@echotab/ui/Spinner";
 import { toast } from "@echotab/ui/Toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
-import { Tag as TagIcon } from "@phosphor-icons/react";
+import { Sparkle as SparkleIcon, Tag as TagIcon } from "@phosphor-icons/react";
 import {
   BookmarkIcon,
   CheckCircledIcon,
   ClipboardIcon,
   CopyIcon,
   Cross2Icon,
+  InfoCircledIcon,
   LightningBoltIcon,
   MagnifyingGlassIcon,
   MinusCircledIcon,
@@ -24,13 +27,14 @@ import {
 } from "@radix-ui/react-icons";
 import { useRef } from "react";
 
+import { useLLMTagMutation } from "../AI/queries";
 import FilterTagChips from "../components/FilterTagChips";
 import { CommandPagination, TabCommandDialog, useTabCommand } from "../components/TabCommand";
 import TagChip, { TagChipList } from "../components/TagChip";
 import { Panel } from "../models";
 import { unassignedTag, useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
-import { formatLinks } from "../util";
+import { formatLinks, wait } from "../util";
 import { getUtcISO } from "../util/date";
 import { toggle } from "../util/set";
 import ActiveStore, {
@@ -56,6 +60,37 @@ export default function ActiveCommand() {
     const highlighted = commandRef.current?.querySelector(`[cmdk-item=""][aria-selected="true"]`);
     if (highlighted) {
       return (highlighted as HTMLElement)?.dataset?.value;
+    }
+  };
+
+  const llmMutation = useLLMTagMutation();
+
+  const aiDisabled = !uiStore.settings.aiApiProvider;
+
+  const handleAITag = async () => {
+    if (aiDisabled) {
+      toast.info("AI Tagging is disabled. Add LLM endpoint details in settings to enable.");
+      return;
+    }
+    if (selectionStore.selectedTabIds.size) {
+      const existingTags = Array.from(tagStore.tags.values());
+
+      const res = await llmMutation.mutateAsync({
+        tags: existingTags,
+        tabs: Array.from(selectionStore.selectedTabIds)
+          .map((id) => ActiveStore.viewTabsById[id])
+          .filter(Boolean),
+      });
+
+      const tags = res.map((t) => ({ name: t }));
+
+      const createdTags = tagStore.createTags(tags);
+
+      pushPage("tag");
+      for (const tag of createdTags) {
+        await wait(50);
+        tabStore.toggleAssignedTagId(tag.id);
+      }
     }
   };
 
@@ -244,7 +279,8 @@ export default function ActiveCommand() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={handleApply}
-                  className="focus-ring whitespace-nowrap rounded px-2 text-sm">
+                  disabled={ActiveStore.assignedTagIds.size === 0}
+                  className="focus-ring whitespace-nowrap rounded px-2 text-sm disabled:opacity-50">
                   Apply
                 </button>
                 <span className="flex items-center gap-1">
@@ -295,6 +331,29 @@ export default function ActiveCommand() {
                       <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                       Tag
                     </CommandItem>
+                    <CommandItem
+                      onSelect={withClear(handleAITag)}
+                      value="AI Tag"
+                      className="group"
+                      disabled={llmMutation.isPending}>
+                      <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                      AI Tag {llmMutation.isPending && <Spinner className="ml-auto h-4 w-4" />}
+                      {aiDisabled && (
+                        <>
+                          <Badge variant="card" className="ml-8">
+                            Disabled
+                          </Badge>
+                          <Tooltip>
+                            <TooltipTrigger className="focus-visible:ring-ring ml-auto flex rounded-full focus-visible:outline-none focus-visible:ring-1">
+                              <InfoCircledIcon />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[250px] text-pretty">
+                              Enable AI Tagging by adding LLM endpoint details in settings.
+                            </TooltipContent>
+                          </Tooltip>
+                        </>
+                      )}
+                    </CommandItem>
                     <CommandItem onSelect={withClear(handleCloseSelected)}>
                       <Cross2Icon className="text-muted-foreground mr-2" /> Close
                     </CommandItem>
@@ -311,10 +370,6 @@ export default function ActiveCommand() {
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup heading="General">
-                {/* <CommandItem onSelect={handleQuickSave}>
-                  <MagicWandIcon className="text-muted-foreground mr-2" />
-                  AI Save
-                </CommandItem> */}
                 <CommandItem onSelect={withClear(handleQuickSave)}>
                   <LightningBoltIcon className="text-muted-foreground mr-2" />
                   Quick Save
