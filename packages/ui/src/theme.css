@@ -1,6 +1,6 @@
 @layer theme {
   :root {
-    --base-background: 240, 11%, 96%;
+    --background-base: 240, 11%, 96%;
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
     --card: 240 20% 99%;
@@ -34,7 +34,7 @@
   }
 
   :root.dark {
-    --base-background: 0 0% 11.76%;
+    --background-base: 0 0% 11.76%;
     --background: 0 0% 15.69%;
     --foreground: 60 8% 87.8%;
     --card: 0 0% 19%;
@@ -64,7 +64,7 @@
   }
 
   :root.dark-contrast {
-    --base-background: 0 0% 8%;
+    --background-base: 0 0% 8%;
     --background: 0 0% 12%;
     --foreground: 60 8% 92%;
     --card: 0 0% 16%;
