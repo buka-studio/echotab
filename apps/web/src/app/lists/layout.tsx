@@ -7,7 +7,7 @@ import PulseLogo from "./PulseLogo";
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div
-      className="layout flex h-full min-h-screen flex-col bg-[hsl(var(--base-background))] font-sans"
+      className="layout flex h-full min-h-screen flex-col bg-[hsl(var(--background-base))] font-sans"
       vaul-drawer-wrapper="true">
       <main className="flex flex-1 flex-col gap-10 px-5 py-4 pb-[100px]">
         <header className="mx-auto flex w-full max-w-screen-md justify-between gap-2">

@@ -10,8 +10,8 @@
 }
 
 .carousel-shadow {
-  background: linear-gradient(0deg, hsl(var(--base-background)) 10%, transparent 40%),
-    linear-gradient(0deg, transparent 60%, hsl(var(--base-background)));
+  background: linear-gradient(0deg, hsl(var(--background-base)) 10%, transparent 40%),
+    linear-gradient(0deg, transparent 60%, hsl(var(--background-base)));
 }
 
 .carousel-item {

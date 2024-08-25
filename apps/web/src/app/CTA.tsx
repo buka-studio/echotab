@@ -33,7 +33,11 @@ export default function CTA() {
           </div>
         </div>
       </div>
-      <Button variant="outline" size="lg" className="z-[1] font-mono text-lg uppercase" asChild>
+      <Button
+        variant="outline"
+        size="lg"
+        className="z-[1] px-7 font-mono text-lg uppercase"
+        asChild>
         <a href={extensionStoreURL} target="_blank" rel="noopener noreferrer">
           Add to your browser
         </a>
