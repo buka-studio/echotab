@@ -77,3 +77,17 @@ export function randomInt(min: number, max: number) {
 export function replaceBy<T>(array: T[], item: T, predicate: (item: T) => boolean) {
   return array.map((i) => (predicate(i) ? item : i));
 }
+
+export function URLEncodeSVG(svg: string) {
+  // src https://github.com/yoksel/url-encoder
+  const symbols = /[\r\n%#()<>?[\\\]^`{|}]/g;
+
+  // Use single quotes instead of double to avoid encoding.
+
+  svg = svg.replace(/>\s{1,}</g, `><`);
+  svg = svg.replace(/\s{2,}/g, ` `);
+
+  // Using encodeURIComponent() as replacement function
+  // allows to keep result code readable
+  return svg.replace(symbols, encodeURIComponent);
+}

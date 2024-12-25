@@ -55,7 +55,7 @@ export default function SavedTabs() {
             <ItemListPlaceholder
               layout="grid"
               count={5}
-              className="[&_.items-placeholder]:max-h-[110px]">
+              className="[&_.items-placeholder]:max-h-[120px]">
               <ItemListPlaceholderCopy
                 title="No tab lists yet."
                 subtitle='Create a new list by clicking "New List" or by selecting saved links.'

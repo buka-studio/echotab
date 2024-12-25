@@ -41,7 +41,7 @@ export default function SavedTabs() {
               className="[&_.items-placeholder]:max-h-[110px]">
               <ItemListPlaceholderCopy
                 title="No pinned tabs yet."
-                subtitle="Pin a tab by clicking the pin icon."
+                subtitle="Pin a tab by clicking the pin icon on a saved tab."
               />
             </ItemListPlaceholder>
           )}

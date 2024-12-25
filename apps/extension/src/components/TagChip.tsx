@@ -113,14 +113,19 @@ export default function TagChip({ children, onRemove, className = "", color }: T
   return (
     <div
       className={cn(
-        "relative flex max-w-[150px] items-center overflow-hidden rounded-full border bg-opacity-30 py-[2px] pl-[0.625rem] pr-[0.5rem] text-white grayscale-[0.3] transition-colors duration-150 before:pointer-events-none before:absolute before:inset-0 before:z-[-1] before:bg-[--color] dark:before:opacity-80",
-        { "border-border bg-background text-foreground": !color },
+        "relative flex max-w-[150px] items-center overflow-hidden rounded-full border bg-opacity-30 py-[2px] pl-[0.625rem] pr-[0.5rem] text-white grayscale-[0.3] transition-colors duration-150 before:pointer-events-none before:absolute before:inset-0 before:z-[-1] before:bg-[--color-bg] dark:text-[--color] dark:before:bg-[--color-bg-dark]",
+        {
+          "border-border bg-background text-foreground": !color,
+          "pr-[0.25rem]": onRemove,
+        },
         className,
       )}
       style={
         {
           borderColor: `color-mix(in hsl, ${color}, white 10%)`,
-          "--color": color,
+          "--color-bg-dark": `color-mix(in hsl, ${color}, transparent 70%)`,
+          "--color": `color-mix(in hsl, ${color}, white 70%)`,
+          "--color-bg": color,
         } as CSSProperties
       }>
       <div className="label overflow-hidden text-ellipsis whitespace-nowrap text-xs transition-colors duration-150">

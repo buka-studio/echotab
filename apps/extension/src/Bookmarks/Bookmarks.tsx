@@ -274,7 +274,7 @@ export default function Bookmarks() {
             {!hasTabs && (
               <ItemListPlaceholder>
                 <ItemListPlaceholderCopy
-                  title="Currently, there are no tabs items."
+                  title="No saved tabs yet."
                   subtitle="Once you save tabs by tagging them, they will appear here."
                 />
               </ItemListPlaceholder>
