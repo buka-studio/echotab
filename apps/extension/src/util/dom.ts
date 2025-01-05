@@ -4,6 +4,10 @@ export function getParentEl(el: Element | null, selector: string): HTMLElement |
   return getParentEl(el.parentElement, selector);
 }
 
+export function isPopoverOpen() {
+  return document.activeElement?.closest("[data-state='open']") !== null;
+}
+
 export function focusSiblingItem(e: React.KeyboardEvent, selector: string) {
   if (e.key === "ArrowUp" || e.key === "ArrowDown") {
     const currentItem = document.activeElement;

@@ -91,3 +91,17 @@ export function URLEncodeSVG(svg: string) {
   // allows to keep result code readable
   return svg.replace(symbols, encodeURIComponent);
 }
+
+export function sortRecord<T>(
+  record: Record<string, T[]>,
+  keyComparator?: (a: [string, T[]], b: [string, T[]]) => number,
+  valueComparator?: (a: T, b: T) => number,
+) {
+  return Object.fromEntries(
+    Object.entries(record)
+      .sort(([keyA, valueA], [keyB, valueB]) =>
+        keyComparator ? keyComparator([keyA, valueA], [keyB, valueB]) : 0,
+      )
+      .map(([key, value]) => [key, valueComparator ? value.sort(valueComparator) : value]),
+  );
+}
