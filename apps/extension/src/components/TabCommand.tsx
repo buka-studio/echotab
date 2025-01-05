@@ -1,26 +1,32 @@
 import { Dialog, DialogContent, DialogTitle } from "@echotab/ui/Dialog";
 import GlowOutline from "@echotab/ui/GlowOutline";
 import { cn } from "@echotab/ui/util";
-import { ComponentProps, useEffect, useState } from "react";
+import { ComponentProps, useEffect, useImperativeHandle, useState } from "react";
 
 import { capitalize } from "../util";
 
 export function useTabCommand<T extends string>() {
-  const [pages, setPages] = useState(["/"]);
+  const [pages, setPages] = useState<T[]>(["/"] as T[]);
   const [search, setSearch] = useState("");
   const activePage = pages[pages.length - 1];
 
-  const goToPage = (page: string) => {
+  const goToPage = (page: T) => {
     const idx = pages.findIndex((p) => p === page);
     setPages(pages.slice(0, idx + 1));
   };
 
-  const pushPage = (page: string) => {
+  const pushPage = (page: T) => {
     if (pages.at(-1) === page) {
       return;
     }
     setPages([...pages, page]);
     setSearch("");
+  };
+
+  const replacePage = (page: T) => {
+    setPages((pages) => {
+      return [...pages.slice(0, -1), page];
+    });
   };
 
   const goToPrevPage = () => {
@@ -36,6 +42,7 @@ export function useTabCommand<T extends string>() {
     pages,
     activePage,
     setPages,
+    replacePage,
     search,
     setSearch,
     goToPage,
@@ -44,18 +51,20 @@ export function useTabCommand<T extends string>() {
   };
 }
 
-export function CommandPagination({
+export function CommandPagination<T extends string>({
   className,
   pages,
   goToPage,
   ...props
-}: ComponentProps<"div"> & { pages: string[]; goToPage: (page: string) => void }) {
+}: ComponentProps<"div"> & { pages: T[]; goToPage: (page: T) => void }) {
   return (
     <div className={cn("pages flex items-center gap-1 px-1", className)} {...props}>
       {pages.flatMap((p, i) => {
         const path = [
           <button
-            className="focus-ring rounded-md text-sm"
+            className={cn("focus-ring rounded-md", {
+              "text-muted-foreground text-lg": i === 0,
+            })}
             key={p}
             disabled={i === pages.length - 1}
             onClick={() => goToPage(p)}>
@@ -75,12 +84,20 @@ export function CommandPagination({
   );
 }
 
+export type TabCommandDialogRef = {
+  open: () => void;
+  close: () => void;
+  isOpen: () => boolean;
+};
+
 export function TabCommandDialog({
   children,
   label = "Command Menu",
+  dialogRef,
 }: {
   children: React.ReactNode;
   label?: React.ReactNode;
+  dialogRef?: React.RefObject<TabCommandDialogRef>;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -102,6 +119,12 @@ export function TabCommandDialog({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  useImperativeHandle(dialogRef, () => ({
+    open: openDialog,
+    close: closeDialog,
+    isOpen: () => open,
+  }));
 
   const [commandContainer, setCommandContainer] = useState<HTMLDivElement | null>(null);
 
