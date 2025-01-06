@@ -45,6 +45,7 @@ export interface Settings {
   aiApiKey?: string;
   aiApiBaseURL?: string;
   aiApiModel?: string;
+  enterToSearch: boolean;
 }
 
 const storageKey = `cmdtab-ui-store-${version}`;
@@ -76,6 +77,7 @@ const store = proxy({
     aiApiKey: undefined,
     aiApiBaseURL: undefined,
     aiApiModel: undefined,
+    enterToSearch: true,
   } as Settings,
   initialized: false,
   activePanel: Panel.Tabs,

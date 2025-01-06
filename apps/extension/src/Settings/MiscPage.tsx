@@ -46,6 +46,19 @@ export default function MiscPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
+        <div className="text-muted-foreground text-sm">Search</div>
+        <div className="flex items-center justify-between space-x-2">
+          <Label htmlFor="enter-to-search">Require Enter to search</Label>
+          <Switch
+            id="enter-to-search"
+            checked={uiStore.settings?.enterToSearch ?? true}
+            onCheckedChange={(v) => {
+              uiStore.updateSettings({ enterToSearch: v });
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
         <div className="text-muted-foreground text-sm">Clipboard</div>
         <div className="flex items-center justify-between space-x-2">
           <Label htmlFor="include-tags">Include Tags</Label>
