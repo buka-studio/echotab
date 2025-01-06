@@ -64,7 +64,7 @@ export default function ItemListPlaceholder({
             key={i}
             style={{ backgroundImage: layout === "grid" ? patternBg : "" }}
             className={cn(
-              "group/item border-border-active text-card-foreground @container dark:border-border-active/50 flex min-h-12 w-full items-center gap-5 border border-dashed p-2 transition-colors duration-200",
+              "group/item border-border-active text-card-foreground @container dark:border-border-active/50 flex min-h-12 w-full items-center gap-5 border p-2 transition-colors duration-200",
               {
                 "[&+&]:border-t-0": layout === "list",
                 "f flex-col items-start [&+&]:border-l-0 [&>*]:opacity-0": layout === "grid",

@@ -23,7 +23,7 @@ const EchoItem = forwardRef<HTMLDivElement, Props>(function EchoItem(
         className,
       )}
       {...props}>
-      {icon && <div className="flex flex-shrink-0">{icon}</div>}
+      {icon && <div className="echo-item-icon flex flex-shrink-0">{icon}</div>}
       <span className="echo-item-title group/title @[250px]:[&:not(:first-child)]:mt-0 @[250px]:max-w-[30cqw] col-[1/3] row-[2] overflow-hidden text-ellipsis whitespace-nowrap text-sm first:pl-2 [&:not(:first-child)]:mt-2">
         {title}
       </span>

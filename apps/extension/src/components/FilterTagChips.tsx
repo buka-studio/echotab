@@ -1,5 +1,5 @@
 import { useTagStore } from "../TagStore";
-import { TagChipList } from "./TagChip";
+import TagChipList from "./tag/TagChipList";
 
 interface Props {
   filter: {

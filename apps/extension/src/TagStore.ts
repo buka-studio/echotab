@@ -30,8 +30,8 @@ export interface TagStore {
   initialized: boolean;
   getTagByName(name: string): Tag | undefined;
   getNextTagId(): number;
-  createTag(name: string, color?: string): Tag;
-  createTags(tags: { name: string; color?: string }[]): Tag[];
+  createTag(name: string, color?: string, isQuick?: boolean): Tag;
+  createTags(tags: { name: string; color?: string; isQuick?: boolean }[]): Tag[];
   deleteTag(tagId: number): void;
   deleteAllTags(): void;
   updateTag(tagId: number, updates: Partial<Pick<Tag, "name" | "color">>): void;
@@ -56,10 +56,10 @@ const store = proxy({
   getTagByName: (name: string) => {
     return store.tagsByNormalizedName.get(name.trim().toLowerCase());
   },
-  createTags: (tags: { name: string; color?: string }[]) => {
+  createTags: (tags: { name: string; color?: string; isQuick?: boolean }[]) => {
     const createdTags = [];
 
-    for (const { name, color } of tags) {
+    for (const { name, color, isQuick } of tags) {
       const newId = store.getNextTagId();
 
       const _color = color || pickRandomTagColor();
@@ -69,6 +69,7 @@ const store = proxy({
         id: newId,
         name: name.trim(),
         favorite: false,
+        isQuick,
       };
 
       if (!newTag.name) {
@@ -88,8 +89,14 @@ const store = proxy({
 
     return createdTags;
   },
-  createTag: (name: string, color?: string): Tag => {
-    const [tag] = store.createTags([{ name, color }]);
+  createTag: (name: string, color?: string, isQuick?: boolean): Tag => {
+    const [tag] = store.createTags([
+      {
+        name,
+        color,
+        isQuick,
+      },
+    ]);
 
     return tag;
   },

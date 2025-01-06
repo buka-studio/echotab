@@ -41,6 +41,12 @@ export function SelectableList({
     const next = new Set(getSelected());
     extractIds(added).forEach((id) => next.add(id));
     extractIds(removed).forEach((id) => next.delete(id));
+    for (const e of removed) {
+      e.removeAttribute("data-selected");
+    }
+    for (const e of added) {
+      e.setAttribute("data-selected", "true");
+    }
     if (equals(getSelected(), next)) {
       return;
     }
@@ -87,7 +93,7 @@ export function SelectableItem({
   const Comp = asChild ? Slot : "div";
 
   return (
-    <Comp className="selectable" data-key={id}>
+    <Comp className="selectable cursor-pointer" data-key={id}>
       {children}
     </Comp>
   );
