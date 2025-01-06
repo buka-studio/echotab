@@ -5,29 +5,31 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@echotab/ui/DropdownMenu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import {
   Cross2Icon,
   DotsVerticalIcon,
   DragHandleDots2Icon,
   DrawingPinFilledIcon,
+  ReloadIcon,
+  SpeakerLoudIcon,
 } from "@radix-ui/react-icons";
+import { formatDistanceToNow } from "date-fns";
 import { ComponentProps, ComponentRef, forwardRef } from "react";
 
 import { SortableHandle } from "../components/SortableList";
 import TabItem, { Favicon } from "../components/TabItem";
-import { MinimalTagChipList } from "../components/TagChip";
+import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { ActiveTab } from "../models";
 import { useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
-import ActiveStore, {
-  SelectionStore,
-  useActiveTabStore,
-  useIsTabDuplicate,
-  useIsTabSelected,
-} from "./ActiveStore";
+import ActiveStore, { SelectionStore, useActiveTabStore, useTabInfo } from "./ActiveStore";
 
 function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
   const getTabIndex = () =>
@@ -57,6 +59,16 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
     });
   };
 
+  const handleReloadTab = () => {
+    ActiveStore.reloadTab(tab.id);
+  };
+
+  const handleMuteTab = () => {
+    ActiveStore.updateTab(tab.id, {
+      muted: !tab.muted,
+    });
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -65,17 +77,40 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <p className="text-muted-foreground p-2 text-xs">
+          Last opened {formatLastAccessed(tab.lastAccessed)} ago.
+        </p>
         <DropdownMenuItem onClick={handlePinTab}>{tab.pinned ? "Unpin" : "Pin"}</DropdownMenuItem>
         <DropdownMenuItem onClick={handleTabSelection}>
           {selected ? "Deselect" : "Select"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleCloseBefore}>Close before</DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCloseAfter}>Close after</DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCloseOthers}>Close others</DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Close</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={handleCloseBefore}>Close before</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseAfter}>Close after</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseOthers}>Close others</DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={handleReloadTab}>
+          Reload <ReloadIcon className="text-muted-foreground ml-auto hidden h-3 w-3" />{" "}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleMuteTab}>
+          Mute <SpeakerLoudIcon className="text-muted-foreground ml-auto hidden h-3 w-3" />{" "}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+function formatLastAccessed(lastAccessed: number | undefined) {
+  if (!lastAccessed) {
+    return "never";
+  }
+  return formatDistanceToNow(new Date(lastAccessed));
 }
 
 const ActiveTabItem = forwardRef<
@@ -88,8 +123,7 @@ const ActiveTabItem = forwardRef<
     settings: { hideTabsFavicons },
   } = useUIStore();
 
-  const selected = useIsTabSelected(tab.id);
-  const duplicate = useIsTabDuplicate(tab.id);
+  const { selected, duplicate, stale } = useTabInfo(tab.id);
 
   const assignedTags = selected
     ? Array.from(assignedTagIds)
@@ -169,14 +203,28 @@ const ActiveTabItem = forwardRef<
       }
       actions={
         <div className="flex items-center gap-2">
-          <MinimalTagChipList tags={assignedTags} />
+          <TagChipCombobox tags={assignedTags} />
           <TabMenu tab={tab} selected={selected} />
           <Button size="icon-sm" variant="ghost" aria-label="Close Tab" onClick={handleCloseTab}>
             <Cross2Icon className="h-5 w-5" />
           </Button>
         </div>
       }>
-      {duplicate && <Badge variant="card">Duplicate</Badge>}
+      <div className="flex items-center gap-1">
+        {duplicate && <Badge variant="card">Duplicate</Badge>}
+        {stale && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="card">Stale</Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Last visited: {formatLastAccessed(tab.lastAccessed)} ago.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
     </TabItem>
   );
 });

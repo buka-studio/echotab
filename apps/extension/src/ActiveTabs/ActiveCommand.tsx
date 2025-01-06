@@ -8,6 +8,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@echotab/ui/Command";
+import { NumberFlow } from "@echotab/ui/NumberFlow";
 import Spinner from "@echotab/ui/Spinner";
 import { toast } from "@echotab/ui/Toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
@@ -17,6 +18,7 @@ import {
   BookmarkIcon,
   CheckCircledIcon,
   ClipboardIcon,
+  ClockIcon,
   CopyIcon,
   Cross2Icon,
   InfoCircledIcon,
@@ -26,22 +28,55 @@ import {
   OpenInNewWindowIcon,
 } from "@radix-ui/react-icons";
 import { useRef } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { useLLMTagMutation } from "../AI/queries";
 import FilterTagChips from "../components/FilterTagChips";
-import { CommandPagination, TabCommandDialog, useTabCommand } from "../components/TabCommand";
-import TagChip, { TagChipList } from "../components/TagChip";
+import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
+import {
+  CommandPagination,
+  TabCommandDialog,
+  TabCommandDialogRef,
+  useTabCommand,
+} from "../components/TabCommand";
+import TagChip from "../components/tag/TagChip";
+import TagChipList from "../components/tag/TagChipList";
 import { Panel } from "../models";
 import { unassignedTag, useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
 import { formatLinks, wait } from "../util";
-import { getUtcISO } from "../util/date";
-import { toggle } from "../util/set";
+import { isAlphanumeric } from "../util/string";
 import ActiveStore, {
+  getQuickSaveTagName,
   SelectionStore,
+  staleThresholdDaysInMs,
   useActiveSelectionStore,
   useActiveTabStore,
 } from "./ActiveStore";
+
+const pages = ["/", "tag", "find"] as const;
+
+type Page = (typeof pages)[number];
+
+const CommandLabel = ({ page }: { page: string }) => {
+  if (page === "tag") {
+    return (
+      <span className="text-muted-foreground flex items-center gap-2">
+        <TagIcon className="animate-pulse" />
+        Tagging...
+      </span>
+    );
+  }
+  if (page === "find") {
+    return (
+      <span className="text-muted-foreground flex items-center gap-2">
+        <MagnifyingGlassIcon className="animate-pulse" />
+        Finding...
+      </span>
+    );
+  }
+  return null;
+};
 
 // todo: clean this & SavedCommand up
 export default function ActiveCommand() {
@@ -51,7 +86,7 @@ export default function ActiveCommand() {
   const selectionStore = useActiveSelectionStore();
 
   const { pages, goToPage, activePage, pushPage, search, setSearch, setPages, goToPrevPage } =
-    useTabCommand();
+    useTabCommand<Page>();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLDivElement>(null);
@@ -66,6 +101,7 @@ export default function ActiveCommand() {
   const llmMutation = useLLMTagMutation();
 
   const aiDisabled = !uiStore.settings.aiApiProvider;
+  const enterToSearch = uiStore.settings.enterToSearch;
 
   const handleAITag = async () => {
     if (aiDisabled) {
@@ -95,10 +131,10 @@ export default function ActiveCommand() {
   };
 
   const handleQuickSave = async () => {
-    const tagName = getUtcISO();
+    const tagName = getQuickSaveTagName();
 
     if (selectionStore.selectedTabIds.size) {
-      const quickTag = tagStore.createTag(tagName);
+      const quickTag = tagStore.createTag(tagName, undefined, true);
 
       const tabsToSave = Array.from(SelectionStore.selectedTabIds)
         .map((id) => ActiveStore.viewTabsById[id])
@@ -126,7 +162,7 @@ export default function ActiveCommand() {
         continue;
       }
 
-      const quickTag = tagStore.createTag(`${tagName} - ${windowId}`);
+      const quickTag = tagStore.createTag(`${tagName} - ${windowId}`, undefined, true);
 
       const tabsToSave = ActiveStore.viewTabIdsByWindowId[windowId]
         .map((id) => ActiveStore.viewTabsById[id])
@@ -202,15 +238,40 @@ export default function ActiveCommand() {
     tabStore.removeTabs(Array.from(SelectionStore.selectedTabIds));
   };
 
-  const handleToggleFilterKeyword = (keyword: string) => {
-    let filterKeywords = new Set(ActiveStore.view.filter.keywords);
-    toggle(filterKeywords, keyword.trim());
+  const runningSearchRef = useRef<string>(search);
+  const handleToggleFilterKeyword = (keyword: string, isQuick = false) => {
+    if (isQuick) {
+      const keywords = [...ActiveStore.view.filter.keywords];
+      if (keywords.at(-1) === runningSearchRef.current) {
+        keywords.pop();
+      }
+
+      keywords.push(keyword);
+
+      tabStore.updateFilter({
+        keywords,
+      });
+      runningSearchRef.current = keyword;
+    } else {
+      const filterKeywords = new Set(ActiveStore.view.filter.keywords);
+      filterKeywords.add(keyword.trim());
+
+      tabStore.updateFilter({
+        keywords: Array.from(filterKeywords),
+      });
+
+      setSearch("");
+      runningSearchRef.current = "";
+    }
+  };
+
+  const handleRemoveFilterKeyword = (keyword: string) => {
+    const filterKeywords = new Set(ActiveStore.view.filter.keywords);
+    filterKeywords.delete(keyword.trim());
 
     tabStore.updateFilter({
       keywords: Array.from(filterKeywords),
     });
-
-    setSearch("");
   };
 
   const handleMoveToNewWindow = async (incognito = false) => {
@@ -224,12 +285,7 @@ export default function ActiveCommand() {
     }
   };
 
-  let commandLabel = undefined;
-  if (activePage === "tag") {
-    commandLabel = "Tagging";
-  } else if (activePage === "filter") {
-    commandLabel = "Filtering";
-  }
+  const customLabel = ["tag", "find"].includes(activePage);
 
   const withClear = (fn: () => void) => {
     return () => {
@@ -238,8 +294,35 @@ export default function ActiveCommand() {
     };
   };
 
+  const selectedCount = selectionStore.selectedTabIds.size;
+
+  const dialogRef = useRef<TabCommandDialogRef>(null);
+
+  useHotkeys(
+    "meta+f",
+    () => {
+      dialogRef.current?.open();
+      setPages(["/", "find"]);
+      inputRef.current?.focus();
+    },
+    { preventDefault: true },
+  );
+
+  useHotkeys(
+    "alt+t",
+    () => {
+      dialogRef.current?.open();
+      setPages(["/", "tag"]);
+      inputRef.current?.focus();
+    },
+    { preventDefault: true, enabled: selectedCount > 0 },
+    [],
+  );
+
   return (
-    <TabCommandDialog label={commandLabel}>
+    <TabCommandDialog
+      label={customLabel ? <CommandLabel page={activePage} /> : undefined}
+      dialogRef={dialogRef}>
       <Command
         loop
         ref={commandRef}
@@ -257,10 +340,16 @@ export default function ActiveCommand() {
               handleSaveAssignedTags();
             }
           }
-          if (activePage === "search") {
+          if (activePage === "find") {
             if (e.key === "Enter" && !getValue() && search) {
               e.preventDefault();
               handleToggleFilterKeyword(search);
+            }
+
+            if (!enterToSearch) {
+              if (isAlphanumeric(e.key) && !e.metaKey) {
+                handleToggleFilterKeyword(search + e.key, true);
+              }
             }
           }
         }}>
@@ -283,21 +372,17 @@ export default function ActiveCommand() {
                   className="focus-ring whitespace-nowrap rounded px-2 text-sm disabled:opacity-50">
                   Apply
                 </button>
-                <span className="flex items-center gap-1">
-                  <span className="keyboard-shortcut flex h-6 w-6 items-center justify-center text-lg">
-                    ⌘
-                  </span>
-                  <span className="keyboard-shortcut flex h-6 items-center justify-center">
-                    Enter
-                  </span>
-                </span>
+                <KeyboardShortcut>
+                  <KeyboardShortcutKey className="w-6 text-lg">⌘</KeyboardShortcutKey>
+                  <KeyboardShortcutKey>enter</KeyboardShortcutKey>
+                </KeyboardShortcut>
               </div>
             )}
           </div>
         </div>
         <CommandList
           className={cn(
-            "scrollbar-gray bg-popover text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg",
+            "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg backdrop-blur-lg",
           )}>
           {activePage === "/" && (
             <>
@@ -308,13 +393,13 @@ export default function ActiveCommand() {
                     <Badge
                       variant="card"
                       className={cn("ml-2", {
-                        "opacity-0": !selectionStore.selectedTabIds.size,
+                        "opacity-0": !selectedCount,
                       })}>
-                      {selectionStore.selectedTabIds.size}
+                      {selectedCount}
                     </Badge>
                   </span>
                 }>
-                {selectionStore.selectedTabIds.size === 0 ? (
+                {selectedCount === 0 ? (
                   <CommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
                     <CheckCircledIcon className="text-muted-foreground mr-2" />
                     Select All
@@ -325,12 +410,18 @@ export default function ActiveCommand() {
                     Deselect All
                   </CommandItem>
                 )}
-                {Boolean(selectionStore.selectedTabIds.size) && (
+                {Boolean(selectedCount) && (
                   <>
                     <CommandItem onSelect={() => pushPage("tag")}>
                       <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                       Tag
                     </CommandItem>
+                    {selectedCount > 0 && (
+                      <CommandItem onSelect={withClear(handleQuickSave)}>
+                        <LightningBoltIcon className="text-muted-foreground mr-2" />
+                        Quick Save
+                      </CommandItem>
+                    )}
                     <CommandItem
                       onSelect={withClear(handleAITag)}
                       value="AI Tag"
@@ -369,14 +460,16 @@ export default function ActiveCommand() {
                 )}
               </CommandGroup>
               <CommandSeparator />
-              <CommandGroup heading="General">
-                <CommandItem onSelect={withClear(handleQuickSave)}>
-                  <LightningBoltIcon className="text-muted-foreground mr-2" />
-                  Quick Save
-                </CommandItem>
-                <CommandItem onSelect={() => pushPage("search")}>
+              <CommandGroup heading="All Tabs">
+                {selectedCount === 0 && (
+                  <CommandItem onSelect={withClear(handleQuickSave)}>
+                    <LightningBoltIcon className="text-muted-foreground mr-2" />
+                    Quick Save
+                  </CommandItem>
+                )}
+                <CommandItem onSelect={() => pushPage("find")}>
                   <MagnifyingGlassIcon className="text-muted-foreground mr-2" />
-                  Search
+                  Find
                 </CommandItem>
                 {tabStore.viewDuplicateTabIds.size > 0 && (
                   <CommandItem onSelect={withClear(tabStore.removeDuplicateTabs)}>
@@ -384,6 +477,18 @@ export default function ActiveCommand() {
                     Close {tabStore.viewDuplicateTabIds.size} Duplicates
                   </CommandItem>
                 )}
+                {tabStore.viewStaleTabIds.size > 0 && (
+                  <CommandItem onSelect={withClear(tabStore.removeStaleTabs)}>
+                    <ClockIcon className="text-muted-foreground mr-2" />
+                    Close {tabStore.viewStaleTabIds.size} Stale Tabs{" "}
+                    <span className="text-muted-foreground/50 ml-2 text-xs">
+                      &gt; {staleThresholdDaysInMs / (1000 * 60 * 60 * 24)} days old
+                    </span>
+                  </CommandItem>
+                )}
+              </CommandGroup>
+              <CommandSeparator />
+              <CommandGroup heading="Other">
                 <CommandItem onSelect={() => uiStore.activatePanel(Panel.Bookmarks)}>
                   <BookmarkIcon className="text-muted-foreground mr-2" />
                   Go to Bookmarks
@@ -441,19 +546,34 @@ export default function ActiveCommand() {
               </CommandEmpty>
             </div>
           )}
-          {activePage === "search" && (
+          {activePage === "find" && (
             <div>
               <div className="mb-2 px-2">
                 <FilterTagChips
                   filter={tabStore.view.filter}
-                  onRemoveKeyword={handleToggleFilterKeyword}
+                  onRemoveKeyword={handleRemoveFilterKeyword}
                 />
               </div>
-              <CommandEmpty>{search ? `Search by "${search}"` : "Search by keywords"}</CommandEmpty>
+              <CommandEmpty>{search ? `Find by "${search}"` : "Find by keywords"}</CommandEmpty>
+              <div className="text-muted-foreground absolute bottom-2 right-3">
+                Results: <NumberFlow value={tabStore.viewTabIds.length} />
+              </div>
             </div>
           )}
         </CommandList>
       </Command>
     </TabCommandDialog>
   );
+}
+
+{
+  /* <KeyboardShortcut className="ml-auto">
+<KeyboardShortcutKey className="h-5 w-5 text-base">⌘</KeyboardShortcutKey>
+<KeyboardShortcutKey className="h-5 w-5 text-sm">f</KeyboardShortcutKey>
+</KeyboardShortcut>
+
+<KeyboardShortcut className="ml-auto">
+<KeyboardShortcutKey className="h-5 w-5 text-base">⌥</KeyboardShortcutKey>
+<KeyboardShortcutKey className="h-5 w-5 text-sm">t</KeyboardShortcutKey>
+</KeyboardShortcut> */
 }

@@ -6,10 +6,16 @@ import { derive, proxySet } from "valtio/utils";
 
 import { BookmarkStore } from "../Bookmarks";
 import { ActiveTab } from "../models";
-import { pluralize } from "../util";
+import { pluralize, sortRecord } from "../util";
+import { getUtcISO } from "../util/date";
 import { toggle } from "../util/set";
 import { SortDir } from "../util/sort";
-import { canonicalizeURL } from "../util/url";
+import { canonicalizeURL, getDomain } from "../util/url";
+
+export function getQuickSaveTagName() {
+  const date = getUtcISO();
+  return date;
+}
 
 function isValidActiveTab(tab?: Partial<chrome.tabs.Tab>) {
   return tab && tab.url && tab.id && tab.title;
@@ -27,6 +33,7 @@ function toActiveTab(tab: Partial<chrome.tabs.Tab> = {}): Partial<ActiveTab> {
     url: tab.url,
     windowId: tab.windowId,
     pinned: tab.pinned,
+    lastAccessed: tab.lastAccessed,
   };
 }
 
@@ -37,9 +44,29 @@ async function getActiveTabs(): Promise<ActiveTab[]> {
   return activeTabs;
 }
 
+export const staleThresholdDaysInMs = 1000 * 60 * 60 * 24 * 7; // 7 days
+function isStale(lastAccessed: number | undefined) {
+  if (!lastAccessed) {
+    return false;
+  }
+  return Date.now() - lastAccessed > staleThresholdDaysInMs;
+}
+
 interface ReorderOp {
   windowId: number;
   index: number;
+}
+
+export enum TabSortProp {
+  TabName = "Title",
+  Index = "index",
+  TabCount = "Tab Count",
+  TabDomain = "Domain",
+}
+
+export enum TabGrouping {
+  All = "All",
+  Domain = "Domain",
 }
 
 export const SelectionStore = proxy({
@@ -63,18 +90,23 @@ export interface ActiveStore {
   initialized: boolean;
   assignedTagIds: Set<number>;
   tabs: ActiveTab[];
+  windows: chrome.windows.Window[];
   view: {
     filter: Filter;
+    grouping: TabGrouping;
     sort: {
-      prop: "index";
+      prop: TabSortProp;
       dir: SortDir;
     };
   };
   filtersApplied: boolean;
   filteredTabIds: Set<number>;
   viewDuplicateTabIds: Set<number>;
+  viewStaleTabIds: Set<number>;
+  viewTabIds: number[];
   viewTabsById: Record<number, ActiveTab>;
   viewTabIdsByWindowId: Record<number, number[]>;
+  viewTabIdsByDomain: Record<string, number[]>;
 
   initStore(): Promise<void>;
   toggleAssignedTagId(tagId: number): void;
@@ -90,6 +122,7 @@ export interface ActiveStore {
   removeAllInWindow(windowId: number): Promise<void>;
   removeTabs(tabIds: number[]): Promise<void>;
   removeDuplicateTabs(): Promise<void>;
+  removeStaleTabs(): Promise<void>;
   resetTabs(): Promise<void>;
   saveTabs(
     tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
@@ -97,18 +130,23 @@ export interface ActiveStore {
   ): Promise<void>;
   updateTab(tabId: number, options: chrome.tabs.UpdateProperties): Promise<void>;
   moveTabsToNewWindow(tabIds: number[], incognito?: boolean): Promise<void>;
+  reloadTab(tabId: number): Promise<void>;
+  focusWindow(windowId: number): void;
+  removeWindow(windowId: number): Promise<void>;
 }
 
 const Store = proxy({
   initialized: false,
   assignedTagIds: proxySet<number>(),
   tabs: [] as ActiveTab[],
+  windows: [] as chrome.windows.Window[],
   view: proxy({
     filter: {
       keywords: [] as string[],
     },
+    grouping: TabGrouping.All,
     sort: {
-      prop: "index" as const,
+      prop: TabSortProp.Index,
       dir: SortDir.Asc,
     },
   }),
@@ -162,22 +200,26 @@ const Store = proxy({
   removeTabs: async (tabIds: number[]) => {
     const idsSet = new Set(tabIds);
     const removedTabs = Store.tabs.filter((t) => idsSet.has(t.id));
+    try {
+      await chrome.tabs.remove(Array.from(tabIds));
 
-    await chrome.tabs.remove(tabIds);
+      Store.tabs = Store.tabs.filter((t) => !idsSet.has(t.id));
+      for (const id of idsSet) {
+        SelectionStore.selectedTabIds.delete(id);
+      }
 
-    Store.tabs = Store.tabs.filter((t) => !idsSet.has(t.id));
-    for (const id of idsSet) {
-      SelectionStore.selectedTabIds.delete(id);
-    }
-
-    toast.success(`Closed ${pluralize(tabIds.length, "tab")}`, {
-      action: {
-        label: "Undo",
-        onClick: () => {
-          Promise.all(removedTabs.map((t) => chrome.tabs.create({ url: t.url, active: false })));
+      toast.success(`Closed ${pluralize(tabIds.length, "tab")}`, {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            Promise.all(removedTabs.map((t) => chrome.tabs.create({ url: t.url, active: false })));
+          },
         },
-      },
-    });
+      });
+    } catch (e) {
+      toast.error(`Failed to close ${pluralize(tabIds.length, "tab")}. Please try again.`);
+      console.error(e);
+    }
   },
   removeAllInWindow: async (windowId: number) => {
     const tabs = Store.tabs.filter((t) => t.windowId === windowId);
@@ -242,6 +284,10 @@ const Store = proxy({
     const duplicates = Store.viewDuplicateTabIds;
     await Store.removeTabs(Array.from(duplicates));
   },
+  removeStaleTabs: async () => {
+    const stale = Store.viewStaleTabIds;
+    await Store.removeTabs(Array.from(stale));
+  },
   updateTab: async (tabId: number, options: chrome.tabs.UpdateProperties) => {
     await chrome.tabs.update(tabId, options);
   },
@@ -252,6 +298,15 @@ const Store = proxy({
     });
 
     await Store.removeTabs(tabIds);
+  },
+  reloadTab: async (tabId: number) => {
+    return chrome.tabs.reload(tabId);
+  },
+  focusWindow: (windowId: number) => {
+    chrome.windows.update(windowId, { focused: true });
+  },
+  removeWindow: async (windowId: number) => {
+    await chrome.windows.remove(windowId);
   },
 }) as unknown as ActiveStore;
 
@@ -320,6 +375,11 @@ derive(
 
       return proxySet(duplicates);
     },
+    viewStaleTabIds: (get) => {
+      const filteredIds = get(Store).filteredTabIds;
+      const tabs = get(Store.tabs).filter((t) => filteredIds.has(t.id));
+      return proxySet(tabs.filter((t) => isStale(t.lastAccessed)).map((t) => t.id));
+    },
     viewTabsById: (get) => {
       const filteredIds = get(Store).filteredTabIds;
       const tabs = get(Store.tabs).filter((t) => filteredIds.has(t.id));
@@ -352,6 +412,57 @@ derive(
 
       return ids;
     },
+    viewTabIdsByDomain: (get) => {
+      const view = get(Store).view;
+      const filteredIds = get(Store).filteredTabIds;
+      const tabs = get(Store.tabs).filter((t) => filteredIds.has(t.id));
+
+      const domains = Array.from(new Set(tabs.map((t) => getDomain(t.url))));
+
+      const tabsByDomain: Record<string, number[]> = Object.fromEntries(
+        domains.map((domain) => [domain, []]),
+      );
+
+      for (const t of tabs) {
+        const domain = getDomain(t.url);
+        tabsByDomain[domain].push(t.id);
+      }
+
+      const singleTabDomains = Object.entries(tabsByDomain)
+        .filter(([domain, ids]) => ids.length === 1)
+        .map(([domain]) => domain);
+
+      if (singleTabDomains.length) {
+        tabsByDomain["Other"] = singleTabDomains.flatMap((domain) => tabsByDomain[domain]);
+        for (const domain of singleTabDomains) {
+          delete tabsByDomain[domain];
+        }
+      }
+
+      const keyComparator = (
+        [domainA, idsA]: [string, number[]],
+        [domainB, idsB]: [string, number[]],
+      ) => {
+        if (view.sort.prop === TabSortProp.TabDomain) {
+          return view.sort.dir === SortDir.Asc
+            ? domainA.localeCompare(domainB)
+            : domainB.localeCompare(domainA);
+        }
+        if (view.sort.prop === TabSortProp.TabCount) {
+          return view.sort.dir === SortDir.Asc
+            ? idsA.length - idsB.length
+            : idsB.length - idsA.length;
+        }
+        return 0;
+      };
+
+      return sortRecord(tabsByDomain, keyComparator);
+    },
+    viewTabIds: (get) => {
+      const filteredIds = get(Store).filteredTabIds;
+      const tabs = get(Store.tabs).filter((t) => filteredIds.has(t.id));
+      return tabs.map((t) => t.id);
+    },
   },
   { proxy: Store },
 );
@@ -372,36 +483,37 @@ export function useActiveSelectionStore() {
   return useSnapshot(SelectionStore);
 }
 
-export function useIsTabSelected(tabId: number) {
-  const [selected, setSelected] = useState(SelectionStore.selectedTabIds.has(tabId));
+export function useTabInfo(tabId: number) {
+  const [info, setInfo] = useState({
+    duplicate: Store.viewDuplicateTabIds.has(tabId),
+    stale: Store.viewStaleTabIds.has(tabId),
+  });
+
+  const [selectionInfo, setSelectionInfo] = useState({
+    selected: SelectionStore.selectedTabIds.has(tabId),
+  });
 
   useEffect(() => {
-    const callback = () => {
-      setSelected(SelectionStore.selectedTabIds.has(tabId));
-    };
-    const unsubscribe = subscribe(SelectionStore, callback);
-    callback();
+    const unsub = subscribe(Store, () =>
+      setInfo({
+        duplicate: Store.viewDuplicateTabIds.has(tabId),
+        stale: Store.viewStaleTabIds.has(tabId),
+      }),
+    );
 
-    return unsubscribe;
+    const unsubInfo = subscribe(SelectionStore, () =>
+      setSelectionInfo({
+        selected: SelectionStore.selectedTabIds.has(tabId),
+      }),
+    );
+
+    return () => {
+      unsub();
+      unsubInfo();
+    };
   }, [tabId]);
 
-  return selected;
-}
-
-export function useIsTabDuplicate(tabId: number) {
-  const [duplicate, setDuplicate] = useState(Store.viewDuplicateTabIds.has(tabId));
-
-  useEffect(() => {
-    const callback = () => {
-      setDuplicate(Store.viewDuplicateTabIds.has(tabId));
-    };
-    const unsubscribe = subscribe(Store, callback);
-    callback();
-
-    return unsubscribe;
-  }, [tabId]);
-
-  return duplicate;
+  return { ...info, ...selectionInfo };
 }
 
 export default Store;
