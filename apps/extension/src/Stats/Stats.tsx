@@ -1,7 +1,7 @@
 import { useDimensionsRef } from "@echotab/ui/hooks";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 
-import TagChip from "../components/TagChip";
+import TagChip from "../components/tag/TagChip";
 import { unassignedTag, useTagStore } from "../TagStore";
 import TagRelationshipGraph from "./TagRelationshipGraph";
 import TagUsageGraph from "./TagUsageGraph";

@@ -8,7 +8,7 @@ import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { ComponentProps, useMemo, useState } from "react";
 
 import { useBookmarkStore } from "../Bookmarks";
-import TagChip from "../components/TagChip";
+import TagChip from "../components/tag/TagChip";
 import { SavedTab, Tag } from "../models";
 import { unassignedTag, useTagStore } from "../TagStore";
 import { pluralize } from "../util";

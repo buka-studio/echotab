@@ -14,7 +14,7 @@ import Input from "@echotab/ui/Input";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
-import TagChip from "../../components/TagChip";
+import TagChip from "../../components/tag/TagChip";
 import { Tag } from "../../models";
 import TagColorPicker from "./TagColorPicker";
 

@@ -9,7 +9,7 @@ import { ComponentProps, useMemo, useState } from "react";
 
 import { useBookmarkStore } from "../Bookmarks";
 import SortButton from "../components/SortButton";
-import TagChip from "../components/TagChip";
+import TagChip from "../components/tag/TagChip";
 import { unassignedTag, useTagStore } from "../TagStore";
 import { numberComparator, SortDir } from "../util/sort";
 
