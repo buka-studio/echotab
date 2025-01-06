@@ -1,3 +1,4 @@
+import { cn } from "@echotab/ui/util";
 import { useWindowVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import { motion } from "framer-motion";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
@@ -7,6 +8,7 @@ import { focusSiblingItem } from "../util/dom";
 
 interface Props {
   children(i: VirtualItem): React.ReactNode;
+  className?: string;
   items: string[];
 }
 
@@ -15,7 +17,7 @@ interface Ref {
 }
 
 const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualList(
-  { items, children },
+  { items, children, className },
   ref,
 ) {
   const listRef = useRef<HTMLUListElement>(null);
@@ -33,6 +35,7 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
 
   return (
     <ul
+      className={cn(className)}
       ref={listRef}
       onKeyDown={(e) => focusSiblingItem(e, ".item-container")}
       style={{
@@ -53,7 +56,11 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
               }}
               initial={{ opacity: 0 }}
               data-index={i.index}
-              className="item-container @container absolute top-0 mt-[-1px] w-full select-none hover:z-[1] [&+&:not(:is(:hover,:focus-within,[data-selected]))>*]:border-t-transparent [&:first-child>*]:rounded-t-lg [&:has(+.tag-group)>*]:rounded-b-lg [&:last-child>*]:rounded-b-lg [.tag-group+&>*]:rounded-t-lg"
+              className={cn(
+                "item-container @container absolute top-0 mt-[-1px] w-full select-none hover:z-[1] [&:first-child>*]:rounded-t-lg [&:has(+.tag-group)>*]:rounded-b-lg [&:last-child>*]:rounded-b-lg [.tag-group+&>*]:rounded-t-lg",
+                "[.light_&+&>*]:border-t-transparent",
+                "[.dark_&:is(:hover,:focus-within,[data-selected=true],:has([data-selected=true]))+&:is(:hover,:focus-within,[data-selected=true],:has([data-selected=true]))>*]:border-t-transparent",
+              )}
               style={{
                 transform: `translateY(${i.start - virtualizer.options.scrollMargin}px)`,
               }}

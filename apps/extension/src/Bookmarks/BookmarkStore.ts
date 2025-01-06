@@ -99,10 +99,11 @@ export interface BookmarkStore {
   removeTabTags(tabId: string, tagIds: number[]): void;
   removeTags(tagIds: number[]): void;
   saveTabs(tabs: Omit<SavedTab, "id" | "savedAt">[]): SavedTab[];
-  tagTabs(tabsIds: string[], tagIds: number[]): void;
+  tagTabs(tabsIds: string[], tagIds: number[], force?: boolean): void;
   togglePinTab(tabId: string): void;
   pinTabs(tabIds: string[]): void;
   import(store: { tabs: SavedTab[] }): void;
+  cleanupQuickTags(): void;
 }
 
 type PersistedTabStore = Pick<BookmarkStore, "tabs" | "lists" | "view">;
@@ -179,16 +180,40 @@ const Store = proxy({
     Store.lists = [];
     SelectionStore.selectedItemIds = proxySet();
   },
-  tagTabs: (tabIds: string[], tagIds: number[]) => {
+  tagTabs: (tabIds: string[], tagIds: number[], force = false) => {
     const idSet = new Set(tabIds);
     for (const t of Store.tabs) {
       if (idSet.has(t.id)) {
-        t.tagIds = Array.from(new Set([...t.tagIds, ...tagIds])).filter(
+        t.tagIds = (force ? tagIds : Array.from(new Set([...t.tagIds, ...tagIds]))).filter(
           (t) => t !== unassignedTag.id,
         );
         if (t.tagIds.length === 0) {
           t.tagIds = [unassignedTag.id];
         }
+      }
+    }
+
+    Store.cleanupQuickTags();
+  },
+  cleanupQuickTags: () => {
+    const quickTags = new Set(
+      Array.from(TagStore.tags.values())
+        .filter((t) => t.isQuick)
+        .map((t) => t.id),
+    );
+    const usedQuickTags = new Set();
+
+    for (const t of Store.tabs) {
+      for (const tagId of t.tagIds) {
+        if (quickTags.has(tagId)) {
+          usedQuickTags.add(tagId);
+        }
+      }
+    }
+
+    for (const tagId of quickTags) {
+      if (!usedQuickTags.has(tagId)) {
+        TagStore.deleteTag(tagId);
       }
     }
   },

@@ -10,10 +10,7 @@ function PlaceholderItem({ className = "" }) {
   return (
     <div
       style={{ backgroundImage: patternBg }}
-      className={cn(
-        "bg-surface-1 flex items-center justify-center border border-dashed",
-        className,
-      )}
+      className={cn("bg-surface-1 flex items-center justify-center border", className)}
     />
   );
 }

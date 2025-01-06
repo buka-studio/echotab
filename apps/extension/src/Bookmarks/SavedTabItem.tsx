@@ -1,12 +1,12 @@
-import Button from "@echotab/ui/Button";
+import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ComponentRef, forwardRef } from "react";
 
 import TabItem, { Favicon } from "../components/TabItem";
-import { MinimalTagChipList } from "../components/TagChip";
+import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { SavedTab, Tag } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
+import { useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
 import BookmarkStore, { useBookmarkStore, useIsTabSelected } from "./BookmarkStore";
 
@@ -43,12 +43,9 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
     .map((id) => tags.get(id)!)
     .filter((t) => Number.isFinite(t?.id));
 
-  const handleRemoveTag =
-    tab.tagIds.length === 1 && tab.tagIds[0] === unassignedTag.id
-      ? undefined
-      : (tag: Partial<Tag>) => {
-          BookmarkStore.removeTabTag(tab.id, tag.id!);
-        };
+  const handleSetTags = (tagIds: number[]) => {
+    BookmarkStore.tagTabs([tab.id], tagIds, true);
+  };
 
   return (
     <TabItem
@@ -75,9 +72,11 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
       tab={tab}
       actions={
         <div className="@[200px]:flex-row @[200px]:gap-2 flex flex-row-reverse items-center">
-          <Button
+          <ButtonWithTooltip
             variant="ghost"
             size="icon-sm"
+            side="top"
+            tooltipText={tab.pinned ? "Unpin" : "Pin"}
             onClick={(e) => {
               BookmarkStore.togglePinTab(tab.id);
             }}>
@@ -86,15 +85,20 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
             ) : (
               <DrawingPinIcon className="h-5 w-5" />
             )}
-          </Button>
-          <MinimalTagChipList
+          </ButtonWithTooltip>
+          <TagChipCombobox
             tags={combinedTags.sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
-            onRemove={handleRemoveTag}
+            onSetTags={handleSetTags}
           />
           {!tab.pinned && (
-            <Button variant="ghost" size="icon-sm" onClick={() => BookmarkStore.removeTab(tab.id)}>
+            <ButtonWithTooltip
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => BookmarkStore.removeTab(tab.id)}
+              side="top"
+              tooltipText="Remove">
               <TrashIcon className="h-5 w-5" />
-            </Button>
+            </ButtonWithTooltip>
           )}
         </div>
       }

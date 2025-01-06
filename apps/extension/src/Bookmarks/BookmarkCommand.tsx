@@ -19,6 +19,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@echotab/ui/Command";
+import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
 import { Browser as BrowserIcon, Tag as TagIcon } from "@phosphor-icons/react";
@@ -33,18 +34,50 @@ import {
   OpenInNewWindowIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
-import { useRef, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import FilterTagChips from "../components/FilterTagChips";
-import { CommandPagination, TabCommandDialog, useTabCommand } from "../components/TabCommand";
-import TagChip, { TagChipList } from "../components/TagChip";
+import {
+  CommandPagination,
+  TabCommandDialog,
+  TabCommandDialogRef,
+  useTabCommand,
+} from "../components/TabCommand";
+import TagChip from "../components/tag/TagChip";
+import TagChipList from "../components/tag/TagChipList";
 import { Panel, SavedTab } from "../models";
 import { unassignedTag, useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
 import { formatLinks } from "../util";
 import { toggle } from "../util/set";
+import { isAlphanumeric } from "../util/string";
 import BookmarkStore, { useBookmarkSelectionStore, useBookmarkStore } from "./BookmarkStore";
 import ListFormDialog from "./Lists/ListFormDialog";
+
+const pages = ["/", "tag", "find"] as const;
+
+type Page = (typeof pages)[number];
+
+const CommandLabel = ({ page }: { page: string }) => {
+  if (page === "tag") {
+    return (
+      <span className="text-muted-foreground flex items-center gap-2">
+        <TagIcon className="animate-pulse" />
+        Tagging...
+      </span>
+    );
+  }
+  if (page === "find") {
+    return (
+      <span className="text-muted-foreground flex items-center gap-2">
+        <MagnifyingGlassIcon className="animate-pulse" />
+        Finding...
+      </span>
+    );
+  }
+  return null;
+};
 
 export default function BookmarkCommand() {
   const bookmarkStore = useBookmarkStore();
@@ -53,7 +86,7 @@ export default function BookmarkCommand() {
   const selectionStore = useBookmarkSelectionStore();
 
   const { pages, goToPage, search, setSearch, activePage, setPages, pushPage, goToPrevPage } =
-    useTabCommand();
+    useTabCommand<Page>();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLDivElement>(null);
@@ -141,14 +174,50 @@ export default function BookmarkCommand() {
     });
   };
 
-  const handleToggleFilterKeyword = (keyword: string) => {
-    let filterKeywords = new Set(BookmarkStore.view.filter.keywords);
-    toggle(filterKeywords, keyword.trim());
+  const [quickSearch, setQuickSearch] = useState("");
+  const quickDeferredSearch = useDeferredValue(quickSearch);
+
+  useEffect(() => {
+    if (!quickSearch) {
+      return;
+    }
+    handleToggleFilterKeyword(quickSearch, true);
+  }, [quickDeferredSearch]);
+
+  const runningSearchRef = useRef<string>(search);
+  const handleToggleFilterKeyword = (keyword: string, isQuick = false) => {
+    if (isQuick) {
+      const keywords = [...BookmarkStore.view.filter.keywords];
+      if (keywords.at(-1) === runningSearchRef.current) {
+        keywords.pop();
+      }
+
+      keywords.push(keyword);
+
+      bookmarkStore.updateFilter({
+        keywords,
+      });
+      runningSearchRef.current = keyword;
+    } else {
+      const filterKeywords = new Set(BookmarkStore.view.filter.keywords);
+      filterKeywords.add(keyword.trim());
+
+      bookmarkStore.updateFilter({
+        keywords: Array.from(filterKeywords),
+      });
+
+      setSearch("");
+      runningSearchRef.current = "";
+    }
+  };
+
+  const handleRemoveFilterKeyword = (keyword: string) => {
+    const filterKeywords = new Set(BookmarkStore.view.filter.keywords);
+    filterKeywords.delete(keyword.trim());
 
     bookmarkStore.updateFilter({
       keywords: Array.from(filterKeywords),
     });
-    setSearch("");
   };
 
   const handleApply = () => {
@@ -178,12 +247,7 @@ export default function BookmarkCommand() {
     BookmarkStore.pinTabs(Array.from(selectionStore.selectedItemIds));
   };
 
-  let commandLabel = undefined;
-  if (activePage === "tag") {
-    commandLabel = "Tagging";
-  } else if (activePage === "filter") {
-    commandLabel = "Filtering";
-  }
+  const customLabel = ["tag", "find"].includes(activePage);
 
   const withClear = (fn: () => void) => {
     return () => {
@@ -192,9 +256,27 @@ export default function BookmarkCommand() {
     };
   };
 
+  const selectedCount = selectionStore.selectedItemIds.size;
+
+  const dialogRef = useRef<TabCommandDialogRef>(null);
+
+  useHotkeys(
+    "meta+f",
+    () => {
+      dialogRef.current?.open();
+      setPages(["/", "find"]);
+      inputRef.current?.focus();
+    },
+    { preventDefault: true },
+  );
+
+  const enterToSearch = uiStore.settings.enterToSearch;
+
   return (
     <>
-      <TabCommandDialog label={commandLabel}>
+      <TabCommandDialog
+        label={customLabel ? <CommandLabel page={activePage} /> : undefined}
+        dialogRef={dialogRef}>
         <Command
           loop
           ref={commandRef}
@@ -212,10 +294,16 @@ export default function BookmarkCommand() {
                 handleSaveAssignedTags();
               }
             }
-            if (activePage === "search") {
+            if (activePage === "find") {
               if (e.key === "Enter" && !getValue() && search) {
                 e.preventDefault();
                 handleToggleFilterKeyword(search);
+              }
+
+              if (!enterToSearch) {
+                if (isAlphanumeric(e.key) && !e.metaKey) {
+                  setQuickSearch(search + e.key);
+                }
               }
             }
           }}>
@@ -251,7 +339,7 @@ export default function BookmarkCommand() {
           </div>
           <CommandList
             className={cn(
-              "scrollbar-gray bg-popover text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg",
+              "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg backdrop-blur-lg",
             )}>
             {activePage === "/" && (
               <>
@@ -262,13 +350,13 @@ export default function BookmarkCommand() {
                       <Badge
                         variant="card"
                         className={cn("ml-2", {
-                          "opacity-0": !selectionStore.selectedItemIds.size,
+                          "opacity-0": !selectedCount,
                         })}>
-                        {selectionStore.selectedItemIds.size}
+                        {selectedCount}
                       </Badge>
                     </span>
                   }>
-                  {selectionStore.selectedItemIds.size === 0 ? (
+                  {selectedCount === 0 ? (
                     <CommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
                       <CheckCircledIcon className="text-muted-foreground mr-2" />
                       Select All
@@ -278,7 +366,7 @@ export default function BookmarkCommand() {
                       <MinusCircledIcon className="text-muted-foreground mr-2" /> Deselect All
                     </CommandItem>
                   )}
-                  {Boolean(selectionStore.selectedItemIds.size) && (
+                  {Boolean(selectedCount) && (
                     <>
                       <CommandItem onSelect={() => pushPage("tag")}>
                         <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
@@ -310,10 +398,13 @@ export default function BookmarkCommand() {
                   )}
                 </CommandGroup>
                 <CommandSeparator />
-                <CommandGroup heading="General">
-                  <CommandItem onSelect={() => pushPage("search")}>
-                    <MagnifyingGlassIcon className="text-muted-foreground mr-2" /> Search
+                <CommandGroup heading="Bookmarks">
+                  <CommandItem onSelect={() => pushPage("find")}>
+                    <MagnifyingGlassIcon className="text-muted-foreground mr-2" /> Find
                   </CommandItem>
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup heading="Other">
                   <CommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
                     <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                     Go to Tabs
@@ -379,12 +470,12 @@ export default function BookmarkCommand() {
                 </CommandEmpty>
               </div>
             )}
-            {activePage === "search" && (
+            {activePage === "find" && (
               <div>
                 <div className="mb-2 px-2">
                   <FilterTagChips
                     filter={bookmarkStore.view.filter}
-                    onRemoveKeyword={handleToggleFilterKeyword}
+                    onRemoveKeyword={handleRemoveFilterKeyword}
                     onRemoveTag={handleToggleFilterTag}
                   />
                 </div>
@@ -419,6 +510,9 @@ export default function BookmarkCommand() {
                       ? "No tags found"
                       : "Search by keyword or #tag"}
                 </CommandEmpty>
+                <div className="text-muted-foreground absolute bottom-2 right-3">
+                  Results: <NumberFlow value={bookmarkStore.viewTabIds.length} />
+                </div>
               </div>
             )}
           </CommandList>
@@ -437,7 +531,7 @@ export default function BookmarkCommand() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete {selectionStore.selectedItemIds.size} saved tabs.
+              This will delete {selectedCount} saved tabs.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

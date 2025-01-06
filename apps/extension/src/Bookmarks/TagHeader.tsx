@@ -24,7 +24,7 @@ import { cn } from "@echotab/ui/util";
 import { DotsVerticalIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import { ReactNode } from "react";
 
-import TagChip from "../components/TagChip";
+import TagChip from "../components/tag/TagChip";
 import { Tag } from "../models";
 import { unassignedTag, useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
@@ -55,10 +55,10 @@ function UntagConfirmDialog({
               <TagChip color={tag.color} className="inline-flex">
                 {tag.name}
               </TagChip>{" "}
-              from {pluralize(affectedCount, "tab")}.
+              from {pluralize(affectedCount, "link")}.
               <div className="border-border text-muted-foreground mt-5 rounded border border-dashed p-4">
                 <InfoCircledIcon className="mr-1 inline text-balance" /> Note: if there are no other
-                tags left, the tabs will be tagged as{" "}
+                tags left, the {pluralize(affectedCount, "link")} will be tagged as{" "}
                 <TagChip className="inline-flex">Unassigned</TagChip>.
               </div>
             </div>
@@ -91,13 +91,13 @@ function DeleteConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete {pluralize(affectedCount, "tab")} in this group.
+            This will permanently delete {pluralize(affectedCount, "link")} in this group.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} variant="destructive">
-            Delete Tabs
+            Delete Links
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -109,10 +109,12 @@ export default function TagHeader({
   tag,
   actions,
   highlighted,
+  className,
 }: {
   tag: Tag;
   actions?: ReactNode;
   highlighted?: boolean;
+  className?: string;
 }) {
   const bookmarkStore = useBookmarkStore();
   const tagStore = useTagStore();
@@ -128,8 +130,8 @@ export default function TagHeader({
   const affectedTabIds = new Set(selectedTabIds.size ? selectedTabIds : tabIds);
   const affectedLabel =
     selectedTabIds.size && selectedTabIds.size !== tabIds.length
-      ? pluralize(affectedTabIds.size, "tab")
-      : "all tabs";
+      ? pluralize(affectedTabIds.size, "link")
+      : "all links";
 
   const handleCopyToClipboard = () => {
     const selectedLinks = bookmarkStore.tabs.filter((tab) => affectedTabIds.has(tab.id));
@@ -171,8 +173,8 @@ export default function TagHeader({
   };
 
   return (
-    <div className="flex justify-between">
-      <div className="select-none">
+    <div className={cn("flex justify-between pl-2", className)}>
+      <div className="flex select-none items-center">
         <span className="mr-2 inline-flex items-center gap-2">
           <span
             className={cn(

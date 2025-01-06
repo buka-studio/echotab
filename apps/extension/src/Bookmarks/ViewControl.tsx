@@ -15,18 +15,18 @@ import { TabGrouping, TabSortProp, useBookmarkStore } from "./BookmarkStore";
 
 const tagViewSortOptions = [
   { value: TabSortProp.TagName, label: "Tag Name" },
-  { value: TabSortProp.TabCount, label: "Tab Count" },
+  { value: TabSortProp.TabCount, label: "Link Count" },
 ];
 
 const allViewSortOptions = [
-  { value: TabSortProp.Title, label: "Item Title" },
+  { value: TabSortProp.Title, label: "Link Title" },
   { value: TabSortProp.TagCount, label: "Tag Count" },
   { value: TabSortProp.SavedAt, label: "Saved At" },
 ];
 
 const viewOptions = [
-  { value: TabGrouping.All, label: "View All" },
-  { value: TabGrouping.Tag, label: "View By Tag" },
+  { value: TabGrouping.All, label: "All" },
+  { value: TabGrouping.Tag, label: "Tag" },
 ];
 
 const sortOptionsByView = {
@@ -62,8 +62,14 @@ export default function ViewControl() {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>
+          <DropdownMenuLabel>Group By</DropdownMenuLabel>
+
           {viewOptions.map(({ value, label }) => (
-            <DropdownMenuItem keepOpen onClick={() => handleSetGrouping(value)} key={value}>
+            <DropdownMenuItem
+              keepOpen
+              onClick={() => handleSetGrouping(value)}
+              key={value}
+              className="gap-2">
               {label}
               {tabStore.view.grouping === value && <CheckIcon className="ml-auto h-4 w-4" />}
             </DropdownMenuItem>
@@ -75,7 +81,11 @@ export default function ViewControl() {
           {sortOptionsByView[tabStore.view.grouping].map(({ value, label }) => {
             const active = tabStore.view.sort.prop === value;
             return (
-              <DropdownMenuItem key={value} keepOpen onClick={() => handleToggleSort(value)}>
+              <DropdownMenuItem
+                key={value}
+                keepOpen
+                onClick={() => handleToggleSort(value)}
+                className="gap-2">
                 {label}
                 {active &&
                   (tabStore.view.sort.dir === SortDir.Asc ? (
