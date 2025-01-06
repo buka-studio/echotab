@@ -111,7 +111,7 @@ type Props = {
   publicList?: UserList;
 } & Partial<ComponentProps<typeof EchoItem>>;
 
-const TabListItem = forwardRef<HTMLDivElement, Props>(function TabListItem(
+const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
   { list, publicList, className, ...props },
   ref,
 ) {
@@ -166,4 +166,4 @@ const TabListItem = forwardRef<HTMLDivElement, Props>(function TabListItem(
   );
 });
 
-export default TabListItem;
+export default ListItem;

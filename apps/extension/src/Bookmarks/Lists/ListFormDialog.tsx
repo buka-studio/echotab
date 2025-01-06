@@ -20,7 +20,7 @@ import { toast } from "@echotab/ui/Toast";
 import { ComponentProps, ReactNode, useMemo, useRef, useState } from "react";
 
 import TabItem, { Favicon } from "~/src/components/TabItem";
-import { MinimalTagChipList } from "~/src/components/TagChip";
+import TagChipCombobox from "~/src/components/tag/TagChipCombobox";
 import TagStore from "~/src/TagStore";
 import { useUIStore } from "~/src/UIStore";
 
@@ -189,7 +189,7 @@ export default function ListFormDialog({
                                   </a>
                                 }
                                 linkPreview={false}
-                                actions={<MinimalTagChipList tags={tags} />}
+                                actions={<TagChipCombobox editable={false} tags={tags} />}
                               />
                             </PopoverContent>
                           );

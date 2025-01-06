@@ -9,10 +9,10 @@ import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../../components/I
 import { useBookmarkStore } from "../BookmarkStore";
 import ItemGrid from "../ItemGrid";
 import ListFormDialog from "./ListFormDialog";
+import ListItem from "./ListItem";
 import { useGetPublicLists } from "./queries";
-import TabListItem from "./TabListItem";
 
-export default function SavedTabs() {
+export default function Lists() {
   const bookmarkStore = useBookmarkStore();
 
   const [expanded, setExpanded] = useState(true);
@@ -26,19 +26,19 @@ export default function SavedTabs() {
   return (
     <div>
       <div className="mb-2 flex select-none items-center text-sm">
-        <span className="mr-2 inline-flex gap-2 px-2">
+        <span className="inline-flex gap-2 px-2">
           <span className="text-muted-foreground flex items-center gap-2">
-            <FileTextIcon /> Tab Lists
+            <FileTextIcon /> Lists
           </span>
           <Badge variant="card">{bookmarkStore.lists?.length}</Badge>
         </span>
         <Button
           variant="ghost"
+          size="icon-sm"
           onClick={() => {
             setExpanded(!expanded);
           }}>
-          {expanded ? "Collapse" : "Expand"}
-          <CaretSortIcon className="ml-2 h-4 w-4" />
+          <CaretSortIcon className="h-4 w-4" />
         </Button>
         <ListFormDialog>
           <DialogTrigger asChild>
@@ -57,7 +57,7 @@ export default function SavedTabs() {
               count={5}
               className="[&_.items-placeholder]:max-h-[120px]">
               <ItemListPlaceholderCopy
-                title="No tab lists yet."
+                title="No link lists yet."
                 subtitle='Create a new list by clicking "New List" or by selecting saved links.'
               />
             </ItemListPlaceholder>
@@ -66,7 +66,7 @@ export default function SavedTabs() {
             {({ index }) => {
               const list = bookmarkStore.lists[index];
 
-              return <TabListItem list={list} publicList={publicListsById[list.id]} />;
+              return <ListItem list={list} publicList={publicListsById[list.id]} />;
             }}
           </ItemGrid>
         </>
