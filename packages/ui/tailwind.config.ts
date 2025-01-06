@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
+import plugin from "tailwindcss/plugin";
 
 export default {
   darkMode: ["class"],
@@ -100,5 +101,8 @@ export default {
     require("@tailwindcss/container-queries"),
     require("tailwindcss-animate"),
     require("tailwind-scrollbar")({ nocompatible: true }),
+    plugin(({ addVariant }) => {
+      addVariant("light", [".light &", ":not(.dark) &"]);
+    }),
   ],
 } satisfies Config;

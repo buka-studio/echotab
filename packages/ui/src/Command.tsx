@@ -68,6 +68,25 @@ const CommandEmpty = React.forwardRef<HTMLDivElement, React.ComponentProps<"div"
 
 CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
 
+const CommandNotEmpty = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
+  ({ className, ...props }, forwardedRef) => {
+    const render = useCommandState((state) => state.filtered.count !== 0);
+
+    if (!render) return null;
+    return (
+      <div
+        ref={forwardedRef}
+        className={cn("text-center text-sm", className)}
+        {...props}
+        cmdk-not-empty=""
+        role="presentation"
+      />
+    );
+  },
+);
+
+CommandNotEmpty.displayName = "CommandNotEmpty";
+
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
@@ -147,6 +166,7 @@ export {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandNotEmpty,
   CommandSeparator,
   CommandShortcut,
 };
