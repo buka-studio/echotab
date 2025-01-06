@@ -9,10 +9,9 @@ import {
   DialogTitle,
 } from "@echotab/ui/Dialog";
 import { Toggle } from "@echotab/ui/Toggle";
-import { cn } from "@echotab/ui/util";
 import { useState } from "react";
 
-import TagChip from "../components/TagChip";
+import TagChip from "../components/tag/TagChip";
 import TagStore from "../TagStore";
 import UIStore, { useUIStore } from "../UIStore";
 import { toggle } from "../util/set";
@@ -71,10 +70,12 @@ export default function OnboardingDialog() {
                 key={name}
                 asChild
                 pressed={selectedTagIndices.has(i)}
-                className="p-0 px-0"
+                className="h-auto rounded-full p-0 px-0"
                 onPressedChange={() => handleToggleTag(i)}>
-                <button className={cn("h-auto")}>
-                  <TagChip color={selectedTagIndices.has(i) ? color : undefined}>{name}</TagChip>
+                <button>
+                  <TagChip color={selectedTagIndices.has(i) ? color : "hsl(var(--muted))"}>
+                    {name}
+                  </TagChip>
                 </button>
               </Toggle>
             ))}
