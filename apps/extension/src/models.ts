@@ -3,6 +3,7 @@ export interface Tag {
   name: string;
   id: number;
   favorite: boolean;
+  isQuick?: boolean;
 }
 
 export interface Tab {
@@ -15,25 +16,24 @@ export interface ActiveTab extends Tab {
   id: number;
   windowId: number;
   pinned?: boolean;
+  muted?: boolean;
+  lastAccessed?: number;
 }
 
 export interface SavedTab extends Tab {
   id: string;
   tagIds: number[];
   savedAt: string;
+  note?: string;
   pinned?: boolean;
+  meta?: {
+    description?: string;
+  };
 }
 
 export enum Panel {
   Tabs = "Tabs",
   Bookmarks = "Bookmarks",
-}
-
-export interface Tag {
-  color: string;
-  name: string;
-  id: number;
-  favorite: boolean;
 }
 
 export interface List {
