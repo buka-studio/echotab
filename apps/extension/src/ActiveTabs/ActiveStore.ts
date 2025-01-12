@@ -23,6 +23,7 @@ function isValidActiveTab(tab?: Partial<chrome.tabs.Tab>) {
 
 export interface Filter {
   keywords: string[];
+  looseMatch: boolean;
 }
 
 function toActiveTab(tab: Partial<chrome.tabs.Tab> = {}): Partial<ActiveTab> {
@@ -256,10 +257,15 @@ const Store = proxy({
     Store.view = { ...Store.view, ...view };
   },
   updateFilter: (filter: Partial<Filter>) => {
-    Store.view.filter = { ...Store.view.filter, ...filter };
+    const wipFilter = { ...filter };
+    if (wipFilter.keywords?.length === 0) {
+      wipFilter.looseMatch = false;
+    }
+
+    Store.view.filter = { ...Store.view.filter, ...wipFilter };
   },
   clearFilter: () => {
-    Store.view.filter = { keywords: [] };
+    Store.view.filter = { keywords: [], looseMatch: false };
   },
   reorderTab: async (op: { tabId: number; from: ReorderOp; to: ReorderOp }) => {
     await chrome.tabs.move(op.tabId, {
@@ -324,9 +330,13 @@ export function filterTabs(tabs: ActiveTab[], filter: Filter) {
 
   const allIds = new Set(tabs.map((t) => t.id));
 
+  const extendedPrefix = filter.looseMatch ? "" : "'";
+
   const fuseIds = filter.keywords.length
     ? new Set(
-        tabsFuse.search(filter.keywords.map((kw) => kw.trim()).join(" ")).map((r) => r.item.id),
+        tabsFuse
+          .search(`${extendedPrefix}${filter.keywords.map((kw) => `${kw.trim()}`).join(" ")}`)
+          .map((r) => r.item.id),
       )
     : new Set(allIds);
 

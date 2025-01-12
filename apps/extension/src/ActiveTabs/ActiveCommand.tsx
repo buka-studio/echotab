@@ -1,4 +1,5 @@
 import { Badge } from "@echotab/ui/Badge";
+import Button from "@echotab/ui/Button";
 import {
   Command,
   CommandEmpty,
@@ -27,6 +28,7 @@ import {
   MinusCircledIcon,
   OpenInNewWindowIcon,
 } from "@radix-ui/react-icons";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -319,6 +321,12 @@ export default function ActiveCommand() {
     [],
   );
 
+  const handleLooseMatch = () => {
+    tabStore.updateFilter({
+      looseMatch: true,
+    });
+  };
+
   return (
     <TabCommandDialog
       label={customLabel ? <CommandLabel page={activePage} /> : undefined}
@@ -554,8 +562,35 @@ export default function ActiveCommand() {
                   onRemoveKeyword={handleRemoveFilterKeyword}
                 />
               </div>
-              <CommandEmpty>{search ? `Find by "${search}"` : "Find by keywords"}</CommandEmpty>
-              <div className="text-muted-foreground absolute bottom-2 right-3">
+              <CommandEmpty className="flex items-center justify-center gap-2">
+                <div className="text-muted-foreground">
+                  {search ? (
+                    <span>
+                      Find by "<span className="text-foreground italic">{search}</span>"
+                    </span>
+                  ) : (
+                    "Find by keywords"
+                  )}
+                </div>
+                {tabStore.viewTabIds.length === 0 && !tabStore.view.filter.looseMatch && (
+                  <motion.div
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+                    transition={{ duration: 0.2 }}>
+                    <div className="text-muted-foreground">or</div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-auto px-2 py-1 text-xs"
+                      onClick={handleLooseMatch}>
+                      Try loose match
+                    </Button>
+                  </motion.div>
+                )}
+              </CommandEmpty>
+              <div className="text-muted-foreground absolute bottom-2 right-3 overflow-hidden">
                 Results: <NumberFlow value={tabStore.viewTabIds.length} />
               </div>
             </div>
@@ -564,16 +599,4 @@ export default function ActiveCommand() {
       </Command>
     </TabCommandDialog>
   );
-}
-
-{
-  /* <KeyboardShortcut className="ml-auto">
-<KeyboardShortcutKey className="h-5 w-5 text-base">⌘</KeyboardShortcutKey>
-<KeyboardShortcutKey className="h-5 w-5 text-sm">f</KeyboardShortcutKey>
-</KeyboardShortcut>
-
-<KeyboardShortcut className="ml-auto">
-<KeyboardShortcutKey className="h-5 w-5 text-base">⌥</KeyboardShortcutKey>
-<KeyboardShortcutKey className="h-5 w-5 text-sm">t</KeyboardShortcutKey>
-</KeyboardShortcut> */
 }
