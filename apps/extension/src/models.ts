@@ -17,6 +17,7 @@ export interface ActiveTab extends Tab {
   windowId: number;
   pinned?: boolean;
   muted?: boolean;
+  audible?: boolean;
   lastAccessed?: number;
 }
 

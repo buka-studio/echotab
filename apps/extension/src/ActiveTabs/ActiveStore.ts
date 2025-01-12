@@ -37,6 +37,8 @@ function toActiveTab(tab: Partial<chrome.tabs.Tab> = {}): Partial<ActiveTab> {
     windowId: tab.windowId,
     pinned: tab.pinned,
     lastAccessed: tab.lastAccessed,
+    audible: tab.audible,
+    muted: tab.mutedInfo?.muted,
   };
 }
 

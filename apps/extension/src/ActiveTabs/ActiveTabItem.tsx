@@ -27,6 +27,7 @@ import SnapshotPreview from "../components/SnapshotPreview";
 import { SortableHandle } from "../components/SortableList";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
+import { Waveform } from "../components/Waveform";
 import { ActiveTab } from "../models";
 import { useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
@@ -100,7 +101,8 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
           Reload <ReloadIcon className="text-muted-foreground ml-auto hidden h-3 w-3" />{" "}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleMuteTab}>
-          Mute <SpeakerLoudIcon className="text-muted-foreground ml-auto hidden h-3 w-3" />{" "}
+          {tab.muted ? "Unmute" : "Mute"}{" "}
+          <SpeakerLoudIcon className="text-muted-foreground ml-auto hidden h-3 w-3" />{" "}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -226,6 +228,7 @@ const ActiveTabItem = forwardRef<
             </Tooltip>
           </TooltipProvider>
         )}
+        {tab.audible && <Waveform bars={10} playing={!tab.muted} />}
       </div>
     </TabItem>
   );
