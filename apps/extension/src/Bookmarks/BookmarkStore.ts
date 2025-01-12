@@ -26,6 +26,7 @@ const bookmarkFuse = new Fuse([] as SavedTab[], fuseOptions);
 export interface Filter {
   tags: number[];
   keywords: string[];
+  looseMatch: boolean;
 }
 
 export enum TabGrouping {
@@ -227,10 +228,15 @@ const Store = proxy({
     Store.view = { ...Store.view, ...view };
   },
   updateFilter: (filter: Partial<Filter>) => {
-    Store.view.filter = { ...Store.view.filter, ...filter };
+    const wipFilter = { ...filter };
+    if (wipFilter.keywords?.length === 0) {
+      wipFilter.looseMatch = false;
+    }
+
+    Store.view.filter = { ...Store.view.filter, ...wipFilter };
   },
   clearFilter: () => {
-    Store.view.filter = { tags: [], keywords: [] };
+    Store.view.filter = { tags: [], keywords: [], looseMatch: false };
   },
   removeTabTags: (tabId: string, tagIds: number[]) => {
     const tab = Store.tabs.find((t) => t.id === tabId);
@@ -363,9 +369,13 @@ export function filterTabs(tabs: SavedTab[], filter: Filter) {
 
   const allIds = new Set(tabs.filter((t) => !t.pinned).map((t) => t.id));
 
+  const extendedPrefix = filter.looseMatch ? "" : "'";
+
   const fuseIds = filter.keywords.length
     ? new Set(
-        bookmarkFuse.search(filter.keywords.map((kw) => kw.trim()).join(" ")).map((r) => r.item.id),
+        bookmarkFuse
+          .search(`${extendedPrefix}${filter.keywords.map((kw) => kw.trim()).join(" ")}`)
+          .map((r) => r.item.id),
       )
     : new Set(allIds);
 

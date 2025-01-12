@@ -10,6 +10,7 @@ import {
   AlertDialogTrigger,
 } from "@echotab/ui/AlertDialog";
 import { Badge } from "@echotab/ui/Badge";
+import Button from "@echotab/ui/Button";
 import {
   Command,
   CommandEmpty,
@@ -22,7 +23,7 @@ import {
 import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { Browser as BrowserIcon, Tag as TagIcon } from "@phosphor-icons/react";
+import { Broom as BroomIcon, Browser as BrowserIcon, Tag as TagIcon } from "@phosphor-icons/react";
 import {
   CheckCircledIcon,
   ClipboardIcon,
@@ -34,6 +35,7 @@ import {
   OpenInNewWindowIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
+import { motion } from "framer-motion";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -272,6 +274,12 @@ export default function BookmarkCommand() {
 
   const enterToSearch = uiStore.settings.enterToSearch;
 
+  const handleLooseMatch = () => {
+    bookmarkStore.updateFilter({
+      looseMatch: true,
+    });
+  };
+
   return (
     <>
       <TabCommandDialog
@@ -503,14 +511,38 @@ export default function BookmarkCommand() {
                     </CommandGroup>
                   </div>
                 )}
-                <CommandEmpty>
-                  {search && !Boolean(hashtag)
-                    ? `Search by "${search}"`
-                    : search
-                      ? "No tags found"
-                      : "Search by keyword or #tag"}
+                <CommandEmpty className="flex items-center justify-center gap-2">
+                  <div className="text-muted-foreground">
+                    {search && !Boolean(hashtag) ? (
+                      <span>
+                        Find by "<span className="text-foreground italic">{search}</span>"
+                      </span>
+                    ) : search ? (
+                      "No tags found"
+                    ) : (
+                      "Search by keyword or #tag"
+                    )}
+                  </div>
+                  {bookmarkStore.viewTabIds.length === 0 &&
+                    !bookmarkStore.view.filter.looseMatch && (
+                      <motion.div
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+                        transition={{ duration: 0.2 }}>
+                        <div className="text-muted-foreground">or</div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-auto px-2 py-1 text-xs"
+                          onClick={handleLooseMatch}>
+                          Try loose match
+                        </Button>
+                      </motion.div>
+                    )}
                 </CommandEmpty>
-                <div className="text-muted-foreground absolute bottom-2 right-3">
+                <div className="text-muted-foreground absolute bottom-2 right-3 overflow-hidden">
                   Results: <NumberFlow value={bookmarkStore.viewTabIds.length} />
                 </div>
               </div>
