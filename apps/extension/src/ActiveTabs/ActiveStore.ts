@@ -7,8 +7,10 @@ import { derive, proxySet } from "valtio/utils";
 import { BookmarkStore } from "../Bookmarks";
 import { ActiveTab } from "../models";
 import { pluralize, sortRecord } from "../util";
+import { zip } from "../util/array";
 import { getUtcISO } from "../util/date";
 import { toggle } from "../util/set";
+import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
 import { canonicalizeURL, getDomain } from "../util/url";
 
@@ -234,6 +236,10 @@ const Store = proxy({
     Store.tabs = await getActiveTabs();
   },
   saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
+    if (!tabs.length) {
+      return;
+    }
+
     if (remove) {
       const tabIds = tabs.map(({ id }) => id!).filter(Boolean);
       await Store.removeTabs(tabIds).catch(() => {
@@ -243,9 +249,27 @@ const Store = proxy({
       });
     }
 
-    const withoutIds = tabs.map(({ id, windowId, ...t }) => t);
+    const withoutIds = tabs.map(({ id, windowId, ...t }) => ({
+      ...t,
+    }));
 
-    BookmarkStore.saveTabs(withoutIds);
+    const saved = BookmarkStore.saveTabs(withoutIds);
+
+    const idPairs = zip(
+      tabs.map(({ id }) => id!),
+      saved.map(({ id }) => id!),
+    ) as [number, string][];
+
+    const snapshotStore = await SnapshotStore.init();
+    const snapshotResults = await Promise.allSettled(
+      idPairs.map(([tabId, savedId]) => snapshotStore.commitSnapshot(tabId, savedId)),
+    );
+
+    const failed = snapshotResults.filter((r) => r.status === "rejected");
+    if (failed.length) {
+      toast.error(`Failed to save ${pluralize(failed.length, "snapshot")}.`);
+      console.error(failed);
+    }
   },
   toggleAssignedTagId: (tagId: number) => {
     toggle(Store.assignedTagIds, tagId);

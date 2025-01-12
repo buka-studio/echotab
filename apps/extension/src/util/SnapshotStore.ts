@@ -1,6 +1,6 @@
 import { IDBPDatabase, openDB } from "idb";
 
-interface Snapshot {
+export interface Snapshot {
   blob: Blob;
   url: string;
   savedAt: string;
@@ -22,6 +22,10 @@ class SnapshotStore {
     });
 
     return new SnapshotStore(db);
+  }
+
+  async getTmp(tabId: number) {
+    return this.db.get("snapshots_tmp", tabId);
   }
 
   async saveTmp(tabId: number, { blob, url, savedAt }: Snapshot) {

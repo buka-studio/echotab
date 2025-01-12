@@ -1,7 +1,6 @@
 import { uuidv7 } from "uuidv7";
 
 import { getPublicList } from "./Bookmarks/Lists/api";
-import { Message } from "./models";
 import { snapshotActiveTab } from "./util/snapshot";
 import SnapshotStore from "./util/SnapshotStore";
 
@@ -66,7 +65,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
+  const tab = await chrome.tabs.get(tabId);
   await chrome.storage.session.set({ activeTabId: tabId, activeWindowId: windowId });
+
+  await snapshotActiveTab(tab);
 });
 
 chrome.tabs.onRemoved.addListener(async (tabId) => {
@@ -80,18 +82,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     "activeWindowId",
   ]);
 
-  if (
-    changeInfo.status === "complete" &&
-    tab.id === activeTabId &&
-    tab.windowId === activeWindowId &&
-    tab.url?.startsWith("http")
-  ) {
-    const blob = await snapshotActiveTab(activeWindowId);
-
-    const snapshotStore = await SnapshotStore.init();
-
-    await snapshotStore.saveTmp(tabId, { blob, url: tab.url, savedAt: new Date().toISOString() });
-
-    chrome.runtime.sendMessage({ type: "snapshot_tmp", tabId: tab.id, url: tab.url } as Message);
+  if (tab.id === activeTabId && tab.windowId === activeWindowId) {
+    await snapshotActiveTab(activeWindowId);
   }
 });

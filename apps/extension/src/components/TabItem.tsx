@@ -61,7 +61,7 @@ interface Props {
   className?: string;
   icon?: ReactNode;
   link?: ReactNode;
-  linkPreview?: boolean;
+  linkPreview?: boolean | ReactNode;
   children?: ReactNode;
 }
 
@@ -79,7 +79,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
             <HoverCardTrigger asChild>{link}</HoverCardTrigger>
             <ArrowTopRightIcon className="icon h-4 w-4 flex-shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
             <HoverCardContent className="h-[300px] w-[350px] overflow-hidden p-0">
-              <LinkPreview url={tab.url} />
+              {typeof linkPreview === "boolean" ? <LinkPreview url={tab.url} /> : linkPreview}
             </HoverCardContent>
           </HoverCard>
         ) : (

@@ -23,6 +23,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ComponentProps, ComponentRef, forwardRef } from "react";
 
+import SnapshotPreview from "../components/SnapshotPreview";
 import { SortableHandle } from "../components/SortableList";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
@@ -151,6 +152,7 @@ const ActiveTabItem = forwardRef<
       {...rest}
       ref={ref}
       className={cn({ "border-border-active bg-card-active": selected }, className)}
+      linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} />}
       icon={
         // todo: clean up
         tab.pinned ? (
