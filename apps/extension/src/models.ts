@@ -24,9 +24,10 @@ export interface SavedTab extends Tab {
   id: string;
   tagIds: number[];
   savedAt: string;
+  visitedAt?: string;
   note?: string;
   pinned?: boolean;
-  meta?: {
+  metadata?: {
     description?: string;
   };
 }
@@ -45,3 +46,11 @@ export interface List {
   savedAt: string;
   updatedAt: string;
 }
+
+export type Message = {
+  type: "snapshot_tmp";
+  tabId: number;
+  url: string;
+};
+
+export type MessageType = Message["type"];
