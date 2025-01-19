@@ -20,8 +20,8 @@ export function capitalize(s: string) {
   return s[0].toUpperCase() + s.slice(1);
 }
 
-export function pluralize(count: number, singular: string, suffix = "s") {
-  return `${count} ${singular}${count !== 1 ? suffix : ""}`;
+export function pluralize(count: number, singular: string, suffix = "s", includeCount = true) {
+  return `${includeCount ? count : ""} ${singular}${count !== 1 ? suffix : ""}`;
 }
 
 export function groupBy<T, K extends keyof T, V>(
