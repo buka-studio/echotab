@@ -1,7 +1,7 @@
 import Button from "@echotab/ui/Button";
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
-import { Palette } from "@phosphor-icons/react";
-import { HeartFilledIcon, HeartIcon } from "@radix-ui/react-icons";
+import { cn } from "@echotab/ui/util";
+import { HeartStraight as HeartIcon, Palette } from "@phosphor-icons/react";
 import React, { useMemo, useRef, useState } from "react";
 
 import { useBookmarkStore } from "../../Bookmarks";
@@ -83,7 +83,7 @@ export default function MiscPage() {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleAddTag = () => {
-    const tag = tagStore.createTag(`Tag ${tagStore.tags.size + 1}`);
+    const tag = tagStore.createTag({ name: `Tag ${tagStore.tags.size + 1}` });
     setTimeout(() => {
       // todo: do via ref
       contentRef?.current?.scrollTo({
@@ -130,7 +130,10 @@ export default function MiscPage() {
             size="icon-sm"
             aria-label={`Favorite ${t.name}`}
             onClick={() => tagStore.toggleTagFavorite(t.id)}>
-            {t.favorite ? <HeartFilledIcon /> : <HeartIcon />}
+            <HeartIcon
+              className={cn({ "text-red-500": t.favorite })}
+              weight={t.favorite ? "fill" : "regular"}
+            />
           </Button>
           <span className="">{t.tabCount}</span>
           <TagControl

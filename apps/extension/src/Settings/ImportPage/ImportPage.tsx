@@ -212,7 +212,7 @@ export default function DNDImport() {
     const tagsByName: Map<string, Tag> = new Map(
       Array.from(folders).map((f) => {
         if (!tagStore.tagsByNormalizedName.has(f)) {
-          return [f, tagStore.createTag(f)];
+          return [f, tagStore.createTag({ name: f })];
         }
         return [f, tagStore.tagsByNormalizedName.get(f)!];
       }),

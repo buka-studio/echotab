@@ -49,11 +49,11 @@ function DeleteConfirmDialog({
           <AlertDialogDescription asChild>
             <div>
               This will delete{" "}
-              <TagChip color={tag.color} className="inline-flex">
+              <TagChip color={tag.color} className="inline-flex align-middle">
                 {tag.name}
-              </TagChip>
-              . This action cannot be undone. If there are any tabs left without tags, they will be
-              tagged as <TagChip className="inline-flex">Untagged</TagChip>.
+              </TagChip>{" "}
+              This action cannot be undone. If there are any tabs left without tags, they will be
+              tagged as <TagChip className="inline-flex align-middle">Untagged</TagChip>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
