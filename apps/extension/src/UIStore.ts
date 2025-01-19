@@ -61,7 +61,7 @@ export interface UIStore {
 
 type PersistedUIStore = Pick<UIStore, "settings" | "activePanel">;
 
-const store = proxy({
+const Store = proxy({
   settings: {
     showOnboarding: true,
     cardSize: CardSize.Large,
@@ -82,29 +82,29 @@ const store = proxy({
   initialized: false,
   activePanel: Panel.Tabs,
   updateSettings: (update: Partial<Settings>) => {
-    store.settings = { ...store.settings, ...update };
+    Store.settings = { ...Store.settings, ...update };
   },
   activatePanel: (panel: Panel) => {
-    store.activePanel = panel;
+    Store.activePanel = panel;
   },
   initStore: async () => {
     ChromeLocalStorage.getItem(storageKey).then((value) => {
       try {
         const init = (JSON.parse(value as string) as PersistedUIStore) || {};
-        store.settings = {
-          ...store.settings,
+        Store.settings = {
+          ...Store.settings,
           ...init.settings,
         };
-        store.activePanel =
+        Store.activePanel =
           init.activePanel && Object.values(Panel).includes(init.activePanel)
             ? init.activePanel
-            : store.activePanel;
+            : Store.activePanel;
       } catch (e) {
         toast.error("Failed to load stored settings");
         console.error(e);
       }
     });
-    store.initialized = true;
+    Store.initialized = true;
   },
 });
 
@@ -129,9 +129,9 @@ const disableAnimation = () => {
   };
 };
 
-subscribe(store, () => {
-  if (store.initialized) {
-    ChromeLocalStorage.setItem(storageKey, JSON.stringify(store));
+subscribe(Store, () => {
+  if (Store.initialized) {
+    ChromeLocalStorage.setItem(storageKey, JSON.stringify(Store));
   }
 
   const root = window.document.documentElement;
@@ -139,23 +139,23 @@ subscribe(store, () => {
 
   root.classList.remove("light", "dark");
 
-  if (store.settings.theme === "system") {
+  if (Store.settings.theme === "system") {
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light";
 
     root.classList.add(systemTheme);
   } else {
-    root.classList.add(store.settings.theme);
+    root.classList.add(Store.settings.theme);
   }
 
-  if (store.settings.primaryColor) {
-    root.style.setProperty("--primary", store.settings.primaryColor);
+  if (Store.settings.primaryColor) {
+    root.style.setProperty("--primary", Store.settings.primaryColor);
   }
 
   enable();
 });
 
-export const useUIStore = () => useSnapshot(store);
+export const useUIStore = () => useSnapshot(Store);
 
-export default store;
+export default Store;
