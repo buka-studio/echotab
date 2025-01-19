@@ -5,6 +5,7 @@ import { Group } from "@visx/group";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { Bar } from "@visx/shape";
 import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { motion } from "framer-motion";
 import { ComponentProps, useMemo, useState } from "react";
 
 import { useBookmarkStore } from "../Bookmarks";
@@ -158,7 +159,10 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
 
   const activeTag = tagStore.tags.get(tooltip?.tooltipData?.id || -1);
 
-  const noTaggedTabs = tagStore.tags.size === 1 && tagStore.tags.has(unassignedTag.id);
+  const usedTags = new Set(bookmarkStore.tabs.flatMap((t) => t.tagIds));
+
+  const noTaggedLinks =
+    usedTags.size === 0 || (usedTags.size === 1 && usedTags.has(unassignedTag.id));
 
   const handleSort = () => {
     if (sort === SortDir.Desc) {
@@ -172,16 +176,21 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
     }
   };
 
-  if (noTaggedTabs) {
+  if (noTaggedLinks) {
     return (
       <div className="relative">
         <div className="absolute left-1/2 top-1/2 z-[1] translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-balance text-lg">Currently, there are no tabs with tags.</div>
+          <div className="text-balance text-lg">Currently, there are no tagged links.</div>
           <div className="text-foreground/75 text-balance text-sm">
             Begin organizing by tagging tabs, and the tag count will be displayed here.
           </div>
         </div>
-        <PlaceholderGraph height={height} width={width} margin={margin} className="opacity-10" />
+        <PlaceholderGraph
+          height={height}
+          width={width}
+          margin={margin}
+          className="opacity-10 blur-sm"
+        />
       </div>
     );
   }
@@ -221,12 +230,25 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
             const barX = xScale(t.id);
             const barY = yMax - barHeight;
 
+            const index = barX ? (barX + barWidth) / width : 0;
+
             return (
-              <Bar
+              <motion.rect
                 rx={2}
                 key={t.id}
                 x={barX}
                 y={barY}
+                initial={{
+                  opacity: 0,
+                  filter: "blur(10px)",
+                }}
+                animate={{
+                  opacity: 1,
+                  filter: "blur(0px)",
+                }}
+                transition={{
+                  duration: 0.25,
+                }}
                 width={barWidth}
                 height={barHeight}
                 fill={`url(#${t.id})`}

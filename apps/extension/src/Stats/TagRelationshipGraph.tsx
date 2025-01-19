@@ -5,6 +5,7 @@ import { LinearGradient } from "@visx/gradient";
 import { Group } from "@visx/group";
 import { Arc } from "@visx/shape";
 import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { motion } from "framer-motion";
 import { ComponentProps, useMemo, useState } from "react";
 
 import { useBookmarkStore } from "../Bookmarks";
@@ -150,7 +151,7 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
       <div className="relative">
         <div className="absolute left-1/2 top-1/2 z-[1] translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
           <div className="text-balance text-lg">
-            Currently, there are no tabs with multiple tags.
+            Currently, there are no links with multiple tags.
           </div>
           <div className="text-foreground/75 text-balance text-sm">
             Add multiple tags to see tag relationships here.
@@ -160,14 +161,26 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
           height={height}
           width={width}
           centerSize={centerSize}
-          className="opacity-10"
+          className="opacity-10 blur-sm"
         />
       </div>
     );
   }
 
   return (
-    <svg width={width} height={height} ref={containerRef} className="relative">
+    <motion.svg
+      width={width}
+      height={height}
+      ref={containerRef}
+      className="relative"
+      initial={{
+        opacity: 0,
+        filter: "blur(10px)",
+      }}
+      animate={{
+        opacity: 1,
+        filter: "blur(0px)",
+      }}>
       <Group top={height / 2} left={width / 2}>
         <Chord matrix={tabMatrix} padAngle={0.001}>
           {({ chords }) => (
@@ -275,6 +288,6 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
           </div>
         </TooltipInPortal>
       )}
-    </svg>
+    </motion.svg>
   );
 }
