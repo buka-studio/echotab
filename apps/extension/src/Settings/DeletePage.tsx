@@ -9,16 +9,25 @@ import {
   AlertDialogTitle,
 } from "@echotab/ui/AlertDialog";
 import Button from "@echotab/ui/Button";
+import { toast } from "@echotab/ui/Toast";
 import { useState } from "react";
 
 import { BookmarkStore } from "../Bookmarks";
+import CurateStore from "../Curate/CurateStore";
 import TagStore from "../TagStore";
+import SnapshotStore from "../util/SnapshotStore";
 
 export default function MiscPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     BookmarkStore.removeAllItems();
     TagStore.deleteAllTags();
+    CurateStore.removeAllItems();
+
+    const snapshotStore = await SnapshotStore.init();
+    await snapshotStore.clearSnapshots().catch(() => {
+      toast.error("Failed to delete snapshots");
+    });
   };
 
   return (
