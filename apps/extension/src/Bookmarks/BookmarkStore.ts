@@ -86,6 +86,7 @@ export interface BookmarkStore {
   removeLists: (listIds: string[]) => void;
 
   initStore(): Promise<void>;
+  generateId(): string;
   toggleAssignedTagId(tagId: number): void;
   clearAssignedTagIds(): void;
   setView(view: Partial<BookmarkStore["view"]>): void;
@@ -99,7 +100,7 @@ export interface BookmarkStore {
   removeTabsTag(tabIds: string[], tagId: number): void;
   removeTabTags(tabId: string, tagIds: number[]): void;
   removeTags(tagIds: number[]): void;
-  saveTabs(tabs: Omit<SavedTab, "id" | "savedAt">[]): SavedTab[];
+  saveTabs(tabs: Array<Omit<SavedTab, "id" | "savedAt"> & { id?: string }>): SavedTab[];
   tagTabs(tabsIds: string[], tagIds: number[], force?: boolean): void;
   togglePinTab(tabId: string): void;
   pinTabs(tabIds: string[]): void;
@@ -120,12 +121,13 @@ const Store = proxy({
       tags: [] as number[],
       keywords: [] as string[],
     },
-    grouping: TabGrouping.All,
+    grouping: TabGrouping.Tag,
     sort: {
       prop: undefined,
       dir: SortDir.Asc,
     },
   }),
+  generateId: () => uuidv7(),
   upsertList: (list?: List) => {
     if (list) {
       const existingIndex = Store.lists.findIndex((n) => n.id === list.id);
@@ -138,7 +140,7 @@ const Store = proxy({
       } else {
         const newList = {
           ...list,
-          id: uuidv7(),
+          id: Store.generateId(),
           savedAt: getUtcISO(),
           updatedAt: getUtcISO(),
         };
@@ -306,7 +308,7 @@ const Store = proxy({
 
     Store.tabs.push(...newTabs);
   },
-  saveTabs: (tabs: Omit<SavedTab, "id">[]) => {
+  saveTabs: (tabs: Array<Omit<SavedTab, "id" | "savedAt"> & { id?: string }>) => {
     const existingByURLs = new Map(Store.tabs.map((t) => [canonicalizeURL(t.url), t]));
 
     const newTabs = [];
@@ -324,7 +326,7 @@ const Store = proxy({
     }
 
     const savedTabs = newTabs.map(
-      (t) => ({ ...t, id: uuidv7(), savedAt: getUtcISO() }) as SavedTab,
+      (t) => ({ ...t, id: t.id || Store.generateId(), savedAt: getUtcISO() }) as SavedTab,
     );
 
     Store.tabs.push(...savedTabs);

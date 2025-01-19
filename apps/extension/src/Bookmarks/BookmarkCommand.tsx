@@ -42,6 +42,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import FilterTagChips from "../components/FilterTagChips";
 import {
   CommandPagination,
+  OnClose,
   TabCommandDialog,
   TabCommandDialogRef,
   useTabCommand,
@@ -81,7 +82,7 @@ const CommandLabel = ({ page }: { page: string }) => {
   return null;
 };
 
-export default function BookmarkCommand() {
+export default function BookmarkCommand({ onCurate }: { onCurate?: () => void }) {
   const bookmarkStore = useBookmarkStore();
   const tagStore = useTagStore();
   const uiStore = useUIStore();
@@ -162,7 +163,7 @@ export default function BookmarkCommand() {
   };
 
   const handleCreateTag = () => {
-    const newTag = tagStore.createTag(search);
+    const newTag = tagStore.createTag({ name: search });
     bookmarkStore.toggleAssignedTagId(newTag.id);
     setSearch("");
   };
@@ -285,6 +286,13 @@ export default function BookmarkCommand() {
       <TabCommandDialog
         label={customLabel ? <CommandLabel page={activePage} /> : undefined}
         dialogRef={dialogRef}>
+        <OnClose
+          callback={() =>
+            setTimeout(() => {
+              setSearch("");
+            }, 250)
+          }
+        />
         <Command
           loop
           ref={commandRef}
@@ -413,6 +421,12 @@ export default function BookmarkCommand() {
                 </CommandGroup>
                 <CommandSeparator />
                 <CommandGroup heading="Other">
+                  {onCurate && (
+                    <CommandItem onSelect={withClear(onCurate)}>
+                      <BroomIcon className="text-muted-foreground mr-2" />
+                      Curate
+                    </CommandItem>
+                  )}
                   <CommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
                     <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                     Go to Tabs

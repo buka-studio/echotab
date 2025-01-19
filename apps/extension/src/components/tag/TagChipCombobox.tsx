@@ -49,7 +49,7 @@ export default function TagChipCombobox({
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const handleCreateTag = () => {
-    const tag = tagStore.createTag(search);
+    const tag = tagStore.createTag({ name: search });
     setSelectedTagIds((tagIds) => {
       const wipSet = new Set(tagIds);
       toggle(wipSet, tag.id);

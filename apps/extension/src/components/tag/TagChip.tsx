@@ -7,9 +7,10 @@ interface Props {
   onRemove?(): void;
   className?: string;
   color?: string;
+  icon?: ReactNode;
 }
 
-export default function TagChip({ children, onRemove, className, color }: Props) {
+export default function TagChip({ children, onRemove, className, color, icon }: Props) {
   return (
     <div
       className={cn(
@@ -21,8 +22,9 @@ export default function TagChip({ children, onRemove, className, color }: Props)
         className={cn("mr-2 h-4 w-4 flex-shrink-0 rounded-full transition-colors duration-150", {
           "w-0": !color,
         })}
-        style={{ backgroundColor: color }}
-      />
+        style={{ backgroundColor: color }}>
+        {icon}
+      </div>
       <div className="label text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-xs transition-colors duration-150">
         {children}
       </div>

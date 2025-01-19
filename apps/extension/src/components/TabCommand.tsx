@@ -1,9 +1,40 @@
 import { Dialog, DialogContent, DialogTitle } from "@echotab/ui/Dialog";
 import GlowOutline from "@echotab/ui/GlowOutline";
 import { cn } from "@echotab/ui/util";
-import { ComponentProps, useEffect, useImperativeHandle, useState } from "react";
+import {
+  ComponentProps,
+  createContext,
+  useContext,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 
 import { capitalize } from "../util";
+
+const DialogStateContext = createContext<{
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}>({
+  open: false,
+  setOpen: () => {},
+});
+
+export function useDialogState() {
+  return useContext(DialogStateContext);
+}
+
+export function OnClose({ callback }: { callback: () => void }) {
+  const { open } = useDialogState();
+
+  useEffect(() => {
+    if (!open) {
+      callback();
+    }
+  }, [open]);
+
+  return null;
+}
 
 export function useTabCommand<T extends string>() {
   const [pages, setPages] = useState<T[]>(["/"] as T[]);
@@ -154,7 +185,9 @@ export function TabCommandDialog({
           overlay={false}
           close={false}
           className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] absolute top-[-1px] max-w-[57rem] translate-y-0 overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none">
-          {children}
+          <DialogStateContext.Provider value={{ open, setOpen }}>
+            {children}
+          </DialogStateContext.Provider>
         </DialogContent>
       </Dialog>
     </div>

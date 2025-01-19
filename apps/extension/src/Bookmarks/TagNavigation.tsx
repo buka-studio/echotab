@@ -1,4 +1,5 @@
 import { cn } from "@echotab/ui/util";
+import { Sparkle as SparkleIcon } from "@phosphor-icons/react";
 import { LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -66,7 +67,11 @@ export default function TagNavigationLinks({ visibleTagIds, onTagClick, classNam
               <button
                 className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none"
                 onClick={() => onTagClick({ tag, index: i })}>
-                {tag.isQuick && <LightningBoltIcon className="mr-1 flex-shrink-0" />} {tag?.name}
+                {tag.isQuick && (
+                  <LightningBoltIcon className="text-muted-foreground mr-1 flex-shrink-0" />
+                )}{" "}
+                {tag.isAI && <SparkleIcon className="text-muted-foreground mr-1 flex-shrink-0" />}{" "}
+                {tag?.name}
               </button>
             </motion.li>
           );

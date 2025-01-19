@@ -4,6 +4,7 @@ export interface Tag {
   id: number;
   favorite: boolean;
   isQuick?: boolean;
+  isAI?: boolean;
 }
 
 export interface Tab {
