@@ -23,14 +23,10 @@ import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import { ReactNode, useMemo } from "react";
 
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
-import { useTagStore } from "../TagStore";
+import TagStore, { useTagStore } from "../TagStore";
 import { pluralize } from "../util";
 import { intersection } from "../util/set";
-import ActiveStore, {
-  getQuickSaveTagName,
-  useActiveSelectionStore,
-  useActiveTabStore,
-} from "./ActiveStore";
+import ActiveStore, { useActiveSelectionStore, useActiveTabStore } from "./ActiveStore";
 
 function CloseConfirmDialog({
   onConfirm,
@@ -91,8 +87,8 @@ export default function WindowHeader({
   const ctaLabel = affectedTabIds.length < windowTabIds.length ? `Close` : "Close All";
 
   const handleQuickSave = () => {
-    const tagName = getQuickSaveTagName();
-    const quickTag = tagStore.createTag(`${tagName} - ${window.id}`, undefined, true);
+    const tagName = TagStore.getQuickSaveTagName();
+    const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
 
     const tabsToSave = affectedTabIds
       .map((id) => ActiveStore.viewTabsById[id])

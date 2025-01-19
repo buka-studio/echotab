@@ -37,6 +37,7 @@ import FilterTagChips from "../components/FilterTagChips";
 import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
 import {
   CommandPagination,
+  OnClose,
   TabCommandDialog,
   TabCommandDialogRef,
   useTabCommand,
@@ -44,12 +45,11 @@ import {
 import TagChip from "../components/tag/TagChip";
 import TagChipList from "../components/tag/TagChipList";
 import { Panel } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
+import TagStore, { unassignedTag, useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
 import { formatLinks, wait } from "../util";
 import { isAlphanumeric } from "../util/string";
 import ActiveStore, {
-  getQuickSaveTagName,
   SelectionStore,
   staleThresholdDaysInMs,
   useActiveSelectionStore,
@@ -78,6 +78,46 @@ const CommandLabel = ({ page }: { page: string }) => {
     );
   }
   return null;
+};
+
+const SaveSessionTooltip = ({
+  selectedCount,
+  className,
+}: {
+  selectedCount: number;
+  className?: string;
+}) => {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        className={cn(
+          "text-muted-foreground focus-visible:ring-ring flex rounded-full focus-visible:outline-none focus-visible:ring-1",
+          className,
+        )}>
+        <InfoCircledIcon />
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>This will save and close {selectedCount ? selectedCount : "all"} tabs.</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
+const AiTagTooltip = ({ className }: { className?: string }) => {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        className={cn(
+          "text-muted-foreground focus-visible:ring-ring flex rounded-full focus-visible:outline-none focus-visible:ring-1",
+          className,
+        )}>
+        <InfoCircledIcon />
+      </TooltipTrigger>
+      <TooltipContent className="max-w-[250px] text-pretty">
+        Enable AI Tagging by adding LLM endpoint details in settings.
+      </TooltipContent>
+    </Tooltip>
+  );
 };
 
 // todo: clean this & SavedCommand up
@@ -133,10 +173,10 @@ export default function ActiveCommand() {
   };
 
   const handleQuickSave = async () => {
-    const tagName = getQuickSaveTagName();
+    const tagName = TagStore.getQuickSaveTagName();
 
     if (selectionStore.selectedTabIds.size) {
-      const quickTag = tagStore.createTag(tagName, undefined, true);
+      const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
 
       const tabsToSave = Array.from(SelectionStore.selectedTabIds)
         .map((id) => ActiveStore.viewTabsById[id])
@@ -164,7 +204,9 @@ export default function ActiveCommand() {
         continue;
       }
 
-      const quickTag = tagStore.createTag(`${tagName} - ${windowId}`, undefined, true);
+      const tagName = TagStore.getQuickSaveTagName();
+
+      const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
 
       const tabsToSave = ActiveStore.viewTabIdsByWindowId[windowId]
         .map((id) => ActiveStore.viewTabsById[id])
@@ -231,7 +273,7 @@ export default function ActiveCommand() {
   };
 
   const handleCreateTag = () => {
-    const newTag = tagStore.createTag(search);
+    const newTag = tagStore.createTag({ name: search });
     tabStore.toggleAssignedTagId(newTag.id);
     setSearch("");
   };
@@ -331,6 +373,13 @@ export default function ActiveCommand() {
     <TabCommandDialog
       label={customLabel ? <CommandLabel page={activePage} /> : undefined}
       dialogRef={dialogRef}>
+      <OnClose
+        callback={() =>
+          setTimeout(() => {
+            setSearch("");
+          }, 250)
+        }
+      />
       <Command
         loop
         ref={commandRef}
@@ -427,7 +476,8 @@ export default function ActiveCommand() {
                     {selectedCount > 0 && (
                       <CommandItem onSelect={withClear(handleQuickSave)}>
                         <LightningBoltIcon className="text-muted-foreground mr-2" />
-                        Quick Save
+                        Save Session
+                        <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
                       </CommandItem>
                     )}
                     <CommandItem
@@ -439,17 +489,10 @@ export default function ActiveCommand() {
                       AI Tag {llmMutation.isPending && <Spinner className="ml-auto h-4 w-4" />}
                       {aiDisabled && (
                         <>
+                          <AiTagTooltip className="ml-2" />
                           <Badge variant="card" className="ml-8">
                             Disabled
                           </Badge>
-                          <Tooltip>
-                            <TooltipTrigger className="focus-visible:ring-ring ml-auto flex rounded-full focus-visible:outline-none focus-visible:ring-1">
-                              <InfoCircledIcon />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-[250px] text-pretty">
-                              Enable AI Tagging by adding LLM endpoint details in settings.
-                            </TooltipContent>
-                          </Tooltip>
                         </>
                       )}
                     </CommandItem>
@@ -472,7 +515,8 @@ export default function ActiveCommand() {
                 {selectedCount === 0 && (
                   <CommandItem onSelect={withClear(handleQuickSave)}>
                     <LightningBoltIcon className="text-muted-foreground mr-2" />
-                    Quick Save
+                    Save Session{" "}
+                    <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
                   </CommandItem>
                 )}
                 <CommandItem onSelect={() => pushPage("find")}>

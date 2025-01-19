@@ -8,16 +8,10 @@ import { BookmarkStore } from "../Bookmarks";
 import { ActiveTab } from "../models";
 import { pluralize, sortRecord } from "../util";
 import { zip } from "../util/array";
-import { getUtcISO } from "../util/date";
 import { toggle } from "../util/set";
 import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
 import { canonicalizeURL, getDomain } from "../util/url";
-
-export function getQuickSaveTagName() {
-  const date = getUtcISO();
-  return date;
-}
 
 function isValidActiveTab(tab?: Partial<chrome.tabs.Tab>) {
   return tab && tab.url && tab.id && tab.title;
@@ -90,6 +84,15 @@ export const SelectionStore = proxy({
   },
 });
 
+interface RemoveTabResult {
+  status: "success" | "error";
+  tabId: number;
+}
+
+interface RemoveTabOpts {
+  notify?: boolean;
+}
+
 // todo: deduplicate stores
 export interface ActiveStore {
   initialized: boolean;
@@ -122,14 +125,25 @@ export interface ActiveStore {
   addTab(tabId: number, tab: ActiveTab): void;
   reorderTab(from: number, to: number, syncBrowser?: boolean): void;
   syncOrder(tabs: Record<number, number[]>): void;
-  removeTab(tabId: number): Promise<void>;
   removeAllTabs(): Promise<void>;
   removeAllInWindow(windowId: number): Promise<void>;
-  removeTabs(tabIds: number[]): Promise<void>;
+  removeTab(tabId: number, opts?: RemoveTabOpts): Promise<void>;
+  removeTabs(tabIds: number[], opts?: RemoveTabOpts): Promise<void>;
+  removeTabsPar(tabIds: number[], opts?: RemoveTabOpts): Promise<void>;
+  removeTabsSeq(tabIds: number[], opts?: RemoveTabOpts): Promise<void>;
+  removeTabSeq(tabId: number, opts?: RemoveTabOpts): Promise<RemoveTabResult>;
   removeDuplicateTabs(): Promise<void>;
   removeStaleTabs(): Promise<void>;
   resetTabs(): Promise<void>;
   saveTabs(
+    tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
+    autoremove?: boolean,
+  ): Promise<void>;
+  saveTabsSeq(
+    tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
+    autoremove?: boolean,
+  ): Promise<void>;
+  saveTabsPar(
     tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
     autoremove?: boolean,
   ): Promise<void>;
@@ -182,6 +196,7 @@ const Store = proxy({
 
     chrome.tabs.onRemoved.addListener((id) => {
       Store.tabs = Store.tabs.filter((t) => t.id !== id);
+      SelectionStore.selectedTabIds.delete(id);
     });
 
     Store.initialized = true;
@@ -199,10 +214,73 @@ const Store = proxy({
       Store.tabs.push(tab);
     }
   },
-  removeTab: async (tabId: number) => {
-    return Store.removeTabs([tabId]);
+  removeTab: async (tabId: number, opts: RemoveTabOpts = {}) => {
+    return Store.removeTabs([tabId], opts);
   },
-  removeTabs: async (tabIds: number[]) => {
+  removeTabs: async (tabIds: number[], opts: RemoveTabOpts = {}) => {
+    if (!tabIds.length) {
+      return;
+    }
+
+    return Store.removeTabsSeq(tabIds, opts);
+  },
+  removeTabSeq: async (tabId: number, opts: RemoveTabOpts = {}) => {
+    try {
+      await chrome.tabs.remove(tabId);
+
+      return {
+        status: "success",
+        tabId,
+      };
+    } catch (e) {
+      console.error(e);
+      return {
+        status: "error",
+        tabId,
+      };
+    }
+  },
+  removeTabsSeq: async (tabIds: number[], opts: RemoveTabOpts = {}) => {
+    const success: RemoveTabResult[] = [];
+    const error: RemoveTabResult[] = [];
+
+    const idsSet = new Set(tabIds);
+    const removedTabs = new Map(Store.tabs.filter((t) => idsSet.has(t.id)).map((t) => [t.id, t]));
+
+    for (const id of tabIds) {
+      const result = await Store.removeTabSeq(id);
+      if (result.status === "success") {
+        success.push(result);
+      } else {
+        error.push(result);
+      }
+    }
+
+    if (opts.notify && success.length) {
+      toast.success(`Closed ${pluralize(success.length, "tab")}`, {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            Promise.all(
+              success.map(({ tabId }) =>
+                chrome.tabs.create({ url: removedTabs.get(tabId)?.url, active: false }),
+              ),
+            );
+          },
+        },
+      });
+    }
+
+    if (opts.notify && error.length) {
+      toast.error(`Failed to close ${pluralize(error.length, "tab")}. Please try again.`);
+    }
+
+    return {
+      success,
+      error,
+    };
+  },
+  removeTabsPar: async (tabIds: number[], opts: RemoveTabOpts = {}) => {
     const idsSet = new Set(tabIds);
     const removedTabs = Store.tabs.filter((t) => idsSet.has(t.id));
     try {
@@ -237,7 +315,65 @@ const Store = proxy({
   resetTabs: async () => {
     Store.tabs = await getActiveTabs();
   },
+
   saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
+    if (!tabs.length) {
+      return;
+    }
+
+    return Store.saveTabsSeq(tabs, remove);
+  },
+  saveTabsSeq: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
+    if (!tabs.length) {
+      return;
+    }
+
+    const results = {
+      success: [] as number[],
+      error: {
+        tabs: [] as number[],
+        snapshots: [] as string[],
+      },
+    };
+
+    const snapshotStore = await SnapshotStore.init();
+
+    for (const tab of tabs) {
+      const saveId = BookmarkStore.generateId();
+
+      try {
+        await snapshotStore.commitSnapshot(tab.id, saveId);
+      } catch (e) {
+        results.error.snapshots.push(tab.url);
+      }
+
+      try {
+        if (remove) {
+          await Store.removeTab(tab.id, { notify: false });
+        }
+        BookmarkStore.saveTabs([
+          {
+            ...tab,
+            id: saveId,
+          },
+        ]);
+
+        results.success.push(tab.id);
+      } catch (e) {
+        results.error.tabs.push(tab.id);
+      }
+    }
+
+    if (results.success.length) {
+      toast.success(`Saved ${pluralize(results.success.length, "tab")}`);
+    }
+    if (results.error.tabs.length) {
+      toast.error(
+        `Failed to save ${pluralize(results.error.tabs.length, "tab")}. Please try again.`,
+      );
+    }
+  },
+  saveTabsPar: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
     if (!tabs.length) {
       return;
     }

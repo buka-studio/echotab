@@ -1,4 +1,5 @@
 import { toast } from "@echotab/ui/Toast";
+import dayjs from "dayjs";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { derive, proxyMap } from "valtio/utils";
 
@@ -28,10 +29,11 @@ export interface TagStore {
   tags: Map<number, Tag>;
   tagsByNormalizedName: Map<string, Tag>;
   initialized: boolean;
+  getQuickSaveTagName(): string;
   getTagByName(name: string): Tag | undefined;
   getNextTagId(): number;
-  createTag(name: string, color?: string, isQuick?: boolean): Tag;
-  createTags(tags: { name: string; color?: string; isQuick?: boolean }[]): Tag[];
+  createTag(params: TagParams): Tag;
+  createTags(params: TagParams[]): Tag[];
   deleteTag(tagId: number): void;
   deleteAllTags(): void;
   updateTag(tagId: number, updates: Partial<Pick<Tag, "name" | "color">>): void;
@@ -41,26 +43,45 @@ export interface TagStore {
   initStore(): Promise<void>;
 }
 
+type TagParams = {
+  name: string;
+  color?: string;
+  isQuick?: boolean;
+  isAI?: boolean;
+};
+
 type PersistedTagStore = Pick<TagStore, "tags">;
 type ImportedTagStore = Partial<Pick<TagStore, "tags">>;
 
-const store = proxy({
+const Store = proxy({
   tags: proxyMap<number, Tag>(defaultTags),
   initialized: false,
+  getQuickSaveTagName: () => {
+    const base = dayjs().format("D MMM"); // 17 Jan
+    const lastTag = Array.from(Store.tags.values())
+      .filter((tag) => tag.name.includes(base))
+      .at(-1);
+    const lastNumber = Number((lastTag?.name || "").split(" - ")[1]);
+    if (Number.isFinite(lastNumber)) {
+      const nextNumber = lastNumber + 1;
+      return `${base} - ${nextNumber}`;
+    }
+    return `${base}`;
+  },
   getNextTagId: () => {
-    const highestId = Math.max(...store.tags.keys(), 1);
+    const highestId = Math.max(...Store.tags.keys(), 1);
     const newId = highestId + 1;
 
     return newId;
   },
   getTagByName: (name: string) => {
-    return store.tagsByNormalizedName.get(name.trim().toLowerCase());
+    return Store.tagsByNormalizedName.get(name.trim().toLowerCase());
   },
-  createTags: (tags: { name: string; color?: string; isQuick?: boolean }[]) => {
+  createTags: (params: TagParams[]) => {
     const createdTags = [];
 
-    for (const { name, color, isQuick } of tags) {
-      const newId = store.getNextTagId();
+    for (const { name, color, isQuick, isAI } of params) {
+      const newId = Store.getNextTagId();
 
       const _color = color || pickRandomTagColor();
 
@@ -70,6 +91,7 @@ const store = proxy({
         name: name.trim(),
         favorite: false,
         isQuick,
+        isAI,
       };
 
       if (!newTag.name) {
@@ -77,57 +99,51 @@ const store = proxy({
         continue;
       }
 
-      const existing = store.getTagByName(newTag.name);
+      const existing = Store.getTagByName(newTag.name);
       if (existing) {
         createdTags.push(existing);
         continue;
       }
 
-      store.tags.set(newId, newTag);
+      Store.tags.set(newId, newTag);
       createdTags.push(newTag);
     }
 
     return createdTags;
   },
-  createTag: (name: string, color?: string, isQuick?: boolean): Tag => {
-    const [tag] = store.createTags([
-      {
-        name,
-        color,
-        isQuick,
-      },
-    ]);
+  createTag: (params: TagParams): Tag => {
+    const [tag] = Store.createTags([params]);
 
     return tag;
   },
   updateTag: (tagId: number, updates: Partial<Pick<Tag, "name" | "color">>) => {
-    const tags = store.tags;
+    const tags = Store.tags;
     if (!tags.has(tagId)) {
       return;
     }
 
     const newTag = { ...tags.get(tagId), ...updates } as Tag;
-    store.tags.set(tagId, newTag);
+    Store.tags.set(tagId, newTag);
   },
   deleteTag: (tagId: number) => {
     if (tagId === unassignedTag.id) {
       return;
     }
-    store.tags.delete(tagId);
+    Store.tags.delete(tagId);
   },
   deleteAllTags: () => {
-    store.tags.clear();
-    store.tags.set(unassignedTag.id, unassignedTag);
+    Store.tags.clear();
+    Store.tags.set(unassignedTag.id, unassignedTag);
   },
   toggleTagFavorite: (tagId: number) => {
-    const tag = store.tags.get(tagId);
+    const tag = Store.tags.get(tagId);
     if (!tag) {
       return;
     }
     tag.favorite = !tag.favorite;
   },
   shuffleTagColors: () => {
-    for (const [k, v] of store.tags.entries()) {
+    for (const [k, v] of Store.tags.entries()) {
       if (k === unassignedTag.id) {
         continue;
       }
@@ -137,14 +153,14 @@ const store = proxy({
     }
   },
   import: (imported: Partial<ImportedTagStore>) => {
-    const conflicts = intersection(imported.tags?.keys() || [], store.tags.keys());
+    const conflicts = intersection(imported.tags?.keys() || [], Store.tags.keys());
     if (conflicts.size) {
       // shouldn't happen
       console.warn(conflicts);
     }
 
     for (const [k, v] of imported.tags || []) {
-      store.tags.set(k, v);
+      Store.tags.set(k, v);
     }
   },
   initStore: async () => {
@@ -157,13 +173,13 @@ const store = proxy({
           number,
           Tag,
         ][];
-        store.tags = proxyMap<number, Tag>(new Map(defaultTags.concat(storedTags)));
+        Store.tags = proxyMap<number, Tag>(new Map(defaultTags.concat(storedTags)));
       } catch (e) {
         toast.error("Failed to load stored tags");
         console.error(e);
       }
     }
-    store.initialized = true;
+    Store.initialized = true;
   },
 }) as unknown as TagStore;
 
@@ -173,23 +189,23 @@ derive(
      * Lowercased and trimmed tag names -> tags
      */
     tagsByNormalizedName: (get) => {
-      const tags = get(store).tags;
+      const tags = get(Store).tags;
 
       const byName = proxyMap([...tags.values()].map((v) => [v.name.trim().toLowerCase(), v]));
 
       return byName;
     },
   },
-  { proxy: store },
+  { proxy: Store },
 );
 
-subscribe(store, () => {
-  if (store.initialized) {
-    const serialized = JSON.stringify({ tags: Object.fromEntries(store.tags.entries()) });
+subscribe(Store, () => {
+  if (Store.initialized) {
+    const serialized = JSON.stringify({ tags: Object.fromEntries(Store.tags.entries()) });
     ChromeLocalStorage.setItem(storageKey, serialized);
   }
 });
 
-export const useTagStore = () => useSnapshot(store) as typeof store;
+export const useTagStore = () => useSnapshot(Store) as typeof Store;
 
-export default store;
+export default Store;
