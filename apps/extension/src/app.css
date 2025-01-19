@@ -8,3 +8,13 @@
   border: 1px solid hsla(var(--primary) / 0.7);
   border-radius: 2px;
 }
+
+.no-spinner {
+  -moz-appearance: textfield;
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}

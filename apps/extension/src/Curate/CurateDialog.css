@@ -1,0 +1,20 @@
+.opacity-mask {
+  /* mask-image: radial-gradient(black 66%, transparent 74%); */
+  /* mask-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.1) 5%,
+    black 20%,
+    black 80%,
+    rgba(0, 0, 0, 0.1) 95%
+  ); */
+}
+
+.blur-mask {
+  z-index: 1000;
+  /* background: rgba(0, 0, 0, 0.5); */
+  /* backdrop-filter: blur(10px);
+  mask-image: radial-gradient(transparent 66%, black 74%); */
+  /* background: radial-gradient(circle at 0, #e66465, #9198e5); */
+  pointer-events: none;
+  margin: 0 -24px;
+}

@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import Toaster, { toast } from "@echotab/ui/Toast";
 import { TooltipProvider } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
-import { Browser as BrowserIcon } from "@phosphor-icons/react";
+import { Broom as BroomIcon, Browser as BrowserIcon } from "@phosphor-icons/react";
 import { BookmarkFilledIcon, BookmarkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 
@@ -18,6 +18,7 @@ import UIStore, { useUIStore } from "./UIStore";
 import "@echotab/ui/globals.css";
 import "./app.css";
 
+import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ComponentProps, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -25,6 +26,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import AppError from "./AppError";
 import ColorTweakpane from "./ColorTweakpane";
 import MobileBottomBar from "./components/MobileBottomBar";
+import { NumberNotificationBadge } from "./components/NumberNotificationBadge";
+import { Curate, CurateTrigger } from "./Curate";
+import CurateStore, { useCurateStore } from "./Curate/CurateStore";
 import NavMenu from "./NavMenu";
 import Onboarding from "./Onboarding";
 import PulseLogo from "./PulseLogo";
@@ -34,6 +38,7 @@ async function initStores() {
   try {
     await Promise.all([UIStore.initStore(), TagStore.initStore()]);
     await Promise.all([BookmarkStore.initStore(), ActiveStore.initStore()]);
+    await CurateStore.initStore();
   } catch (e) {
     console.error(e);
     toast.error("Failed to initialize application. Please reload the page.");
@@ -83,6 +88,7 @@ export default function App() {
   const { activePanel, initialized: UIInitialized } = useUIStore();
   const { initialized: tagInitialized } = useTagStore();
   const { initialized: activeInitialized } = useActiveTabStore();
+  const curateStore = useCurateStore();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -131,7 +137,24 @@ export default function App() {
                   </div>
                 </TabsList>
                 <div className="flex items-center gap-2">
-                  <NavMenu />
+                  <NavMenu>
+                    <Curate key={String(curateStore.open)}>
+                      <NumberNotificationBadge
+                        value={curateStore.queue.length}
+                        variant="secondary"
+                        show={curateStore.queue.length > 0}>
+                        <CurateTrigger>
+                          <ButtonWithTooltip
+                            tooltipText="Curate"
+                            variant="outline"
+                            size="icon"
+                            className="rounded-full">
+                            <BroomIcon className="h-4 w-4" />
+                          </ButtonWithTooltip>
+                        </CurateTrigger>
+                      </NumberNotificationBadge>
+                    </Curate>
+                  </NavMenu>
                 </div>
               </div>
               <TabsContent value={Panel.Tabs} className="flex-1 focus-visible:ring-0">
@@ -153,4 +176,16 @@ export default function App() {
       </QueryClientProvider>
     </ErrorBoundary>
   );
+}
+
+{
+  /* <KeyboardShortcut className="ml-auto">
+<KeyboardShortcutKey className="h-5 w-5 text-base">⌘</KeyboardShortcutKey>
+<KeyboardShortcutKey className="h-5 w-5 text-sm">f</KeyboardShortcutKey>
+</KeyboardShortcut>
+
+<KeyboardShortcut className="ml-auto">
+<KeyboardShortcutKey className="h-5 w-5 text-base">⌥</KeyboardShortcutKey>
+<KeyboardShortcutKey className="h-5 w-5 text-sm">t</KeyboardShortcutKey>
+</KeyboardShortcut> */
 }
