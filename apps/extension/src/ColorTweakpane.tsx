@@ -33,6 +33,13 @@ const colorVariables = [
 
 const round2 = (num: number) => Math.round(num * 100) / 100;
 
+const hslToHex = (h: number, s: number, l: number) => chroma(h, s / 100, l / 100, "hsl").hex();
+const chromaFromHsl = (color: string) => {
+  const [h, s, l] = color.replaceAll("%", "").split(" ").map(Number);
+
+  return chroma(h, s / 100, l / 100, "hsl");
+};
+
 const initTweakpane = () => {
   const style = window.getComputedStyle(document.documentElement);
 
@@ -87,22 +94,52 @@ const initTweakpane = () => {
   pane.addButton({ title: "Export Colors" }).on("click", () => {
     const css = `:root {\n${colorVariables
       .flatMap((v) => {
-        if (!document.documentElement.style.getPropertyValue(v)) {
+        if (!window.getComputedStyle(document.documentElement).getPropertyValue(v)) {
           return [];
         }
-        return [`${v}: ${document.documentElement.style.getPropertyValue(v)};`];
+        const chroma = chromaFromHsl(
+          window.getComputedStyle(document.documentElement).getPropertyValue(v),
+        );
+        return [`${v}: ${chroma.hex()};`];
       })
       .join("\n")}\n}`;
 
-    const blob = new Blob([css], { type: "text/css" });
+    const w3cJson = Object.fromEntries(
+      colorVariables.map((v) => {
+        const chroma = chromaFromHsl(
+          window.getComputedStyle(document.documentElement).getPropertyValue(v),
+        );
+        return [v.slice(2), { $value: chroma.hex(), $type: "color" }];
+      }),
+    );
+
+    const blob = new Blob([JSON.stringify(w3cJson, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
-    const name = "echotab-colors.css";
+    const name = "echotab-colors.json";
 
     a.href = url;
     a.download = name;
     a.click();
+
+    // w3c color token format
+    // {
+    //   "token name": {
+    //     "$value": "#fff000",
+    //     "$type": "color"
+    //   }
+    // }
+
+    // const blob = new Blob([css], { type: "text/css" });
+    // const url = URL.createObjectURL(blob);
+
+    // const a = document.createElement("a");
+    // const name = "echotab-colors.css";
+
+    // a.href = url;
+    // a.download = name;
+    // a.click();
   });
 
   return pane;
