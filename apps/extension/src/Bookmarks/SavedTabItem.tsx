@@ -3,6 +3,7 @@ import { cn } from "@echotab/ui/util";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ComponentRef, forwardRef } from "react";
 
+import SnapshotPreview from "../components/SnapshotPreview";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { SavedTab, Tag } from "../models";
@@ -55,6 +56,7 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
         "border-border-active bg-card-active": selected,
       })}
       hideFavicon={hideBookmarkFavicons}
+      linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} />}
       icon={
         <Favicon
           src={tab.url}

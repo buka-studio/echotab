@@ -72,6 +72,31 @@ class SnapshotStore {
   async clearSnapshots() {
     await this.db.clear("snapshots");
   }
+
+  async getSnapshotsStorageSize() {
+    let cursor = await this.db.transaction("snapshots").store.openCursor();
+
+    const size = {
+      items: 0,
+      bytes: 0,
+    };
+    while (cursor) {
+      size.items++;
+      size.bytes += cursor.value.blob.size;
+      cursor = await cursor.continue();
+    }
+
+    return size;
+  }
+
+  async downloadSnapshots() {
+    throw new Error("Not implemented");
+  }
+
+  async clearAll() {
+    await this.db.clear("snapshots");
+    await this.db.clear("snapshots_tmp");
+  }
 }
 
 export default SnapshotStore;

@@ -83,6 +83,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   ]);
 
   if (tab.id === activeTabId && tab.windowId === activeWindowId) {
-    await snapshotActiveTab(activeWindowId);
+    await snapshotActiveTab(tab);
   }
 });
