@@ -11,7 +11,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
 import { CheckIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 
 import { Tag } from "~/src/models";
 import { unassignedTag, useTagStore } from "~/src/TagStore";
@@ -23,6 +23,7 @@ interface Props {
   tags: Partial<Tag>[];
   max?: number;
   expandable?: boolean;
+  trigger?: ReactNode;
   onToggle?: (tag: Partial<Tag>) => void;
   onSetTags?: (tagIds: number[]) => void;
   onRemove?: (tag: Partial<Tag>) => void;
@@ -34,6 +35,7 @@ export default function TagChipCombobox({
   max = 5,
   onRemove,
   onToggle,
+  trigger,
   onSetTags,
   expandable = true,
   editable = true,
@@ -69,18 +71,20 @@ export default function TagChipCombobox({
           setOpen(open);
         }}>
         <PopoverTrigger asChild disabled={!expandable} onClick={() => setOpen(true)}>
-          <button className="focus-ring m-[1px] flex items-center rounded">
-            <div className="flex gap-1 p-1">
-              {visibleTags.map((t) => (
-                <div
-                  key={t.id}
-                  style={{ backgroundColor: t.color }}
-                  className="outline-card/80 h-5 w-2 rounded-full"
-                />
-              ))}
-            </div>
-            {excess > 0 && <span className="pr-1">+{excess}</span>}
-          </button>
+          {trigger || (
+            <button className="focus-ring m-[1px] flex items-center rounded">
+              <div className="flex gap-1 p-1">
+                {visibleTags.map((t) => (
+                  <div
+                    key={t.id}
+                    style={{ backgroundColor: t.color }}
+                    className="outline-card/80 h-5 w-2 rounded-full"
+                  />
+                ))}
+              </div>
+              {excess > 0 && <span className="pr-1">+{excess}</span>}
+            </button>
+          )}
         </PopoverTrigger>
         <PopoverContent className="flex w-auto flex-col items-start gap-1 p-1">
           <Command>

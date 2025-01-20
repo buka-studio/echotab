@@ -8,9 +8,11 @@ import {
 import { ComponentProps, useEffect, useImperativeHandle, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { remap } from "../util/math";
+
 import "./CurateDialog.css";
 
-type Direction = "left" | "right" | "up" | "down";
+export type Direction = "left" | "right" | "up" | "down";
 
 export interface SwipeableRef {
   swipe: (direction?: Direction) => void;
@@ -22,6 +24,7 @@ interface Props {
   i: number;
   active: boolean;
   swipeableRef: React.Ref<SwipeableRef>;
+  directions: Direction[];
 }
 
 export default function SwipeableCard({
@@ -31,6 +34,7 @@ export default function SwipeableCard({
   i,
   active,
   swipeableRef,
+  directions,
   ...props
 }: Props & ComponentProps<typeof motion.div>) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -115,7 +119,7 @@ export default function SwipeableCard({
         rotate: -90,
         filter: "blur(5px)",
         transition: {
-          duration: 0.25,
+          duration: 0.2,
         },
       })
       .then(() => {
@@ -131,7 +135,7 @@ export default function SwipeableCard({
         x: 500,
         rotate: 90,
         transition: {
-          duration: 0.25,
+          duration: 0.2,
         },
       })
       .then(() => {
@@ -143,12 +147,18 @@ export default function SwipeableCard({
     trajectory.current.direction = "up";
     controls
       .start({
-        opacity: 0,
-        y: [400, 300],
+        opacity: 0.5,
+        filter: "blur(5px)",
+        // y: [-400, -300],
+        rotate: remap(Math.random(), 0, 1, -50, 50),
+        y: -350,
+        scale: 0.7,
         transition: {
-          duration: 0.25,
+          duration: 0.2,
         },
       })
+      .then(() => controls.set({ zIndex: 0 }))
+      .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }))
       .then(() => {
         onSwiped("up");
       });
@@ -159,11 +169,15 @@ export default function SwipeableCard({
   };
 
   useHotkeys("left", () => swipeLeft(), {
-    enabled: active,
+    enabled: active && directions.includes("left"),
   });
 
   useHotkeys("right", () => swipeRight(), {
-    enabled: active,
+    enabled: active && directions.includes("right"),
+  });
+
+  useHotkeys("up", () => swipeUp(), {
+    enabled: active && directions.includes("up"),
   });
 
   useImperativeHandle(swipeableRef, () => ({

@@ -8,19 +8,22 @@ import {
   DialogTrigger,
 } from "@echotab/ui/Dialog";
 import { cn } from "@echotab/ui/util";
-import { HeartStraight as HeartIcon, Trash as TrashIcon } from "@phosphor-icons/react";
+import {
+  ArrowLineUpRight as ArrowLineUpRightIcon,
+  FastForward as FastForwardIcon,
+  HeartStraight as HeartIcon,
+  X as XIcon,
+} from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { useLLMSummarizeMutation } from "~/src/AI/queries";
-import TagChip from "~/src/components/tag/TagChip";
-import { useTagStore } from "~/src/TagStore";
 import { useUIStore } from "~/src/UIStore";
 import { remap } from "~/src/util/math";
 
 import { CurateStore } from ".";
 import { SavedTab } from "../models";
-import ChoiceButton, { ButtonRef } from "./ChoiceButton";
+import Ruler from "./Ruler";
 
 import "./CurateDialog.css";
 
@@ -35,100 +38,61 @@ import {
   AlertDialogTitle,
 } from "@echotab/ui/AlertDialog";
 import Button from "@echotab/ui/Button";
+import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { NumberFlow } from "@echotab/ui/NumberFlow";
 
-import CardStack from "./CardStack";
+import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import CurateCard from "./CurateCard";
+import CurateDock, { DockAction } from "./CurateDock";
 import { InclusionResult, useCurateStore } from "./CurateStore";
 import CurateSummary from "./CurateSummary";
-import SwipeableCard, { SwipeableRef } from "./SwipeableCard";
+import SwipeableCard, { Direction, SwipeableRef } from "./SwipeableCard";
+import TagList from "./TagList";
 
 interface Props {
   children?: ReactNode;
   maxCards?: number;
 }
 
-const TagList = ({ tagIds, tabId }: { tagIds: number[]; tabId: string }) => {
-  const tagStore = useTagStore();
-
-  return (
-    <motion.ul className="flex flex-wrap gap-2" layout>
-      <AnimatePresence mode="wait">
-        {tagIds.map((id, i) => {
-          const tag = tagStore.tags.get(id);
-          return (
-            <motion.div
-              key={id + "_" + tabId}
-              initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
-              transition={{ delay: 0.1 * i, duration: 0.1 }}>
-              <TagChip color={tag?.color}>{tag!.name}</TagChip>
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
-    </motion.ul>
-  );
-};
-
 const useCurateQueue = (maxCards: number) => {
   const curateStore = useCurateStore();
   const [queue, setQueue] = useState<InclusionResult[]>([]);
-  const [skipped, setSkipped] = useState<InclusionResult[]>([]);
-
-  const next = useRef(0);
-  const total = useRef(curateStore.queue.length);
-  const left = useRef(0);
-  const curated = useRef(0);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    setInitialized(curateStore.open);
     if (curateStore.open) {
-      setQueue(curateStore.queue.slice(0, maxCards));
-      next.current = maxCards;
-      total.current = curateStore.queue.length;
-      left.current = total.current;
-      curated.current = 0;
+      setQueue(curateStore.queue);
     }
   }, [curateStore.open]);
 
   const [kept, setKept] = useState<InclusionResult[]>([]);
   const [deleted, setDeleted] = useState<InclusionResult[]>([]);
 
-  const totalCount = total.current + skipped.length;
-
   const dequeue = (choice: "keep" | "delete" | "skip") => {
     const [item, ...wipQueue] = queue;
 
-    if (next.current < totalCount) {
-      wipQueue.push(curateStore.queue.concat(skipped)[next.current]);
-      next.current = Math.min(next.current + 1, totalCount);
-    }
-
-    setQueue(wipQueue);
-
     if (choice === "keep") {
       setKept((prev) => [...prev, item]);
+      setQueue(wipQueue);
     } else if (choice === "delete") {
       setDeleted((prev) => [...prev, item]);
+      setQueue(wipQueue);
     } else if (choice === "skip") {
-      setSkipped((prev) => [...prev, item]);
-      return;
+      setQueue([...wipQueue, item]);
     }
-
-    curated.current = Math.min(curated.current + 1, totalCount);
-    left.current = Math.max(0, left.current - 1);
   };
-  // console.log({ queue, setQueue, i: next, total, dequeue, kept, deleted });
+
+  const visibleQueue = queue.slice(0, maxCards);
+
   return {
-    queue,
-    setQueue,
-    i: next.current,
-    total: totalCount,
+    queue: visibleQueue,
+    total: curateStore.queue.length,
     dequeue,
-    left: left.current,
+    left: queue.length,
     kept,
     deleted,
+    initialized,
   };
 };
 
@@ -138,29 +102,21 @@ export function CurateTrigger({ children }: { children: ReactNode }) {
 
 export default function Curate({ children, maxCards = 5 }: Props) {
   const curateStore = useCurateStore();
-  const curateLinks = useCurateStore();
   const uiStore = useUIStore();
 
-  const { queue, setQueue, kept, deleted, i, left, total, dequeue } = useCurateQueue(maxCards);
+  const { initialized, queue, kept, deleted, left, total, dequeue } = useCurateQueue(maxCards);
 
-  const discardRef = useRef<ButtonRef>(null);
-  const keepRef = useRef<ButtonRef>(null);
   const swipeableRef = useRef<SwipeableRef | null>(null);
 
-  const handleKeep = (tab: SavedTab, btn = true) => {
-    if (btn) {
-      keepRef.current?.activate("clicked");
+  const handleSwipe = (tab: SavedTab, direction?: Direction) => {
+    if (direction === "left") {
+      dequeue("delete");
+    } else if (direction === "right") {
+      dequeue("keep");
+    } else if (direction === "up") {
+      dequeue("skip");
+      setSkipCount((prev) => ({ ...prev, [tab.id]: (prev[tab.id] || 0) + 1 }));
     }
-
-    dequeue("keep");
-  };
-
-  const handleDelete = (tab: SavedTab, btn = true) => {
-    if (btn) {
-      discardRef.current?.activate("clicked");
-    }
-
-    dequeue("delete");
   };
 
   const llmSummarizeMutation = useLLMSummarizeMutation();
@@ -182,7 +138,9 @@ export default function Curate({ children, maxCards = 5 }: Props) {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [forceFinish, setForceFinish] = useState(false);
 
-  const ended = forceFinish || left === 0;
+  const ended = initialized && (forceFinish || left === 0);
+
+  const [skipCount, setSkipCount] = useState<Record<string, number>>({});
 
   return (
     <Dialog
@@ -207,11 +165,17 @@ export default function Curate({ children, maxCards = 5 }: Props) {
         className={cn(
           "flex h-full max-h-[100vh] max-w-[100vw] flex-col overflow-hidden border-none bg-transparent p-0",
         )}
-        // overlay={<DialogOverlay className="bg-white/60 backdrop-blur-md dark:bg-black/60" />}>
         overlay={<DialogOverlay className="bg-background-base brightness-90" />}>
+        <Ruler value={deleted.length} side="left">
+          <AnimatedNumberBadge value={deleted.length} />
+        </Ruler>
+        <Ruler value={kept.length} side="right">
+          <AnimatedNumberBadge value={kept.length} />
+        </Ruler>
+
         <DialogHeader
           className={cn(
-            "border-border fixed left-0 right-0 top-0 z-50 w-full max-w-screen-xl border-b p-8 pb-2 text-center backdrop-blur-md transition-all duration-300 ease-in-out",
+            "border-border fixed left-0 right-0 top-0 z-50 mx-auto w-full max-w-[calc(100vw-200px)] border-b p-8 pb-2 text-center backdrop-blur-md transition-all duration-300 ease-in-out",
             {
               "translate-y-[-200px] opacity-0": ended,
             },
@@ -249,7 +213,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                   return (
                     <SwipeableCard
                       autoFocus={i === 0}
-                      key={tab.id}
+                      key={tab.id + skipCount[tab.id]}
                       constrained
                       className={cn("focus-ring absolute rounded-2xl")}
                       style={{
@@ -265,13 +229,8 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                           swipeableRef.current = e;
                         }
                       }}
-                      onSwiped={(direction) => {
-                        if (direction === "left") {
-                          handleDelete(tab);
-                        } else if (direction === "right") {
-                          handleKeep(tab);
-                        }
-                      }}>
+                      directions={left > 1 ? ["left", "right", "up"] : ["left", "right"]}
+                      onSwiped={(direction) => handleSwipe(tab, direction)}>
                       <CurateCard tab={tab} visible={i === 0} />
                     </SwipeableCard>
                   );
@@ -282,72 +241,85 @@ export default function Curate({ children, maxCards = 5 }: Props) {
         </div>
         <div
           className={cn(
-            "fixed bottom-0 z-50 flex min-h-[150px] w-full flex-col items-center justify-center gap-10 pb-10 backdrop-blur-md transition-all duration-300 ease-in-out",
-            {
-              "translate-y-[100px]": ended,
-            },
+            "border-border bg-surface-1 fixed bottom-0 z-50 flex min-h-[170px] w-full flex-col items-center justify-center border-t pb-5 backdrop-blur-md transition-all duration-300 ease-in-out",
           )}>
-          <div
-            className={cn(
-              "absolute bottom-full right-[calc(100%-100px)] transition-all duration-500",
-              {
-                "opacity-0": ended,
-              },
-            )}>
-            <CardStack count={Math.min(deleted.length, 10)} />
+          <div className="flex flex-col items-center justify-center gap-5">
+            {!ended && <TagList tagIds={currentTab?.tagIds || []} tabId={currentTab?.id || ""} />}
+            <AnimatePresence mode="popLayout">
+              {!ended && (
+                <motion.div
+                  initial={{ opacity: 0, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 50 }}>
+                  <CurateDock>
+                    <DockAction
+                      onClick={() => swipeableRef.current?.swipe("left")}
+                      tooltipText="Delete">
+                      <XIcon
+                        className="h-6 w-6 text-[#F05B5D] shadow-current [filter:drop-shadow(0_0_4px_#D9282B)]"
+                        weight="bold"
+                      />
+                    </DockAction>
+                    <div className="flex items-center gap-2">
+                      <ButtonWithTooltip
+                        variant="outline"
+                        size="icon"
+                        className="bg-card"
+                        tooltipText="Open"
+                        onClick={() => {
+                          window.open(currentTab?.url, "_blank");
+                        }}>
+                        <ArrowLineUpRightIcon className="text-muted-foreground/60 h-5 w-5" />
+                      </ButtonWithTooltip>
+                      <ButtonWithTooltip
+                        variant="outline"
+                        size="icon"
+                        className="bg-card"
+                        tooltipText="Skip"
+                        disabled={queue.length < 2}
+                        onClick={() => {
+                          swipeableRef.current?.swipe("up");
+                        }}>
+                        <FastForwardIcon className="text-muted-foreground/60 h-5 w-5" />
+                      </ButtonWithTooltip>
+                    </div>
+                    <DockAction
+                      onClick={() => swipeableRef.current?.swipe("right")}
+                      tooltipText="Keep">
+                      <HeartIcon
+                        className="h-6 w-6 text-[#F05BF0] shadow-current [filter:drop-shadow(0_0_4px_#D328D9)]"
+                        weight="bold"
+                      />
+                    </DockAction>
+                  </CurateDock>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <div
-            className={cn(
-              "absolute bottom-[calc(100%-20px)] flex w-full max-w-xs justify-between gap-10 transition-all duration-500",
-              {
-                "opacity-0": ended,
-              },
-            )}>
-            <ChoiceButton
-              ref={discardRef}
-              onClick={() => swipeableRef.current?.swipe("left")}
-              color="#3C24D7"
-              IconElement={TrashIcon}
-            />
-            <ChoiceButton
-              ref={keepRef}
-              onClick={() => swipeableRef.current?.swipe("right")}
-              color="#f0abfc"
-              IconElement={HeartIcon}
-            />
-          </div>
-          <CardStack
-            count={Math.min(kept.length, 10)}
-            className={cn("absolute bottom-full left-full transition-all duration-500", {
-              "opacity-0": ended,
-            })}
-          />
-          <AlertDialog open={confirmDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{left} links left</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to finish curating?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setConfirmDialogOpen(false)}>
-                  Continue
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => {
-                    setForceFinish(true);
-                    setConfirmDialogOpen(false);
-                  }}
-                  variant="destructive">
-                  Finish
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          {/* <TagList tagIds={currentTab?.tagIds || []} tabId={currentTab?.id || ""} /> */}
         </div>
+        <AlertDialog open={confirmDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{left} links left</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to finish curating?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setConfirmDialogOpen(false)}>
+                Continue
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setForceFinish(true);
+                  setConfirmDialogOpen(false);
+                }}
+                variant="destructive">
+                Finish
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );

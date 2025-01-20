@@ -24,13 +24,12 @@ export default function CurateSummary({ deleted, kept, className, children, empt
         className,
       )}>
       <PCVisual
-        className="opacity-60"
         style={
           {
             "--screen": "hsl(var(--card-active))",
             "--edges": "hsl(var(--muted-foreground) / 0.5)",
             "--case": "hsl(var(--card))",
-            "--splash": "hsl(var(--popover))",
+            "--splash": "hsl(var(--surface-2))",
             "--visual": "hsl(var(--foreground))",
           } as CSSProperties
         }
@@ -52,11 +51,12 @@ export default function CurateSummary({ deleted, kept, className, children, empt
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.15 }}>
             <span className="text-muted-foreground flex items-center gap-1">
-              <NumberFlow value={kept} /> deleted <TrashIcon className="h-4 w-4" />
+              <NumberFlow value={deleted} /> deleted{" "}
+              <TrashIcon className="text-muted-foreground h-4 w-4" />
             </span>
             /
             <span className="text-muted-foreground flex items-center gap-1">
-              <NumberFlow value={deleted} /> kept <TagIcon className="h-4 w-4" />
+              <NumberFlow value={kept} /> kept <TagIcon className="text-muted-foreground h-4 w-4" />
             </span>
           </motion.div>
         </>
