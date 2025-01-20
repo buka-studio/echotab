@@ -1,0 +1,32 @@
+import { pickRandomTagColor } from "../TagStore";
+
+export const tagSuggestions = [
+  "news",
+  "technology",
+  "education",
+  "health",
+  "sports",
+  "entertainment",
+  "finance",
+  "travel",
+  "food",
+  "music",
+  "movies",
+  "books",
+  "fashion",
+  "art",
+  "science",
+  "business",
+  "marketing",
+  "history",
+  "lifestyle",
+  "photography",
+  "games",
+  "diy",
+  "politics",
+  "recipes",
+  "fitness",
+].map((t) => ({
+  name: t,
+  color: pickRandomTagColor(),
+}));

@@ -1,0 +1,24 @@
+<svg
+  width="25"
+  height="25"
+  viewBox="0 0 25 25"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M13.3185 19.7517L22.3185 12.7517L13.3185 5.75171V19.7517Z"
+    stroke="currentColor"
+    stroke-opacity="0.8"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M2.31848 19.7517L11.3185 12.7517L2.31848 5.75171V19.7517Z"
+    stroke="currentColor"
+    stroke-opacity="0.8"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

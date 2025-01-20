@@ -1,0 +1,14 @@
+.item:not(:last-child)::after {
+  opacity: 0.25;
+  content: "/";
+  display: block;
+  font-weight: 200;
+  font-size: inherit;
+  position: absolute;
+  right: -2rem;
+}
+
+.carousel-shadow {
+  background: linear-gradient(90deg, hsl(var(--background-base)) 10%, transparent 40%),
+    linear-gradient(90deg, transparent 60%, hsl(var(--background-base)));
+}

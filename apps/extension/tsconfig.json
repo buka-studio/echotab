@@ -1,0 +1,16 @@
+{
+    "extends": "plasmo/templates/tsconfig.base",
+    "exclude": ["node_modules"],
+    "include": [".plasmo/index.d.ts", "./**/*.ts", "./**/*.tsx"],
+    "compilerOptions": {
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "verbatimModuleSyntax": false,
+        "target": "esnext",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "paths": {
+            "~/*": ["./*"]
+        },
+        "baseUrl": "."
+    }
+}
