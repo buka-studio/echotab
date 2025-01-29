@@ -56,12 +56,12 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> &
     Pick<React.ComponentPropsWithoutRef<typeof DialogPrimitive.Portal>, "container"> & {
-      overlay?: boolean;
+      overlay?: boolean | React.ReactNode;
       close?: boolean;
     }
 >(({ className, container, overlay = true, close = true, children, ...props }, ref) => (
   <DialogPortal container={container}>
-    {overlay && <DialogOverlay />}
+    {overlay ? typeof overlay === "boolean" ? <DialogOverlay /> : overlay : null}
     <DialogPrimitive.Content
       ref={ref}
       className={cn(

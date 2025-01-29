@@ -61,7 +61,7 @@
     "@hookform/resolvers": "~3.9.0",
     "@lexical/headless": "^0.17.0",
     "@lexical/react": "^0.17.0",
-    "@number-flow/react": "~0.4.4",
+    "@number-flow/react": "~0.5.5",
     "@phosphor-icons/react": "~2.1.7",
     "@radix-ui/react-accordion": "~1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",

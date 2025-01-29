@@ -6,8 +6,6 @@ import { useState } from "react";
 
 import { Session, useCurateStore } from "../Curate/CurateStore";
 
-import "./test.css";
-
 function Counter({ value, className }: { value: number; className?: string }) {
   return (
     <NumberFlow
