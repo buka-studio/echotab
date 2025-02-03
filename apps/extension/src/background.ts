@@ -3,9 +3,13 @@ import { uuidv7 } from "uuidv7";
 import { getPublicList } from "./Bookmarks/Lists/api";
 import { snapshotActiveTab } from "./util/snapshot";
 import SnapshotStore from "./util/SnapshotStore";
+import { isValidActiveTab } from "./util/tab";
 
-chrome.action.onClicked.addListener(async () => {
-  chrome.tabs.create({ url: "chrome://newtab", active: true });
+chrome.action.onClicked.addListener(async (tab) => {
+  chrome.runtime.sendMessage({ action: "open-popup" });
+  if (tab.id && tab.active) {
+    await chrome.tabs.sendMessage(tab.id, { type: "open-popup" });
+  }
 });
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -39,7 +43,7 @@ async function handleImportList(listId: string) {
   await chrome.storage.local.set({ [importStorageKey]: queue });
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "version") {
     sendResponse({ version: chrome.runtime.getManifest().version });
   }
@@ -48,27 +52,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (!listId) {
       sendResponse({ success: false });
-      return;
+    } else {
+      handleImportList(listId)
+        .then(() => {
+          sendResponse({ success: true });
+        })
+        .catch((e) => {
+          console.error(e);
+          sendResponse({ success: false });
+        });
+    }
+  }
+  if (message.action === "tab-info") {
+    if (isValidActiveTab(sender.tab)) {
+      sendResponse({ tab: sender.tab });
+    }
+  }
+  if (message.action === "tab-close") {
+    if (message.saveId && message.tabId) {
+      const snapshotStore = await SnapshotStore.init();
+      await snapshotStore.commitSnapshot(message.tabId, message.saveId);
     }
 
-    handleImportList(listId)
-      .then(() => {
-        sendResponse({ success: true });
-      })
-      .catch((e) => {
-        console.error(e);
-        sendResponse({ success: false });
-      });
-
-    return true;
+    if (message.tabId) {
+      chrome.tabs.remove(message.tabId);
+    }
   }
+
+  return true;
 });
 
 chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
   const tab = await chrome.tabs.get(tabId);
   await chrome.storage.session.set({ activeTabId: tabId, activeWindowId: windowId });
 
-  await snapshotActiveTab(tab);
+  try {
+    await snapshotActiveTab(tab);
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 chrome.tabs.onRemoved.addListener(async (tabId) => {
@@ -83,6 +105,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   ]);
 
   if (tab.id === activeTabId && tab.windowId === activeWindowId) {
-    await snapshotActiveTab(tab);
+    try {
+      await snapshotActiveTab(tab);
+    } catch (e) {
+      console.error(e);
+    }
   }
 });
