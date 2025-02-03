@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  .echotab-root {
     --background-base: 240, 11%, 96%;
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
@@ -37,7 +37,8 @@
     --ring: 27 6% 80%;
   }
 
-  :root.dark {
+  .echotab-root.dark,
+  .dark .echotab-root {
     --background-base: 0 0% 13.76%;
     --background: 0 0% 15.69%;
     --foreground: 60 8% 87.8%;
@@ -67,7 +68,8 @@
     --surface-4: 0 0% 20%;
   }
 
-  :root.dark-contrast {
+  .echotab-root.dark-contrast,
+  .dark-contrast .echotab-root {
     --background-base: 0 0% 8%;
     --background: 0 0% 12%;
     --foreground: 60 8% 92%;
@@ -97,19 +99,17 @@
     --surface-4: 0 0% 18%;
   }
 
-  :root {
+  .echotab-root {
     -webkit-font-smoothing: antialiased;
-  }
-
-  * {
-    @apply border-border;
-  }
-
-  body {
     @apply text-foreground;
+
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+  }
+
+  :where(.echotab-root *) {
+    @apply border-border;
   }
 }
 

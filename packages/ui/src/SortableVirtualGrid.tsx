@@ -12,7 +12,7 @@ import { SortableContext, sortableKeyboardCoordinates, useSortable } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
-import { FC, useLayoutEffect, useRef, useState } from "react";
+import { FC, JSX, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface RenderProps {

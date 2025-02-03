@@ -17,7 +17,7 @@ export default function GlowOutline({
 }) {
   return (
     <span
-      className={cn("glow", className)}
+      className={cn("glow-outline", className)}
       style={
         {
           "--speed": speed,
