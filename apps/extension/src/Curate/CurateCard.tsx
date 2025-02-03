@@ -117,11 +117,13 @@ const Jumbo = ({ tab, className }: { tab: SavedTab; className?: string }) => {
         className="bg-muted h-14 w-14 flex-shrink-0 rounded-lg [&>*]:h-10 [&>*]:w-10"
       />
       <div className="flex flex-col text-left">
-        <h1 className="line-clamp-1 text-sm font-bold">{tab.title}</h1>
-        <div className="text-muted-foreground text-sm">
-          <span className="">Saved {formatSavedAt(tab.savedAt)} ago</span> / Visited{" "}
-          {formatSavedAt(tab.visitedAt || tab.savedAt)} ago
-        </div>
+        <h1 className="line-clamp-1 break-all text-sm font-bold">{tab.title}</h1>
+        {tab.savedAt && (
+          <div className="text-muted-foreground text-sm">
+            <span className="">Saved {formatSavedAt(tab.savedAt)} ago</span> / Visited{" "}
+            {formatSavedAt(tab.visitedAt || tab.savedAt)} ago
+          </div>
+        )}
       </div>
     </div>
   );
@@ -133,7 +135,7 @@ const AIEmptyState = ({ className, children }: { className?: string; children?: 
   return (
     <div
       className={cn(
-        "relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg text-sm",
+        "border-border relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg border text-sm",
         className,
       )}>
       <div
@@ -176,6 +178,19 @@ const AISummaryDescription = ({ tab, className }: { tab: SavedTab; className?: s
     return <AIEmptyState />;
   }
 
+  if (llmSummary.isError) {
+    return (
+      <AIEmptyState>
+        <div className="flex flex-col items-center gap-2">
+          There was an error summarizing this link.
+          <Button variant="outline" size="sm" onClick={() => llmSummary.refetch()}>
+            Retry
+          </Button>
+        </div>
+      </AIEmptyState>
+    );
+  }
+
   return (
     <div className={cn("text-foreground text-left text-sm leading-5", className)}>
       <AnimatePresence mode="popLayout">
@@ -189,18 +204,6 @@ const AISummaryDescription = ({ tab, className }: { tab: SavedTab; className?: s
           </motion.div>
         )}
       </AnimatePresence>
-
-      {llmSummary.isError && (
-        <AIEmptyState>
-          <div className="flex flex-col items-center gap-2">
-            There was an error summarizing this link.
-            <Button variant="outline" size="sm" onClick={() => llmSummary.refetch()}>
-              Retry
-            </Button>
-          </div>
-        </AIEmptyState>
-      )}
-
       {llmSummary.data && <AnimatedText text={llmSummary.data} />}
     </div>
   );
