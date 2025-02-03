@@ -1,33 +1,4 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogTrigger,
-} from "@echotab/ui/Dialog";
-import { cn } from "@echotab/ui/util";
-import {
-  ArrowLineUpRight as ArrowLineUpRightIcon,
-  FastForward as FastForwardIcon,
-  HeartStraight as HeartIcon,
-  X as XIcon,
-} from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ReactNode, useEffect, useRef, useState } from "react";
-
-import { useLLMSummarizeMutation } from "~/src/AI/queries";
-import { useUIStore } from "~/src/UIStore";
-import { remap } from "~/src/util/math";
-
-import { CurateStore } from ".";
-import { SavedTab } from "../models";
-import Ruler from "./Ruler";
-
-import "./CurateDialog.css";
-
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -39,13 +10,38 @@ import {
 } from "@echotab/ui/AlertDialog";
 import Button from "@echotab/ui/Button";
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+  DialogTrigger,
+} from "@echotab/ui/Dialog";
 import { NumberFlow } from "@echotab/ui/NumberFlow";
+import { cn } from "@echotab/ui/util";
+import {
+  ArrowLineUpRight as ArrowLineUpRightIcon,
+  FastForward as FastForwardIcon,
+  HeartStraight as HeartIcon,
+  X as XIcon,
+} from "@phosphor-icons/react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
+import { remap } from "~/src/util/math";
+
+import { CurateStore } from ".";
+import { useBookmarkStore } from "../Bookmarks";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
+import { SavedTab } from "../models";
+import { getUtcISO } from "../util/date";
 import CurateCard from "./CurateCard";
 import CurateDock, { DockAction } from "./CurateDock";
 import { InclusionResult, useCurateStore } from "./CurateStore";
 import CurateSummary from "./CurateSummary";
+import Ruler from "./Ruler";
 import SwipeableCard, { Direction, SwipeableRef } from "./SwipeableCard";
 import TagList from "./TagList";
 
@@ -58,11 +54,13 @@ const useCurateQueue = (maxCards: number) => {
   const curateStore = useCurateStore();
   const [queue, setQueue] = useState<InclusionResult[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const total = useRef(0);
 
   useEffect(() => {
     setInitialized(curateStore.open);
     if (curateStore.open) {
       setQueue(curateStore.queue);
+      total.current = curateStore.queue.length;
     }
   }, [curateStore.open]);
 
@@ -86,8 +84,8 @@ const useCurateQueue = (maxCards: number) => {
   const visibleQueue = queue.slice(0, maxCards);
 
   return {
+    total: total.current,
     queue: visibleQueue,
-    total: curateStore.queue.length,
     dequeue,
     left: queue.length,
     kept,
@@ -102,9 +100,17 @@ export function CurateTrigger({ children }: { children: ReactNode }) {
 
 export default function Curate({ children, maxCards = 5 }: Props) {
   const curateStore = useCurateStore();
-  const uiStore = useUIStore();
+  const bookmarkStore = useBookmarkStore();
 
-  const { initialized, queue, kept, deleted, left, total, dequeue } = useCurateQueue(maxCards);
+  const { initialized, total, queue, kept, deleted, left, dequeue } = useCurateQueue(maxCards);
+
+  const curateTabsById = useMemo(() => {
+    const curateTabIds = new Set(curateStore.queue.map((result) => result.tabId));
+
+    return Object.fromEntries(
+      bookmarkStore.tabs.filter((tab) => curateTabIds.has(tab.id)).map((tab) => [tab.id, tab]),
+    );
+  }, [bookmarkStore.tabs, queue]);
 
   const swipeableRef = useRef<SwipeableRef | null>(null);
 
@@ -119,21 +125,29 @@ export default function Curate({ children, maxCards = 5 }: Props) {
     }
   };
 
-  const llmSummarizeMutation = useLLMSummarizeMutation();
-  const aiDisabled = !uiStore.settings.aiApiProvider;
-
   const handleFinish = () => {
     if (kept.length + deleted.length !== 0) {
       CurateStore.saveSession({
         kept: kept.length,
         deleted: deleted.length,
+        keptIds: kept.map((result) => result.tabId),
       });
+
+      if (deleted.length) {
+        const deletedIds = deleted.map((result) => result.tabId);
+        bookmarkStore.removeTabs(deletedIds);
+      }
+
+      if (kept.length) {
+        const keptIds = kept.map((result) => result.tabId);
+        bookmarkStore.updateTabs(keptIds, { lastCuratedAt: getUtcISO() });
+      }
     }
 
     curateStore.setOpen(false);
   };
 
-  const currentTab = queue[0]?.tab;
+  const currentTab = curateTabsById[queue[0]?.tabId];
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [forceFinish, setForceFinish] = useState(false);
@@ -165,7 +179,9 @@ export default function Curate({ children, maxCards = 5 }: Props) {
         className={cn(
           "flex h-full max-h-[100vh] max-w-[100vw] flex-col overflow-hidden border-none bg-transparent p-0",
         )}
-        overlay={<DialogOverlay className="bg-background-base brightness-90" />}>
+        overlay={
+          <DialogOverlay className="bg-background dark:bg-background-base dark:brightness-90" />
+        }>
         <Ruler value={deleted.length} side="left">
           <AnimatedNumberBadge value={deleted.length} />
         </Ruler>
@@ -181,15 +197,15 @@ export default function Curate({ children, maxCards = 5 }: Props) {
             },
           )}>
           <DialogTitle className="sr-only">Curate</DialogTitle>
-          <DialogDescription className="flex items-center justify-between text-sm">
-            <span>Swipe left to remove</span>
+          <DialogDescription className="flex items-center text-sm">
+            <span className="hidden md:block">Swipe left to remove</span>
             <span
-              className={cn("flex items-center gap-2", {
+              className={cn("mx-auto flex items-center gap-2", {
                 "opacity-0": left === 0,
               })}>
               <NumberFlow value={left} /> links left
             </span>
-            <span>Swipe right to keep</span>
+            <span className="hidden md:block">Swipe right to keep</span>
           </DialogDescription>
         </DialogHeader>
         <div className="relative z-20 flex h-full flex-col items-center justify-center p-5">
@@ -206,10 +222,9 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                   </Button>
                 </CurateSummary>
               )}
-
               {!forceFinish &&
                 queue.map((result, i) => {
-                  const tab = result.tab;
+                  const tab = curateTabsById[result.tabId];
                   return (
                     <SwipeableCard
                       autoFocus={i === 0}
@@ -236,7 +251,6 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                   );
                 })}
             </div>
-            <div className="blur-mask absolute inset-0 z-[1000]" />
           </div>
         </div>
         <div

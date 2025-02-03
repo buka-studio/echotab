@@ -10,8 +10,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import { remap } from "../util/math";
 
-import "./CurateDialog.css";
-
 export type Direction = "left" | "right" | "up" | "down";
 
 export interface SwipeableRef {

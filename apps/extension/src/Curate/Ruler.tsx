@@ -58,7 +58,7 @@ export default function Ruler({
       style={{ "--step-size": stepSize, "--steps": steps } as CSSProperties}>
       {Array.from({ length: steps + 1 }, (_, i) => i).map((i) => {
         const isValue = Math.round(clamp(remap(value, 0, steps, steps, 0), 0, steps)) === i;
-        console.log(remap(value, 0, steps, steps, 0));
+
         return (
           <motion.div
             initial={{ opacity: 0 }}

@@ -1,9 +1,6 @@
+import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
 import { ComponentProps } from "react";
-
-import "./CurateDialog.css";
-
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 
 export function DockAction({ variant, ...props }: ComponentProps<typeof ButtonWithTooltip>) {
   return (

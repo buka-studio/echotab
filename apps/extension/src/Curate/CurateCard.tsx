@@ -1,3 +1,4 @@
+import Button from "@echotab/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import { cn } from "@echotab/ui/util";
 import {
@@ -7,16 +8,16 @@ import {
   Sparkle as SparkleIcon,
 } from "@phosphor-icons/react";
 import { formatDistanceToNow } from "date-fns";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 
 import SnapshotPreview from "~/src/components/SnapshotPreview";
 import { Favicon } from "~/src/components/TabItem";
 
+import { useLLMSummarizeQuery } from "../AI/queries";
+import usePatternBackground from "../hooks/usePatternBackground";
 import { SavedTab } from "../models";
-
-const defaultDescription =
-  "React is the library for web and native user interfaces. Build user interfaces out of individual pieces called components written in JavaScript. React is designed to let you seamlessly combine components written by independent people, teams, and organizations.";
+import { useUIStore } from "../UIStore";
 
 const Header = ({
   children,
@@ -100,7 +101,9 @@ const useTypingAnimation = ({
       return () => clearTimeout(timer);
     }
 
-    onAnimationEnd?.();
+    if (currentIndex === textParts.length && textParts.length > 0) {
+      onAnimationEnd?.();
+    }
   }, [textParts, currentIndex, speed, onAnimationEnd, disabled]);
 
   return displayedText;
@@ -119,32 +122,86 @@ const Jumbo = ({ tab, className }: { tab: SavedTab; className?: string }) => {
           <span className="">Saved {formatSavedAt(tab.savedAt)} ago</span> / Visited{" "}
           {formatSavedAt(tab.visitedAt || tab.savedAt)} ago
         </div>
-
-        {/* <TagList tab={tab} /> */}
       </div>
     </div>
   );
 };
 
-const AISummaryDescription = ({ tab, className }: { tab: SavedTab; className?: string }) => {
+const AIEmptyState = ({ className, children }: { className?: string; children?: ReactNode }) => {
+  const patternBg = usePatternBackground("diagonal_lines");
+
+  return (
+    <div
+      className={cn(
+        "relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg text-sm",
+        className,
+      )}>
+      <div
+        className="bg-background absolute inset-0 rounded-lg [mask-image:linear-gradient(180deg,transparent_60%,black)]"
+        style={{ backgroundImage: patternBg }}
+      />
+      <div className="text-sm">AI Summary not available</div>
+      <div className="relative z-[1]">
+        <div className="text-muted-foreground text-center">
+          {children || "Enable AI Summary by adding LLM endpoint details in settings."}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AnimatedText = ({ text }: { text: string }) => {
   const displayedText = useTypingAnimation({
-    text: tab.metadata?.description || defaultDescription,
+    text: text || "",
     speed: 50,
     splitter: (str) => str.split(/(?= )/),
-    onAnimationEnd: () => {},
-    disabled: false,
   });
+
+  return displayedText.map((text, i) => (
+    <motion.span
+      key={i}
+      initial={{ opacity: 0, filter: "blur(6px)" }}
+      animate={{ opacity: 1, filter: "blur(0px)" }}>
+      {text}
+    </motion.span>
+  ));
+};
+
+const AISummaryDescription = ({ tab, className }: { tab: SavedTab; className?: string }) => {
+  const uiStore = useUIStore();
+  const aiEnabled = Boolean(uiStore.settings.aiApiProvider);
+  const llmSummary = useLLMSummarizeQuery({ tab });
+
+  if (!aiEnabled) {
+    return <AIEmptyState />;
+  }
 
   return (
     <div className={cn("text-foreground text-left text-sm leading-5", className)}>
-      {displayedText.map((text, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, filter: "blur(6px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}>
-          {text}
-        </motion.span>
-      ))}
+      <AnimatePresence mode="popLayout">
+        {llmSummary.isPending && (
+          <motion.div
+            initial={{ opacity: 0, filter: "blur(5px)" }}
+            animate={{ opacity: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, filter: "blur(5px)" }}
+            transition={{ duration: 0.25, delay: 0.25 }}>
+            <span className="animate-shimmer-text">Summarizing...</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {llmSummary.isError && (
+        <AIEmptyState>
+          <div className="flex flex-col items-center gap-2">
+            There was an error summarizing this link.
+            <Button variant="outline" size="sm" onClick={() => llmSummary.refetch()}>
+              Retry
+            </Button>
+          </div>
+        </AIEmptyState>
+      )}
+
+      {llmSummary.data && <AnimatedText text={llmSummary.data} />}
     </div>
   );
 };
@@ -159,7 +216,7 @@ export default function CurateCard({ tab, visible }: { tab: SavedTab; visible: b
       </Header>
       <div className="flex flex-1 flex-col gap-3 p-2 pt-3">
         <Jumbo tab={tab} className="" />
-        <Tabs defaultValue="snapshot" className="flex flex-1 flex-col">
+        <Tabs defaultValue="snapshot" className="flex flex-1 flex-col overflow-auto" key={tab.id}>
           <div className="flex justify-between">
             <TabsList className="ml-auto h-auto w-full rounded-md">
               <TabsTrigger value="snapshot" className="flex-1 gap-2 rounded px-2 py-1 text-xs">
@@ -173,10 +230,12 @@ export default function CurateCard({ tab, visible }: { tab: SavedTab; visible: b
             </TabsList>
           </div>
 
-          <TabsContent value="summary">
-            <AISummaryDescription tab={tab} className="p-2" />
+          <TabsContent value="summary" className="overflow-auto [&:not(:empty)]:flex-1">
+            <AISummaryDescription tab={tab} className="p-2 pb-3" />
           </TabsContent>
-          <TabsContent value="snapshot" className="relative flex flex-1 flex-col justify-center">
+          <TabsContent
+            value="snapshot"
+            className="relative flex flex-col justify-center [&:not(:empty)]:flex-1">
             <SnapshotPreview
               tab={{ id: tab.id, url: tab.url }}
               className="border-border rounded-lg border"

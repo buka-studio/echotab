@@ -1,14 +1,16 @@
 import { toast } from "@echotab/ui/Toast";
 import { differenceInDays, differenceInMonths, differenceInWeeks } from "date-fns";
+import dayjs from "dayjs";
+import { derive } from "derive-valtio";
 import { proxy, subscribe, useSnapshot } from "valtio";
-import { derive } from "valtio/utils";
 
 import ChromeLocalStorage from "~/src/util/ChromeLocalStorage";
 
 import { BookmarkStore } from "../Bookmarks";
 import { version } from "../constants";
-import { SavedTab, Tag } from "../models";
+import { Tag } from "../models";
 import TagStore, { unassignedTag } from "../TagStore";
+import { getUtcISO } from "../util/date";
 
 export const timeUnits = ["month", "week", "day"] as const;
 
@@ -25,7 +27,7 @@ const inclusion = ["ai_tag", "quick_tag", "unassigned_tag", "older_than_threshol
 export type Inclusion = (typeof inclusion)[number];
 
 export interface InclusionResult {
-  tab: SavedTab;
+  tabId: string;
   reasons: {
     hasUnassignedTags: boolean;
     hasAITags: boolean;
@@ -50,6 +52,7 @@ export interface Settings {
 
 export interface Session {
   kept: number;
+  keptIds: string[];
   deleted: number;
   date: string;
 }
@@ -57,6 +60,8 @@ export interface Session {
 const storageKey = `cmdtab-curate-store-${version}`;
 
 export interface CurateStore {
+  inclusionOrder: Inclusion[];
+  lastRemindedAt: string;
   settings: Settings;
   sessions: Session[];
   initialized: boolean;
@@ -86,6 +91,8 @@ const defaultSettings = {
 };
 
 const Store = proxy({
+  inclusionOrder: [...inclusion],
+  lastRemindedAt: null,
   sessions: [] as Session[],
   settings: defaultSettings,
   initialized: false,
@@ -100,12 +107,22 @@ const Store = proxy({
     Store.settings = defaultSettings;
   },
   saveSession: (session: Omit<Session, "date">) => {
-    Store.sessions = [...Store.sessions, { ...session, date: new Date().toISOString() }];
+    // same day session already exists -> update it
+    const existingSession = Store.sessions.find((s) =>
+      dayjs(s.date).isSame(new Date().toISOString(), "day"),
+    );
+    if (existingSession) {
+      existingSession.kept += session.kept;
+      existingSession.deleted += session.deleted;
+    } else {
+      Store.sessions.push({ ...session, date: getUtcISO() });
+    }
   },
   initStore: async () => {
-    ChromeLocalStorage.getItem(storageKey).then((value) => {
+    let stored = await ChromeLocalStorage.getItem(storageKey);
+    if (stored) {
       try {
-        const init = (JSON.parse(value as string) as PersistedCurateStore) || {};
+        const init = (JSON.parse(stored as string) as PersistedCurateStore) || {};
         Store.settings = {
           ...Store.settings,
           ...init.settings,
@@ -115,7 +132,7 @@ const Store = proxy({
         toast.error("Failed to load stored settings");
         console.error(e);
       }
-    });
+    }
     Store.initialized = true;
   },
 }) as unknown as CurateStore;
@@ -178,9 +195,21 @@ derive(
           store.settings.oldLinkThreshold.value,
         );
 
+        const recentlyCurated =
+          item.lastCuratedAt &&
+          !isOlderThanThreshold(
+            store.settings.reminder.unit,
+            item.lastCuratedAt!,
+            store.settings.reminder.value,
+          );
+
+        if (recentlyCurated) {
+          continue;
+        }
+
         if (hasUnassignedTags || hasAITags || hasQuickTags || olderThanThreshold) {
           inclusionResults.set(item.id, {
-            tab: item,
+            tabId: item.id,
             reasons: {
               hasUnassignedTags,
               hasAITags,

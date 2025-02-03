@@ -6,8 +6,6 @@ import { CSSProperties } from "react";
 
 import PCVisual from "./PCVisual";
 
-import "./CurateDialog.css";
-
 interface Props {
   deleted: number;
   kept: number;
