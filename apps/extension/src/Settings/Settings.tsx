@@ -7,6 +7,7 @@ import {
   CommandList,
 } from "@echotab/ui/Command";
 import {
+  Broom as BroomIcon,
   Palette as PaletteIcon,
   Sparkle as SparkleIcon,
   Tag as TagIcon,
@@ -21,6 +22,7 @@ import { ComponentProps, useRef, useState } from "react";
 
 import AIPage from "./AIPage";
 import AppearancePage from "./AppearancePage";
+import CuratePage from "./CuratePage";
 import DeletePage from "./DeletePage";
 import ExportPage from "./ExportPage";
 import FeedbackPage from "./FeedbackPage";
@@ -50,6 +52,7 @@ const pages = [
   "Export",
   "Feedback",
   "Delete",
+  "Curate",
 ] as const;
 
 type Page = (typeof pages)[number];
@@ -79,6 +82,10 @@ export default function Settings() {
             <CommandItem>
               <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
               AI
+            </CommandItem>
+            <CommandItem>
+              <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+              Curate
             </CommandItem>
             <CommandItem>
               <MixerHorizontalIcon className="text-muted-foreground mr-2" />
@@ -117,6 +124,7 @@ export default function Settings() {
           {page === "Export" && <ExportPage />}
           {page === "Feedback" && <FeedbackPage />}
           {page === "Delete" && <DeletePage />}
+          {page === "Curate" && <CuratePage />}
         </div>
       </div>
     </Command>
