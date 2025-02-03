@@ -1,21 +1,19 @@
 import { toast } from "@echotab/ui/Toast";
+import { derive } from "derive-valtio";
 import Fuse from "fuse.js";
 import { useEffect, useState } from "react";
 import { proxy, subscribe, useSnapshot } from "valtio";
-import { derive, proxySet } from "valtio/utils";
+import { proxySet } from "valtio/utils";
 
-import { BookmarkStore } from "../Bookmarks";
+import BookmarkStore from "../Bookmarks/BookmarkStore";
 import { ActiveTab } from "../models";
 import { pluralize, sortRecord } from "../util";
 import { zip } from "../util/array";
 import { toggle } from "../util/set";
 import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
+import { isValidActiveTab } from "../util/tab";
 import { canonicalizeURL, getDomain } from "../util/url";
-
-function isValidActiveTab(tab?: Partial<chrome.tabs.Tab>) {
-  return tab && tab.url && tab.id && tab.title;
-}
 
 export interface Filter {
   keywords: string[];
@@ -37,10 +35,10 @@ function toActiveTab(tab: Partial<chrome.tabs.Tab> = {}): Partial<ActiveTab> {
 }
 
 async function getActiveTabs(): Promise<ActiveTab[]> {
-  const tabs = await chrome.tabs.query({});
-  const activeTabs = tabs.map(toActiveTab).filter(isValidActiveTab) as ActiveTab[];
+  const tabs = await chrome.tabs?.query({});
+  const activeTabs = tabs?.map(toActiveTab).filter(isValidActiveTab) as ActiveTab[];
 
-  return activeTabs;
+  return activeTabs || [];
 }
 
 export const staleThresholdDaysInMs = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -99,6 +97,7 @@ export interface ActiveStore {
   assignedTagIds: Set<number>;
   tabs: ActiveTab[];
   windows: chrome.windows.Window[];
+  activeWindowId: number;
   view: {
     filter: Filter;
     grouping: TabGrouping;
@@ -138,14 +137,20 @@ export interface ActiveStore {
   saveTabs(
     tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
     autoremove?: boolean,
+    snapshot?: boolean,
   ): Promise<void>;
   saveTabsSeq(
     tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
     autoremove?: boolean,
-  ): Promise<void>;
+    snapshot?: boolean,
+  ): Promise<{
+    success: { tabId: number; saveId: string }[];
+    error: { tabs: number[]; snapshots: string[] };
+  }>;
   saveTabsPar(
     tabs: (Partial<ActiveTab> & { tagIds: number[] })[],
     autoremove?: boolean,
+    snapshot?: boolean,
   ): Promise<void>;
   updateTab(tabId: number, options: chrome.tabs.UpdateProperties): Promise<void>;
   moveTabsToNewWindow(tabIds: number[], incognito?: boolean): Promise<void>;
@@ -159,6 +164,7 @@ const Store = proxy({
   assignedTagIds: proxySet<number>(),
   tabs: [] as ActiveTab[],
   windows: [] as chrome.windows.Window[],
+  activeWindowId: chrome.windows?.WINDOW_ID_CURRENT,
   view: proxy({
     filter: {
       keywords: [] as string[],
@@ -173,7 +179,7 @@ const Store = proxy({
     Store.tabs = await getActiveTabs();
 
     let syncDebounceTimer: null | ReturnType<typeof setTimeout> = null;
-    chrome.tabs.onMoved.addListener(() => {
+    chrome.tabs?.onMoved.addListener(() => {
       if (syncDebounceTimer) {
         clearTimeout(syncDebounceTimer);
       }
@@ -182,7 +188,7 @@ const Store = proxy({
       }, 200);
     });
 
-    chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
+    chrome.tabs?.onUpdated.addListener((tabId, change, tab) => {
       const tabIndex = Store.tabs.findIndex((t) => t.id === tabId);
       if (tabIndex !== -1) {
         Store.tabs[tabIndex] = { ...Store.tabs[tabIndex], ...toActiveTab(tab) };
@@ -194,9 +200,13 @@ const Store = proxy({
       }
     });
 
-    chrome.tabs.onRemoved.addListener((id) => {
+    chrome.tabs?.onRemoved.addListener((id) => {
       Store.tabs = Store.tabs.filter((t) => t.id !== id);
       SelectionStore.selectedTabIds.delete(id);
+    });
+
+    chrome.windows?.onFocusChanged.addListener((windowId) => {
+      Store.activeWindowId = windowId;
     });
 
     Store.initialized = true;
@@ -226,7 +236,7 @@ const Store = proxy({
   },
   removeTabSeq: async (tabId: number, opts: RemoveTabOpts = {}) => {
     try {
-      await chrome.tabs.remove(tabId);
+      await chrome.tabs?.remove(tabId);
 
       return {
         status: "success",
@@ -316,20 +326,24 @@ const Store = proxy({
     Store.tabs = await getActiveTabs();
   },
 
-  saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
+  saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true, snapshot = true) => {
     if (!tabs.length) {
       return;
     }
 
-    return Store.saveTabsSeq(tabs, remove);
+    return Store.saveTabsSeq(tabs, remove, snapshot);
   },
-  saveTabsSeq: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
+  saveTabsSeq: async (
+    tabs: (ActiveTab & { tagIds: number[] })[],
+    remove = true,
+    snapshot = true,
+  ) => {
     if (!tabs.length) {
       return;
     }
 
     const results = {
-      success: [] as number[],
+      success: [] as { tabId: number; saveId: string }[],
       error: {
         tabs: [] as number[],
         snapshots: [] as string[],
@@ -341,10 +355,12 @@ const Store = proxy({
     for (const tab of tabs) {
       const saveId = BookmarkStore.generateId();
 
-      try {
-        await snapshotStore.commitSnapshot(tab.id, saveId);
-      } catch (e) {
-        results.error.snapshots.push(tab.url);
+      if (snapshot) {
+        try {
+          await snapshotStore.commitSnapshot(tab.id, saveId);
+        } catch (e) {
+          results.error.snapshots.push(tab.url);
+        }
       }
 
       try {
@@ -358,7 +374,7 @@ const Store = proxy({
           },
         ]);
 
-        results.success.push(tab.id);
+        results.success.push({ tabId: tab.id, saveId });
       } catch (e) {
         results.error.tabs.push(tab.id);
       }
@@ -372,8 +388,14 @@ const Store = proxy({
         `Failed to save ${pluralize(results.error.tabs.length, "tab")}. Please try again.`,
       );
     }
+
+    return results;
   },
-  saveTabsPar: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
+  saveTabsPar: async (
+    tabs: (ActiveTab & { tagIds: number[] })[],
+    remove = true,
+    snapshot = true,
+  ) => {
     if (!tabs.length) {
       return;
     }
@@ -398,15 +420,17 @@ const Store = proxy({
       saved.map(({ id }) => id!),
     ) as [number, string][];
 
-    const snapshotStore = await SnapshotStore.init();
-    const snapshotResults = await Promise.allSettled(
-      idPairs.map(([tabId, savedId]) => snapshotStore.commitSnapshot(tabId, savedId)),
-    );
+    if (snapshot) {
+      const snapshotStore = await SnapshotStore.init();
+      const snapshotResults = await Promise.allSettled(
+        idPairs.map(([tabId, savedId]) => snapshotStore.commitSnapshot(tabId, savedId)),
+      );
 
-    const failed = snapshotResults.filter((r) => r.status === "rejected");
-    if (failed.length) {
-      toast.error(`Failed to save ${pluralize(failed.length, "snapshot")}.`);
-      console.error(failed);
+      const failed = snapshotResults.filter((r) => r.status === "rejected");
+      if (failed.length) {
+        toast.error(`Failed to save ${pluralize(failed.length, "snapshot")}.`);
+        console.error(failed);
+      }
     }
   },
   toggleAssignedTagId: (tagId: number) => {

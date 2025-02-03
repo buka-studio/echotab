@@ -1,7 +1,8 @@
 import { toast } from "@echotab/ui/Toast";
 import dayjs from "dayjs";
+import { derive } from "derive-valtio";
 import { proxy, subscribe, useSnapshot } from "valtio";
-import { derive, proxyMap } from "valtio/utils";
+import { proxyMap } from "valtio/utils";
 
 import { tagColors, version } from "./constants";
 import { Tag } from "./models";
@@ -29,7 +30,7 @@ export interface TagStore {
   tags: Map<number, Tag>;
   tagsByNormalizedName: Map<string, Tag>;
   initialized: boolean;
-  getQuickSaveTagName(): string;
+  getQuickSaveTagName(unique?: boolean): string;
   getTagByName(name: string): Tag | undefined;
   getNextTagId(): number;
   createTag(params: TagParams): Tag;
@@ -56,11 +57,17 @@ type ImportedTagStore = Partial<Pick<TagStore, "tags">>;
 const Store = proxy({
   tags: proxyMap<number, Tag>(defaultTags),
   initialized: false,
-  getQuickSaveTagName: () => {
+  getQuickSaveTagName: (unique = true) => {
     const base = dayjs().format("D MMM"); // 17 Jan
     const lastTag = Array.from(Store.tags.values())
+      .filter((tag) => tag.isQuick)
       .filter((tag) => tag.name.includes(base))
       .at(-1);
+
+    if (!unique && lastTag?.name === base) {
+      return lastTag.name;
+    }
+
     const lastNumber = Number((lastTag?.name || "").split(" - ")[1]);
     if (Number.isFinite(lastNumber)) {
       const nextNumber = lastNumber + 1;

@@ -88,9 +88,10 @@ const Store = proxy({
     Store.activePanel = panel;
   },
   initStore: async () => {
-    ChromeLocalStorage.getItem(storageKey).then((value) => {
+    let stored = await ChromeLocalStorage.getItem(storageKey);
+    if (stored) {
       try {
-        const init = (JSON.parse(value as string) as PersistedUIStore) || {};
+        const init = (JSON.parse(stored as string) as PersistedUIStore) || {};
         Store.settings = {
           ...Store.settings,
           ...init.settings,
@@ -103,7 +104,7 @@ const Store = proxy({
         toast.error("Failed to load stored settings");
         console.error(e);
       }
-    });
+    }
     Store.initialized = true;
   },
 });
@@ -129,32 +130,34 @@ const disableAnimation = () => {
   };
 };
 
-subscribe(Store, () => {
-  if (Store.initialized) {
-    ChromeLocalStorage.setItem(storageKey, JSON.stringify(Store));
-  }
+export function subscribeUIStore() {
+  subscribe(Store, () => {
+    if (Store.initialized) {
+      ChromeLocalStorage.setItem(storageKey, JSON.stringify(Store));
+    }
 
-  const root = window.document.documentElement;
-  const enable = disableAnimation();
+    const root = window.document.querySelector(".echotab-root") as HTMLElement;
+    const enable = disableAnimation();
 
-  root.classList.remove("light", "dark");
+    root.classList.remove("light", "dark");
 
-  if (Store.settings.theme === "system") {
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    if (Store.settings.theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
 
-    root.classList.add(systemTheme);
-  } else {
-    root.classList.add(Store.settings.theme);
-  }
+      root.classList.add(systemTheme);
+    } else {
+      root.classList.add(Store.settings.theme);
+    }
 
-  if (Store.settings.primaryColor) {
-    root.style.setProperty("--primary", Store.settings.primaryColor);
-  }
+    if (Store.settings.primaryColor) {
+      root.style.setProperty("--primary", Store.settings.primaryColor);
+    }
 
-  enable();
-});
+    enable();
+  });
+}
 
 export const useUIStore = () => useSnapshot(Store);
 
