@@ -1,5 +1,6 @@
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
+import { Tag as TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ComponentRef, forwardRef } from "react";
 
@@ -74,6 +75,10 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
       tab={tab}
       actions={
         <div className="@[200px]:flex-row @[200px]:gap-2 flex flex-row-reverse items-center">
+          <TagChipCombobox
+            tags={combinedTags.sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
+            onSetTags={handleSetTags}
+          />
           <ButtonWithTooltip
             variant="ghost"
             size="icon-sm"
@@ -88,19 +93,27 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
               <DrawingPinIcon className="h-5 w-5" />
             )}
           </ButtonWithTooltip>
-          <TagChipCombobox
-            tags={combinedTags.sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
-            onSetTags={handleSetTags}
-          />
           {!tab.pinned && (
-            <ButtonWithTooltip
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => BookmarkStore.removeTab(tab.id)}
-              side="top"
-              tooltipText="Remove">
-              <TrashIcon className="h-5 w-5" />
-            </ButtonWithTooltip>
+            <>
+              {currentGroupTagId && (
+                <ButtonWithTooltip
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => BookmarkStore.removeTabTag(tab.id, currentGroupTagId)}
+                  side="top"
+                  tooltipText="Untag">
+                  <TagIcon className="h-5 w-5" />
+                </ButtonWithTooltip>
+              )}
+              <ButtonWithTooltip
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => BookmarkStore.removeTab(tab.id)}
+                side="top"
+                tooltipText="Remove">
+                <TrashIcon className="h-5 w-5" />
+              </ButtonWithTooltip>
+            </>
           )}
         </div>
       }
