@@ -21,6 +21,7 @@ import {
   SpeakerLoudIcon,
 } from "@radix-ui/react-icons";
 import { formatDistanceToNow } from "date-fns";
+import { AnimatePresence, motion } from "framer-motion";
 import { ComponentProps, ComponentRef, forwardRef } from "react";
 
 import SnapshotPreview from "../components/SnapshotPreview";
@@ -228,7 +229,17 @@ const ActiveTabItem = forwardRef<
             </Tooltip>
           </TooltipProvider>
         )}
-        {tab.audible && <Waveform bars={10} playing={!tab.muted} />}
+        <AnimatePresence>
+          {tab.audible && (
+            <motion.div
+              initial={{ opacity: 0, filter: "blur(5px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(5px)" }}
+              transition={{ duration: 0.2 }}>
+              <Waveform bars={10} playing={!tab.muted} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </TabItem>
   );
