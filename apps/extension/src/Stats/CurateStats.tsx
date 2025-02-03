@@ -31,19 +31,23 @@ function Counters({
         className,
       )}>
       <div className="flex flex-1 flex-col items-center justify-center">
-        <Counter
-          value={kept}
-          className="ml-auto [mask-image:linear-gradient(to_bottom,black,transparent)]"
-        />
-        <p className="text-muted-foreground relative -top-3 text-base">Deleted</p>
+        <div className="ml-auto">
+          <Counter
+            value={deleted}
+            className="ml-auto [mask-image:linear-gradient(to_bottom,black,transparent)]"
+          />
+          <p className="text-muted-foreground relative -top-3 text-center text-base">Deleted</p>
+        </div>
       </div>
       <div className="bg-border absolute left-1/2 h-[100px] w-[1px] -translate-x-1/2" />
       <div className="flex flex-1 flex-col items-center justify-center">
-        <Counter
-          value={deleted}
-          className="mr-auto [mask-image:linear-gradient(to_bottom,black,transparent)]"
-        />
-        <p className="text-muted-foreground relative -top-3 text-base">Kept</p>
+        <div className="mr-auto">
+          <Counter
+            value={kept}
+            className="mr-auto [mask-image:linear-gradient(to_bottom,black,transparent)]"
+          />
+          <p className="text-muted-foreground relative -top-3 text-center text-base">Kept</p>
+        </div>
       </div>
     </div>
   );
@@ -85,7 +89,10 @@ export function SessionNavigation({
 
   return (
     <motion.ul
-      className={cn("flex flex-col gap-2 py-1 pl-2", className)}
+      className={cn(
+        "scrollbar-gray flex max-h-full flex-col gap-2 overflow-auto py-1 pl-2",
+        className,
+      )}
       variants={container}
       initial="hidden"
       animate="show">
@@ -159,7 +166,7 @@ export default function CuratedStats({ className }: { className?: string }) {
         <div className="pointer-events-none flex h-full w-full items-center opacity-50 blur-sm">
           <ul className={cn("flex flex-col gap-2 py-1 pl-2")}>
             {Array.from({ length: 5 }).map((_, i) => (
-              <li>
+              <li key={i}>
                 <button className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none">
                   {dayjs()
                     .subtract(i + 2, "day")
