@@ -20,6 +20,9 @@ export interface ActiveTab extends Tab {
   muted?: boolean;
   audible?: boolean;
   lastAccessed?: number;
+  metadata?: {
+    description?: string;
+  };
 }
 
 export interface SavedTab extends Tab {
@@ -27,6 +30,7 @@ export interface SavedTab extends Tab {
   tagIds: number[];
   savedAt: string;
   visitedAt?: string;
+  lastCuratedAt?: string;
   note?: string;
   pinned?: boolean;
   metadata?: {

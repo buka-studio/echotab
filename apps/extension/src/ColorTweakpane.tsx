@@ -147,10 +147,10 @@ const initTweakpane = () => {
 
 export default function ColorTweakpane() {
   useEffect(() => {
-    const pane = initTweakpane();
+    // const pane = initTweakpane();
 
     return () => {
-      pane.dispose();
+      // pane.dispose();
     };
   }, []);
 

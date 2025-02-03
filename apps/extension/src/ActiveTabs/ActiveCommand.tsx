@@ -404,7 +404,7 @@ export default function ActiveCommand() {
             }
 
             if (!enterToSearch) {
-              if (isAlphanumeric(e.key) && !e.metaKey) {
+              if (isAlphanumeric(e.key) && !e.metaKey && !search.startsWith("#")) {
                 handleToggleFilterKeyword(search + e.key, true);
               }
             }
