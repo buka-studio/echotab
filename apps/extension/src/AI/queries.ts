@@ -1,13 +1,13 @@
 import { toast } from "@echotab/ui/Toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
-import { Tab, Tag } from "~/src/models";
+import { ActiveTab, SavedTab, Tag } from "~/src/models";
 import { useUIStore } from "~/src/UIStore";
 
-const tagSystemPrompt = `Tag saved browser tabs by analyzing their titles and URLs to select the most relevant tags from a provided list. Create new tags only if none apply.
+const tagSystemPrompt = `Tag saved browser tabs by analyzing their titles, URLs and optional metadata to select the most relevant tags from a provided list. Create new tags only if none apply.
 
 Instructions:
 
@@ -21,8 +21,8 @@ Adapt to Content: Ensure selected tags apply to all tabs, regardless of content 
 
 Handle Ambiguity: Only use a general tag like "Miscellaneous" if the content is unclear and if you think there are no better tags to apply.`;
 
-const makeTagUserPrompt = (tags: Tag[], tabs: Tab[]) => {
-  return `Existing tags: [${tags.map((tag) => `"${tag.name}"`).join(", ")}]\n\nTabs to tag: ${tabs.map((tab) => `[${tab.title}](${tab.url})`).join(", ")}`;
+const makeTagUserPrompt = (tags: Tag[], tabs: ActiveTab[]) => {
+  return `Existing tags: [${tags.map((tag) => `"${tag.name}"`).join(", ")}]\n\nTabs to tag: ${tabs.map((tab) => `[${tab.title}](${tab.url}) ${tab.metadata ? JSON.stringify(tab.metadata) : ""}`).join(", ")}`;
 };
 
 const generatedTagSchema = z.object({ tags: z.array(z.string()) });
@@ -31,61 +31,31 @@ export function useLLMTagMutation() {
   const uiStore = useUIStore();
 
   return useMutation({
-    mutationFn: async ({ tags, tabs }: { tags: Tag[]; tabs: Tab[] }): Promise<string[]> => {
-      if (uiStore.settings.aiApiProvider === "openai") {
-        const openai = new OpenAI({
-          apiKey: uiStore.settings.aiApiKey,
-          dangerouslyAllowBrowser: true,
-        });
-        // handle openai differently until response_format support is added
-        const res = await openai.beta.chat.completions.parse({
-          messages: [
-            {
-              role: "system",
-              content: tagSystemPrompt,
-            },
-            {
-              role: "user",
-              content: makeTagUserPrompt(tags, tabs),
-            },
-          ],
-          response_format: zodResponseFormat(generatedTagSchema, "tags"),
-          temperature: 0.3,
-          max_tokens: 100,
-          model: "gpt-4o-mini",
-        });
+    mutationFn: async ({ tags, tabs }: { tags: Tag[]; tabs: ActiveTab[] }): Promise<string[]> => {
+      const openai = new OpenAI({
+        baseURL: uiStore.settings.aiApiBaseURL,
+        apiKey: uiStore.settings.aiApiKey,
+        dangerouslyAllowBrowser: true,
+      });
 
-        return res.choices[0].message.parsed?.tags || [];
-      } else {
-        const openai = new OpenAI({
-          baseURL: uiStore.settings.aiApiBaseURL,
-          apiKey: uiStore.settings.aiApiKey,
-          dangerouslyAllowBrowser: true,
-        });
+      const res = await openai.beta.chat.completions.parse({
+        messages: [
+          {
+            role: "system",
+            content: tagSystemPrompt,
+          },
+          {
+            role: "user",
+            content: makeTagUserPrompt(tags, tabs),
+          },
+        ],
+        response_format: zodResponseFormat(generatedTagSchema, "tags"),
+        temperature: 0.3,
+        max_tokens: 100,
+        model: "gpt-4o-mini",
+      });
 
-        const res = await openai.chat.completions.create({
-          messages: [
-            {
-              role: "system",
-              content:
-                tagSystemPrompt +
-                `Return ONLY the tags as a string array, eg. ["Tag1", "Tag2"]. Do NOT include any other information.`,
-            },
-            {
-              role: "user",
-              content: makeTagUserPrompt(tags, tabs),
-            },
-          ],
-          temperature: 0.3,
-          model: uiStore.settings.aiApiModel!,
-        });
-
-        const parsedTags = z
-          .array(z.string())
-          .parse(JSON.parse(res.choices[0].message.content || ""));
-
-        return parsedTags;
-      }
+      return res.choices[0].message.parsed?.tags || [];
     },
     onError: (e) => {
       console.error(e);
@@ -134,6 +104,44 @@ export function useTestLLMMutation() {
     },
     onSuccess: (response) => {
       toast.success("Connection successful!");
+    },
+  });
+}
+
+const summarizeSystemPrompt = `Summarize the following link's content into a short description of up to 75 words. Return ONLY the description. Make sure to include the most important information and make sure it's grammatically correct.`;
+
+export function useLLMSummarizeQuery({ tab }: { tab: SavedTab }) {
+  const uiStore = useUIStore();
+
+  return useQuery({
+    queryKey: ["llm-summarize", tab.id],
+    enabled: Boolean(uiStore.settings.aiApiProvider),
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: "always",
+    queryFn: async () => {
+      const openai = new OpenAI({
+        baseURL: uiStore.settings.aiApiBaseURL,
+        apiKey: uiStore.settings.aiApiKey,
+        dangerouslyAllowBrowser: true,
+      });
+
+      const res = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: summarizeSystemPrompt,
+          },
+          {
+            role: "user",
+            content: JSON.stringify(tab),
+          },
+        ],
+        model: "gpt-4o-mini",
+      });
+
+      return res.choices[0].message.content?.trim();
     },
   });
 }
