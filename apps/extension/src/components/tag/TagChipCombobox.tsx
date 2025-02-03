@@ -86,7 +86,11 @@ export default function TagChipCombobox({
             </button>
           )}
         </PopoverTrigger>
-        <PopoverContent className="flex w-auto flex-col items-start gap-1 p-1">
+        <PopoverContent
+          className="flex w-auto flex-col items-start gap-1 p-1"
+          onWheel={(e) => {
+            e.stopPropagation();
+          }}>
           <Command>
             {editable && (
               <CommandInput
