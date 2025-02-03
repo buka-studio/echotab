@@ -1,11 +1,11 @@
 import { toast } from "@echotab/ui/Toast";
+import { derive } from "derive-valtio";
 import Fuse from "fuse.js";
 import { useEffect, useState } from "react";
 import { uuidv7 } from "uuidv7";
 import { proxy, subscribe, useSnapshot } from "valtio";
-import { derive, proxySet } from "valtio/utils";
+import { proxySet } from "valtio/utils";
 
-import { BookmarkStore } from ".";
 import { version } from "../constants";
 import { List, SavedTab } from "../models";
 import TagStore, { unassignedTag } from "../TagStore";
@@ -90,6 +90,7 @@ export interface BookmarkStore {
   toggleAssignedTagId(tagId: number): void;
   clearAssignedTagIds(): void;
   setView(view: Partial<BookmarkStore["view"]>): void;
+  updateTabs(tabIds: string[], updates: Partial<SavedTab>): void;
   updateFilter(filter: Partial<Filter>): void;
   clearFilter(): void;
   initStorage(): void;
@@ -265,7 +266,7 @@ const Store = proxy({
     }
   },
   removeTabTag: (tabId: string, tagId: number) => {
-    BookmarkStore.removeTabTags(tabId, [tagId]);
+    Store.removeTabTags(tabId, [tagId]);
   },
   removeTags: (tagIds: number[]) => {
     const tagIdsSet = new Set(tagIds);
@@ -307,6 +308,14 @@ const Store = proxy({
     }
 
     Store.tabs.push(...newTabs);
+  },
+  updateTabs: (tabIds: string[], updates: Partial<SavedTab>) => {
+    const tabIdsSet = new Set(tabIds);
+    for (const tab of Store.tabs) {
+      if (tabIdsSet.has(tab.id)) {
+        Object.assign(tab, updates);
+      }
+    }
   },
   saveTabs: (tabs: Array<Omit<SavedTab, "id" | "savedAt"> & { id?: string }>) => {
     const existingByURLs = new Map(Store.tabs.map((t) => [canonicalizeURL(t.url), t]));

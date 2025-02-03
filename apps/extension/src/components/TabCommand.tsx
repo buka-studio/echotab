@@ -128,7 +128,7 @@ export function TabCommandDialog({
 }: {
   children: React.ReactNode;
   label?: React.ReactNode;
-  dialogRef?: React.RefObject<TabCommandDialogRef>;
+  dialogRef?: React.RefObject<TabCommandDialogRef | null>;
 }) {
   const [open, setOpen] = useState(false);
 
