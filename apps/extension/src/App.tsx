@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import Toaster, { toast } from "@echotab/ui/Toast";
-import { TooltipProvider } from "@echotab/ui/Tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import { Broom as BroomIcon, Browser as BrowserIcon } from "@phosphor-icons/react";
 import { BookmarkFilledIcon, BookmarkIcon } from "@radix-ui/react-icons";
@@ -13,13 +13,15 @@ import { DynamicViewportVarsSetter, updateViewport } from "./hooks/useDynamicVie
 import Layout from "./Layout";
 import { Panel } from "./models";
 import { useTagStore } from "./TagStore";
-import UIStore, { useUIStore } from "./UIStore";
+import UIStore, { subscribeUIStore, useUIStore } from "./UIStore";
 
 import "@echotab/ui/globals.css";
 import "./app.css";
 
+import Button from "@echotab/ui/Button";
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { ComponentProps, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -29,10 +31,12 @@ import MobileBottomBar from "./components/MobileBottomBar";
 import { NumberNotificationBadge } from "./components/NumberNotificationBadge";
 import { Curate, CurateTrigger } from "./Curate";
 import CurateStore, { useCurateStore } from "./Curate/CurateStore";
+import KeyboardShortcuts from "./KeyboardShortcuts";
 import NavMenu from "./NavMenu";
 import Onboarding from "./Onboarding";
 import PulseLogo from "./PulseLogo";
 import TagStore from "./TagStore";
+import { getUtcISO } from "./util/date";
 
 async function initStores() {
   try {
@@ -47,6 +51,7 @@ async function initStores() {
 
 updateViewport();
 initStores();
+subscribeUIStore();
 
 function Highlight() {
   return (
@@ -84,6 +89,12 @@ const handleAppError = (error: Error, info: { componentStack?: string | null }) 
   // todo: log to sentry
 };
 
+if (process.env.NODE_ENV === "development") {
+  (window as any).BookmarkStore = BookmarkStore;
+  (window as any).ActiveStore = ActiveStore;
+  (window as any).CurateStore = CurateStore;
+}
+
 export default function App() {
   const { activePanel, initialized: UIInitialized } = useUIStore();
   const { initialized: tagInitialized } = useTagStore();
@@ -93,6 +104,30 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activePanel]);
+
+  useEffect(() => {
+    if (!curateStore.initialized) {
+      return;
+    }
+
+    const lastRemindedAt = dayjs(curateStore.lastRemindedAt);
+    const reminderThreshold = curateStore.settings.reminder.value;
+    const reminderUnit = curateStore.settings.reminder.unit;
+
+    const reminderDate = lastRemindedAt.add(reminderThreshold, reminderUnit);
+
+    if (reminderDate.isBefore(dayjs())) {
+      toast.info("Reminder: Curate your tabs to keep them organized", {
+        action: {
+          label: "Curate",
+          onClick: () => {
+            curateStore.setOpen(true);
+          },
+        },
+      });
+      curateStore.lastRemindedAt = getUtcISO();
+    }
+  }, [curateStore.initialized, curateStore.lastRemindedAt]);
 
   if (!(UIInitialized && tagInitialized && activeInitialized)) {
     return null;
@@ -169,6 +204,20 @@ export default function App() {
             <DynamicViewportVarsSetter />
             <MobileBottomBar>
               <ScrollTopFAB className="absolute bottom-4 right-10" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-muted-foreground absolute bottom-4 left-1/2 z-[1] -translate-x-1/2">
+                      Shortcuts
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <KeyboardShortcuts className="py-2" />
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </MobileBottomBar>
             {process.env.NODE_ENV === "development" && <ColorTweakpane />}
           </Layout>
@@ -176,16 +225,4 @@ export default function App() {
       </QueryClientProvider>
     </ErrorBoundary>
   );
-}
-
-{
-  /* <KeyboardShortcut className="ml-auto">
-<KeyboardShortcutKey className="h-5 w-5 text-base">⌘</KeyboardShortcutKey>
-<KeyboardShortcutKey className="h-5 w-5 text-sm">f</KeyboardShortcutKey>
-</KeyboardShortcut>
-
-<KeyboardShortcut className="ml-auto">
-<KeyboardShortcutKey className="h-5 w-5 text-base">⌥</KeyboardShortcutKey>
-<KeyboardShortcutKey className="h-5 w-5 text-sm">t</KeyboardShortcutKey>
-</KeyboardShortcut> */
 }
