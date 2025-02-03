@@ -109,6 +109,9 @@ export default function WindowHeader({
     tabStore.saveTabs(tabsToSave);
   };
 
+  const isHighlighted =
+    Object.keys(tabStore.viewTabIdsByWindowId).length > 1 && window.id === tabStore.activeWindowId;
+
   return (
     <div className="flex justify-between px-1 pl-2 [&:not(:only-child)]:mb-4">
       <div className="flex select-none items-center">
@@ -116,6 +119,9 @@ export default function WindowHeader({
           <button
             className={cn(
               "text-muted-foreground focus-ring rounded-sm text-sm transition-colors duration-300",
+              {
+                "text-primary": isHighlighted,
+              },
             )}
             onClick={() => tabStore.focusWindow(window.id)}>
             {window.label}
