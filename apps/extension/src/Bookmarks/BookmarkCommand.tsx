@@ -317,7 +317,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
               }
 
               if (!enterToSearch) {
-                if (isAlphanumeric(e.key) && !e.metaKey) {
+                if (isAlphanumeric(e.key) && !e.metaKey && !search.startsWith("#")) {
                   setQuickSearch(search + e.key);
                 }
               }
