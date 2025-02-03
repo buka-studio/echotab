@@ -13,6 +13,12 @@ const ChromeLocalStorage = {
   removeItem: async (name: string): Promise<void> => {
     await chrome.storage.local.remove(name);
   },
+  addListener: (callback: (changes: Record<string, any>) => void) => {
+    chrome.storage.local.onChanged.addListener(callback);
+  },
+  removeListener: (callback: (changes: Record<string, any>) => void) => {
+    chrome.storage.local.onChanged.removeListener(callback);
+  },
 };
 
 export default ChromeLocalStorage;
