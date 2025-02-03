@@ -1,9 +1,10 @@
 import type { Config } from "tailwindcss";
-import { fontFamily } from "tailwindcss/defaultTheme";
+import { isolateInsideOfContainer, scopedPreflightStyles } from "tailwindcss-scoped-preflight";
+import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
 
 export default {
-  darkMode: ["class"],
+  darkMode: "class",
   content: ["./src/**/*.{html,ts,tsx}"],
   theme: {
     container: {
@@ -79,7 +80,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
       },
       keyframes: {
         "accordion-down": {
@@ -103,6 +104,9 @@ export default {
     require("tailwind-scrollbar")({ nocompatible: true }),
     plugin(({ addVariant }) => {
       addVariant("light", [".light &", ":not(.dark) &"]);
+    }),
+    scopedPreflightStyles({
+      isolationStrategy: isolateInsideOfContainer(".echotab-root"),
     }),
   ],
 } satisfies Config;
