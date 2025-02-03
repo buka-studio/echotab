@@ -69,10 +69,21 @@
       "storage",
       "unlimitedStorage",
       "bookmarks",
-      "favicon"
+      "favicon",
+      "activeTab"
     ],
     "host_permissions": [
-      "*://*/*"
+      "<all_urls>"
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": [
+          "newtab.html"
+        ],
+        "matches": [
+          "<all_urls>"
+        ]
+      }
     ],
     "externally_connectable": {
       "matches": [
