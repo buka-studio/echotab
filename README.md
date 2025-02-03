@@ -1,10 +1,14 @@
-![og](./assets/og.png)
+# 🚧 WIP 🚧
 
-# CmdTab
+V2 is under active development. It introduces a polished UI, new features and _ideally_ no breaking changes!
+
+![og](./apps/extension/assets/og.png)
+
+# EchoTab
 
 ## Overview
 
-CmdTab is a tab management Chrome extension. It is built using [shadcn-ui](https://github.com/shadcn-ui/ui) and heavily utilizes [cmdk](https://github.com/pacocoursey/cmdk) for keyboard interactions.
+EchoTab is a tab management Chrome extension. It is built using [shadcn-ui](https://github.com/shadcn-ui/ui) and heavily utilizes [cmdk](https://github.com/pacocoursey/cmdk) for keyboard interactions.
 
 ### Installing
 
@@ -12,8 +16,8 @@ You can install the extension in a couple of ways:
 
 #### Installing from the Web Store
 
--   [Chrome Web Store](https://chromewebstore.google.com/detail/cmdtab/cnhamlcjfdekdinhkfmllfdjamcncbkl)
--   Firefox Add-ons (soon)
+- [Chrome Web Store](https://chromewebstore.google.com/detail/cmdtab/cnhamlcjfdekdinhkfmllfdjamcncbkl)
+- Firefox Add-ons (soon)
 
 #### Building from Source
 
@@ -21,7 +25,7 @@ After downloading the code, run the following commands:
 
 ```bash
 npm install
-npm run build
+npx turbo build
 ```
 
 After obtaining the build, follow [these](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked) steps to add the extension to your browser:
@@ -30,23 +34,13 @@ After obtaining the build, follow [these](https://developer.chrome.com/docs/exte
 2. Enable Developer Mode.
 3. Drag the downloaded build folder onto the extensions page to import it. Do not delete the folder afterward.
 
-### Why yet another tab management extension?
-
-Previously, I've used [OneTab](https://chromewebstore.google.com/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) and [Toby](https://chromewebstore.google.com/detail/toby-for-chrome/hddnkoipeenegfoeaoibdmnaalmgkpip) but wanted something in-between with the following characteristics:
-
--   No sign-up required for data import/export and other extra features.
--   Simple and clean UI.
--   Basic search/filtering capabilities.
--   Intuitive tagging with excellent keyboard support.
--   Smooth performance even with a large number (1000+) of saved tabs.
-
 ## Development
 
 To set up the development environment, run the following commands:
 
 ```bash
 npm install
-npm run dev
+npx turbo dev
 ```
 
 ### Generating a consistent development key
@@ -55,7 +49,7 @@ It's useful to have a consistent extension ID during development. One way to do 
 
 You can also generate a key locally by following [these](https://stackoverflow.com/a/46739698) steps:
 
--   Generate keys:
+- Generate keys:
 
 ```bash
 openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out key.pem
@@ -63,7 +57,7 @@ openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out key.pem
 openssl rsa -in key.pem -pubout -outform DER | openssl base64 -A
 ```
 
--   Generate extension ID:
+- Generate extension ID:
 
 ```bash
 openssl rsa -in key.pem -pubout -outform DER | shasum -a 256 | head -c32 | tr 0-9a-f a-p
@@ -73,7 +67,18 @@ openssl rsa -in key.pem -pubout -outform DER | shasum -a 256 | head -c32 | tr 0-
 
 Some features planned for future releases include:
 
--   AI powered auto-tagging
+- AI powered auto-tagging
+- Firefox support
+
+### Why yet another tab management extension?
+
+Previously, I've used [OneTab](https://chromewebstore.google.com/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) and [Toby](https://chromewebstore.google.com/detail/toby-for-chrome/hddnkoipeenegfoeaoibdmnaalmgkpip) but wanted something in-between with the following characteristics:
+
+- No sign-up required for data import/export and other extra features.
+- Simple and clean UI.
+- Basic search/filtering capabilities.
+- Intuitive tagging with excellent keyboard support.
+- Smooth performance even with a large number (1000+) of saved tabs.
 
 ## License
 

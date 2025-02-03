@@ -1,0 +1,18 @@
+{
+  "name": "@echotab/e2e",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "npx playwright test --ui",
+    "build": "tsc -p tsconfig.json",
+    "start": "npx playwright test --ui"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.45.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "~4.16.2",
+    "typescript": "^5"
+  }
+}

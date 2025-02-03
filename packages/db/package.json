@@ -1,0 +1,27 @@
+{
+  "name": "@echotab/db",
+  "displayName": "EchoTab Database access",
+  "version": "0.0.1",
+  "author": "Buka Studio",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "migrate": "npx ts-node src/scripts/migrate.ts",
+    "gen-types": "npx kysely-codegen --include-pattern=\"public.*\"",
+    "build": "tsc"
+  },
+  "private": true,
+  "sideEffects": false,
+  "files": [],
+  "exports": {
+    ".": "./src/index.ts",
+    "./connection": "./src/connection.ts"
+  },
+  "dependencies": {
+    "kysely": "^0.27.3",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.6",
+    "kysely-codegen": "^0.15.0"
+  }
+}

@@ -1,0 +1,51 @@
+/* https://x.com/jh3yy/status/1752903535488823789 */
+.glow-outline {
+  --width-px: calc(var(--width) * 1px);
+  --radius-px: calc(var(--radius) * 1px);
+
+  position: absolute;
+  pointer-events: none;
+  inset: calc(var(--width-px) * -1);
+  clip-path: inset(0 0 0 0 round var(--radius-px));
+  border-radius: var(--radius-px);
+  overflow: hidden;
+}
+
+@keyframes glow-outline {
+  0% {
+    opacity: 0;
+    offset-distance: var(--start);
+  }
+
+  50% {
+    opacity: 1;
+    offset-distance: calc(var(--start) + 25%);
+  }
+
+  100% {
+    opacity: 0;
+    offset-distance: calc(var(--start) + 45%);
+  }
+}
+
+.glow-outline::before,
+.glow-outline::after {
+  content: "";
+  height: var(--width-px);
+  width: 200px;
+  position: absolute;
+  display: inline-block;
+  offset-path: border-box;
+  offset-anchor: 100% 50%;
+  background: radial-gradient(circle at right, hsl(0 0% 100% / 0.2), transparent 50%),
+    radial-gradient(circle at right, hsl(var(--primary)) 50%, transparent);
+  animation: calc(var(--speed) * 1s) 1 ease-in-out forwards glow-outline;
+}
+
+.glow-outline::before {
+  --start: 5%;
+}
+
+.glow-outline::after {
+  --start: 55%;
+}

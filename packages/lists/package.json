@@ -1,0 +1,24 @@
+{
+  "name": "@echotab/lists",
+  "displayName": "EchoTab Lists package",
+  "version": "0.0.1",
+  "author": "Buka Studio",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "build": "tsc"
+  },
+  "private": true,
+  "sideEffects": false,
+  "files": [],
+  "exports": {
+    "./models": "./src/models.ts",
+    "./errors": "./src/errors.ts",
+    "./util": "./src/util.ts",
+    "./validators": "./src/validators.ts",
+    "./ListService": "./src/ListService.ts"
+  },
+  "dependencies": {
+    "@echotab/db": "*",
+    "zod": "^3.23.8"
+  }
+}
