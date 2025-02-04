@@ -8,7 +8,7 @@ import SnapshotPreview from "../components/SnapshotPreview";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { SavedTab, Tag } from "../models";
-import { useTagStore } from "../TagStore";
+import { unassignedTag, useTagStore } from "../TagStore";
 import { useUIStore } from "../UIStore";
 import BookmarkStore, { useBookmarkStore, useIsTabSelected } from "./BookmarkStore";
 
@@ -48,6 +48,8 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
   const handleSetTags = (tagIds: number[]) => {
     BookmarkStore.tagTabs([tab.id], tagIds, true);
   };
+
+  const isInTagGroup = Boolean(currentGroupTagId && currentGroupTagId !== unassignedTag.id);
 
   return (
     <TabItem
@@ -95,11 +97,11 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
           </ButtonWithTooltip>
           {!tab.pinned && (
             <>
-              {currentGroupTagId && (
+              {isInTagGroup && (
                 <ButtonWithTooltip
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => BookmarkStore.removeTabTag(tab.id, currentGroupTagId)}
+                  onClick={() => BookmarkStore.removeTabTag(tab.id, currentGroupTagId!)}
                   side="top"
                   tooltipText="Untag">
                   <TagIcon className="h-5 w-5" />

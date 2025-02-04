@@ -20,6 +20,8 @@ Tag {
   name: string; 
   color?: string; 
   favorite?: boolean;
+  isQuick?: boolean;
+  isAI?: boolean;
 }
 
 Tab {
@@ -28,6 +30,11 @@ Tab {
   url: string;
   tagIds: number[];
   faviconUrl?: string;
+  pinned?: boolean;
+  savedAt?: string;
+  visitedAt?: string;
+  lastCuratedAt?: string;
+  note?: string;
 }
 
 List {
@@ -35,6 +42,8 @@ List {
   title: string;
   content: string;
   tabIds: string[];
+  savedAt?: string;
+  updatedAt?: string;
 }
 
 Import { 
@@ -51,6 +60,8 @@ const schema = z.object({
       name: z.string(),
       color: z.string(),
       favorite: z.boolean().default(false),
+      isQuick: z.boolean().default(false),
+      isAI: z.boolean().default(false),
     }),
   ),
   tabs: z.array(
@@ -60,6 +71,11 @@ const schema = z.object({
       url: z.string(),
       tagIds: z.array(z.number()),
       faviconUrl: z.string().optional(),
+      pinned: z.boolean().optional(),
+      savedAt: z.string().optional(),
+      visitedAt: z.string().optional(),
+      lastCuratedAt: z.string().optional(),
+      note: z.string().optional(),
     }),
   ),
   lists: z
@@ -69,6 +85,8 @@ const schema = z.object({
         title: z.string(),
         content: z.string(),
         tabIds: z.array(z.string().uuid()),
+        savedAt: z.string().optional(),
+        updatedAt: z.string().optional(),
       }),
     )
     .optional(),
@@ -247,8 +265,11 @@ export default function DNDImport() {
             <TooltipTrigger className="focus-visible:ring-ring flex rounded-full focus-visible:outline-none focus-visible:ring-1">
               <InfoCircledIcon />
             </TooltipTrigger>
-            <TooltipContent>
-              <div className="">
+            <TooltipContent
+              onWheel={(e) => {
+                e.stopPropagation();
+              }}>
+              <div className="overflow-auto">
                 JSON Format shape:
                 <div
                   className={cn(
