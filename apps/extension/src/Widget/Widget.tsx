@@ -40,6 +40,14 @@ export interface Props {
   onClose: () => void;
 }
 
+const exactMatchFilter = (value: string, search: string) => {
+  if (value.toLowerCase().includes(search.toLowerCase())) {
+    return 1;
+  }
+
+  return 0;
+};
+
 function Widget({ onClose }: Props) {
   const [tab, setTab] = useState<chrome.tabs.Tab | null>(null);
   const activeStore = useActiveTabStore();
@@ -160,6 +168,7 @@ function Widget({ onClose }: Props) {
           <CommandPrimitive
             ref={commandRef}
             loop
+            filter={exactMatchFilter}
             onKeyDown={(e) => {
               e.stopPropagation();
               if (e.key === "Enter" && !getValue() && search) {
