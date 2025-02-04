@@ -185,8 +185,8 @@ export default function CuratedStats({ className }: { className?: string }) {
     <div className={cn("flex h-full w-full items-center justify-around", className)}>
       <SessionNavigation activeSession={session} onSessionClick={setSession} />
       <Counters
-        kept={session?.kept || allTime.kept}
-        deleted={session?.deleted || allTime.deleted}
+        kept={session?.kept ?? allTime.kept}
+        deleted={session?.deleted ?? allTime.deleted}
       />
     </div>
   );

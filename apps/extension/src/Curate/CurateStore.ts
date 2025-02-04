@@ -108,9 +108,7 @@ const Store = proxy({
   },
   saveSession: (session: Omit<Session, "date">) => {
     // same day session already exists -> update it
-    const existingSession = Store.sessions.find((s) =>
-      dayjs(s.date).isSame(new Date().toISOString(), "day"),
-    );
+    const existingSession = Store.sessions.find((s) => dayjs(s.date).isSame(getUtcISO(), "day"));
     if (existingSession) {
       existingSession.kept += session.kept;
       existingSession.deleted += session.deleted;
