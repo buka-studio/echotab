@@ -474,11 +474,11 @@ const Store = proxy({
   },
   removeDuplicateTabs: async () => {
     const duplicates = Store.viewDuplicateTabIds;
-    await Store.removeTabs(Array.from(duplicates));
+    await Store.removeTabs(Array.from(duplicates), { notify: true });
   },
   removeStaleTabs: async () => {
     const stale = Store.viewStaleTabIds;
-    await Store.removeTabs(Array.from(stale));
+    await Store.removeTabs(Array.from(stale), { notify: true });
   },
   updateTab: async (tabId: number, options: chrome.tabs.UpdateProperties) => {
     await chrome.tabs.update(tabId, options);

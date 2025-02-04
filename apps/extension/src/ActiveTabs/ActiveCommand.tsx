@@ -46,7 +46,7 @@ import TagChip from "../components/tag/TagChip";
 import TagChipList from "../components/tag/TagChipList";
 import { Panel } from "../models";
 import TagStore, { unassignedTag, useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
+import UIStore, { useUIStore } from "../UIStore";
 import { formatLinks, wait } from "../util";
 import { isAlphanumeric } from "../util/string";
 import ActiveStore, {
@@ -524,13 +524,13 @@ export default function ActiveCommand() {
                   Find
                 </CommandItem>
                 {tabStore.viewDuplicateTabIds.size > 0 && (
-                  <CommandItem onSelect={withClear(tabStore.removeDuplicateTabs)}>
+                  <CommandItem onSelect={withClear(ActiveStore.removeDuplicateTabs)}>
                     <CopyIcon className="text-muted-foreground mr-2" />
                     Close {tabStore.viewDuplicateTabIds.size} Duplicates
                   </CommandItem>
                 )}
                 {tabStore.viewStaleTabIds.size > 0 && (
-                  <CommandItem onSelect={withClear(tabStore.removeStaleTabs)}>
+                  <CommandItem onSelect={withClear(ActiveStore.removeStaleTabs)}>
                     <ClockIcon className="text-muted-foreground mr-2" />
                     Close {tabStore.viewStaleTabIds.size} Stale Tabs{" "}
                     <span className="text-muted-foreground/50 ml-2 text-xs">
@@ -541,7 +541,7 @@ export default function ActiveCommand() {
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup heading="Other">
-                <CommandItem onSelect={() => uiStore.activatePanel(Panel.Bookmarks)}>
+                <CommandItem onSelect={() => UIStore.activatePanel(Panel.Bookmarks)}>
                   <BookmarkIcon className="text-muted-foreground mr-2" />
                   Go to Bookmarks
                 </CommandItem>
@@ -555,7 +555,7 @@ export default function ActiveCommand() {
                 <div className="tags flex items-center gap-2">
                   <button
                     className="focus-ring whitespace-nowrap rounded px-2 text-sm"
-                    onClick={tabStore.clearAssignedTagIds}>
+                    onClick={ActiveStore.clearAssignedTagIds}>
                     Clear all
                   </button>
                   <TagChipList

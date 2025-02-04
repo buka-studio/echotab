@@ -147,7 +147,7 @@ const ActiveTabItem = forwardRef<
   };
 
   const handleCloseTab = () => {
-    ActiveStore.removeTab(tab.id);
+    ActiveStore.removeTab(tab.id, { notify: true });
   };
 
   return (
