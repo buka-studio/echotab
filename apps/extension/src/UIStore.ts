@@ -2,7 +2,7 @@ import { toast } from "@echotab/ui/Toast";
 import { proxy, subscribe, useSnapshot } from "valtio";
 
 import { version } from "./constants";
-import { Panel } from "./models";
+import { Panel, Serializable } from "./models";
 import ChromeLocalStorage from "./util/ChromeLocalStorage";
 
 export enum Orientation {
@@ -50,7 +50,7 @@ export interface Settings {
 
 const storageKey = `cmdtab-ui-store-${version}`;
 
-export interface UIStore {
+export interface UIStore extends Serializable<PersistedUIStore> {
   settings: Settings;
   activePanel: Panel;
   initialized: boolean;
@@ -88,24 +88,42 @@ const Store = proxy({
     Store.activePanel = panel;
   },
   initStore: async () => {
-    let stored = await ChromeLocalStorage.getItem(storageKey);
+    const stored = await ChromeLocalStorage.getItem(storageKey);
+
     if (stored) {
-      try {
-        const init = (JSON.parse(stored as string) as PersistedUIStore) || {};
-        Store.settings = {
-          ...Store.settings,
-          ...init.settings,
-        };
-        Store.activePanel =
-          init.activePanel && Object.values(Panel).includes(init.activePanel)
-            ? init.activePanel
-            : Store.activePanel;
-      } catch (e) {
-        toast.error("Failed to load stored settings");
-        console.error(e);
-      }
+      const deserialized = Store.deserialize(stored as string);
+      Object.assign(Store, deserialized);
     }
+
+    chrome.storage.local.onChanged.addListener((changes) => {
+      if (changes[storageKey]) {
+        const deserialized = Store.deserialize(changes[storageKey].newValue as string);
+        Object.assign(Store, deserialized);
+      }
+    });
+
     Store.initialized = true;
+  },
+  serialize: () => {
+    return JSON.stringify({
+      settings: Store.settings,
+      activePanel: Store.activePanel,
+    });
+  },
+  deserialize: (serialized: string): PersistedUIStore | undefined => {
+    try {
+      const init = (JSON.parse(serialized) as PersistedUIStore) || {};
+
+      return {
+        settings: { ...Store.settings, ...init.settings },
+        activePanel: Object.values(Panel).includes(init.activePanel)
+          ? init.activePanel
+          : Panel.Tabs,
+      };
+    } catch (e) {
+      toast.error("Failed to load stored settings");
+      console.error(e);
+    }
   },
 });
 
@@ -133,7 +151,8 @@ const disableAnimation = () => {
 export function subscribeUIStore() {
   subscribe(Store, () => {
     if (Store.initialized) {
-      ChromeLocalStorage.setItem(storageKey, JSON.stringify(Store));
+      const serialized = Store.serialize();
+      ChromeLocalStorage.setItem(storageKey, serialized);
     }
 
     const root = window.document.querySelector(".echotab-root") as HTMLElement;

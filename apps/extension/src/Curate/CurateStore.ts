@@ -8,7 +8,7 @@ import ChromeLocalStorage from "~/src/util/ChromeLocalStorage";
 
 import { BookmarkStore } from "../Bookmarks";
 import { version } from "../constants";
-import { Tag } from "../models";
+import { Serializable, Tag } from "../models";
 import TagStore, { unassignedTag } from "../TagStore";
 import { getUtcISO } from "../util/date";
 
@@ -59,8 +59,7 @@ export interface Session {
 
 const storageKey = `cmdtab-curate-store-${version}`;
 
-export interface CurateStore {
-  inclusionOrder: Inclusion[];
+export interface CurateStore extends Serializable<PersistedCurateStore> {
   lastRemindedAt: string;
   settings: Settings;
   sessions: Session[];
@@ -74,7 +73,7 @@ export interface CurateStore {
   initStore(): Promise<void>;
 }
 
-type PersistedCurateStore = Pick<CurateStore, "settings" | "sessions">;
+type PersistedCurateStore = Pick<CurateStore, "settings" | "sessions" | "lastRemindedAt">;
 
 const defaultSettings = {
   oldLinkThreshold: {
@@ -91,7 +90,6 @@ const defaultSettings = {
 };
 
 const Store = proxy({
-  inclusionOrder: [...inclusion],
   lastRemindedAt: null,
   sessions: [] as Session[],
   settings: defaultSettings,
@@ -117,21 +115,33 @@ const Store = proxy({
     }
   },
   initStore: async () => {
-    let stored = await ChromeLocalStorage.getItem(storageKey);
+    const stored = await ChromeLocalStorage.getItem(storageKey);
     if (stored) {
-      try {
-        const init = (JSON.parse(stored as string) as PersistedCurateStore) || {};
-        Store.settings = {
-          ...Store.settings,
-          ...init.settings,
-        };
-        Store.sessions = [...Store.sessions, ...init.sessions];
-      } catch (e) {
-        toast.error("Failed to load stored settings");
-        console.error(e);
-      }
+      const deserialized = Store.deserialize(stored as string);
+      Object.assign(Store, deserialized);
     }
+
     Store.initialized = true;
+  },
+  serialize: () => {
+    return JSON.stringify({
+      settings: Store.settings,
+      sessions: Store.sessions,
+      lastRemindedAt: Store.lastRemindedAt,
+    });
+  },
+  deserialize: (serialized: string): PersistedCurateStore | undefined => {
+    try {
+      const init = JSON.parse(serialized) as PersistedCurateStore;
+      return {
+        settings: { ...Store.settings, ...init.settings },
+        sessions: init.sessions,
+        lastRemindedAt: init.lastRemindedAt,
+      };
+    } catch (e) {
+      toast.error("Failed to load stored curate settings");
+      console.error(e);
+    }
   },
 }) as unknown as CurateStore;
 
@@ -235,7 +245,8 @@ derive(
 
 subscribe(Store, () => {
   if (Store.initialized) {
-    ChromeLocalStorage.setItem(storageKey, JSON.stringify(Store));
+    const serialized = Store.serialize();
+    ChromeLocalStorage.setItem(storageKey, serialized);
   }
 });
 

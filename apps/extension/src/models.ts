@@ -60,3 +60,8 @@ export type Message = {
 };
 
 export type MessageType = Message["type"];
+
+export interface Serializable<T> {
+  serialize(): string;
+  deserialize(serialized: string): T | undefined;
+}

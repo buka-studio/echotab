@@ -6,9 +6,11 @@ import { proxy, subscribe, useSnapshot } from "valtio";
 import { proxySet } from "valtio/utils";
 
 import BookmarkStore from "../Bookmarks/BookmarkStore";
-import { ActiveTab } from "../models";
+import { version } from "../constants";
+import { ActiveTab, Serializable } from "../models";
 import { pluralize, sortRecord } from "../util";
 import { zip } from "../util/array";
+import ChromeLocalStorage from "../util/ChromeLocalStorage";
 import { toggle } from "../util/set";
 import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
@@ -91,8 +93,12 @@ interface RemoveTabOpts {
   notify?: boolean;
 }
 
+type PersistedActiveStore = Pick<ActiveStore, "view">;
+
+const storageKey = `cmdtab-active-store-${version}`;
+
 // todo: deduplicate stores
-export interface ActiveStore {
+export interface ActiveStore extends Serializable<PersistedActiveStore> {
   initialized: boolean;
   assignedTagIds: Set<number>;
   tabs: ActiveTab[];
@@ -177,6 +183,12 @@ const Store = proxy({
   }),
   initStore: async () => {
     Store.tabs = await getActiveTabs();
+
+    const stored = await ChromeLocalStorage.getItem(storageKey);
+    if (stored) {
+      const deserialized = Store.deserialize(stored as string);
+      Object.assign(Store, deserialized);
+    }
 
     let syncDebounceTimer: null | ReturnType<typeof setTimeout> = null;
     chrome.tabs?.onMoved.addListener(() => {
@@ -500,6 +512,22 @@ const Store = proxy({
   removeWindow: async (windowId: number) => {
     await chrome.windows.remove(windowId);
   },
+  serialize: () => {
+    return JSON.stringify({
+      view: Store.view,
+    });
+  },
+  deserialize: (serialized: string): PersistedActiveStore | undefined => {
+    try {
+      const init = JSON.parse(serialized) as PersistedActiveStore;
+      return {
+        view: { ...Store.view, ...init.view },
+      };
+    } catch (e) {
+      toast.error("Failed to load stored active tabs view");
+      console.error(e);
+    }
+  },
 }) as unknown as ActiveStore;
 
 const fuseOptions = {
@@ -668,6 +696,11 @@ subscribe(Store, (ops) => {
 
   if (savedTabsUpdated.length) {
     tabsFuse.setCollection(Store.tabs);
+  }
+
+  if (Store.initialized) {
+    const serialized = Store.serialize();
+    ChromeLocalStorage.setItem(storageKey, serialized);
   }
 });
 
