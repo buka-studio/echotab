@@ -13,6 +13,7 @@ export default function MiscPage() {
       {
         tabs: bookmarkStore.tabs,
         tags: Array.from(tagStore.tags.values()).filter((t) => t.id !== unassignedTag.id),
+        lists: bookmarkStore.lists,
       },
       `echotab-${Date.now()}.json`,
     );
