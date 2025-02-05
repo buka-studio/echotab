@@ -5,7 +5,7 @@ import { proxy, subscribe, useSnapshot } from "valtio";
 import { proxyMap } from "valtio/utils";
 
 import { tagColors, version } from "./constants";
-import { Tag } from "./models";
+import { Serializable, Tag } from "./models";
 import ChromeLocalStorage from "./util/ChromeLocalStorage";
 import { intersection } from "./util/set";
 
@@ -26,7 +26,7 @@ const defaultTags = [[unassignedTag.id, unassignedTag]] as [number, Tag][];
 
 const storageKey = `cmdtab-tag-store-${version}`;
 
-export interface TagStore {
+export interface TagStore extends Serializable<PersistedTagStore> {
   tags: Map<number, Tag>;
   tagsByNormalizedName: Map<string, Tag>;
   initialized: boolean;
@@ -174,19 +174,35 @@ const Store = proxy({
     const stored = await ChromeLocalStorage.getItem(storageKey);
 
     if (stored) {
-      try {
-        const init = JSON.parse(stored as string) as PersistedTagStore;
-        const storedTags = Object.entries(init.tags || []).map(([k, v]) => [Number(k), v]) as [
-          number,
-          Tag,
-        ][];
-        Store.tags = proxyMap<number, Tag>(new Map(defaultTags.concat(storedTags)));
-      } catch (e) {
-        toast.error("Failed to load stored tags");
-        console.error(e);
-      }
+      const deserialized = Store.deserialize(stored as string);
+      Object.assign(Store, deserialized);
     }
+
+    chrome.storage.local.onChanged.addListener((changes) => {
+      if (changes[storageKey]) {
+        const deserialized = Store.deserialize(changes[storageKey].newValue as string);
+        Object.assign(Store, deserialized);
+      }
+    });
+
     Store.initialized = true;
+  },
+  serialize: () => {
+    return JSON.stringify({ tags: Object.fromEntries(Store.tags.entries()) });
+  },
+  deserialize: (serialized: string): PersistedTagStore | undefined => {
+    try {
+      const init = JSON.parse(serialized) as PersistedTagStore;
+      const storedTags = Object.entries(init.tags || []).map(([k, v]) => [Number(k), v]) as [
+        number,
+        Tag,
+      ][];
+
+      return { tags: proxyMap<number, Tag>(new Map(defaultTags.concat(storedTags))) };
+    } catch (e) {
+      toast.error("Failed to load stored tags");
+      console.error(e);
+    }
   },
 }) as unknown as TagStore;
 
@@ -208,7 +224,7 @@ derive(
 
 subscribe(Store, () => {
   if (Store.initialized) {
-    const serialized = JSON.stringify({ tags: Object.fromEntries(Store.tags.entries()) });
+    const serialized = Store.serialize();
     ChromeLocalStorage.setItem(storageKey, serialized);
   }
 });

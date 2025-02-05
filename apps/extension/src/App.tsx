@@ -93,6 +93,7 @@ if (process.env.NODE_ENV === "development") {
   (window as any).BookmarkStore = BookmarkStore;
   (window as any).ActiveStore = ActiveStore;
   (window as any).CurateStore = CurateStore;
+  (window as any).UIStore = UIStore;
 }
 
 export default function App() {

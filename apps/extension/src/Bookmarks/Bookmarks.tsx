@@ -217,7 +217,7 @@ export default function Bookmarks() {
           {isTagView && (
             <>
               {isXLScreen ? (
-                <div className="scrollbar-gray sticky top-5 col-[1] row-[3/5] mt-12 hidden justify-self-end overflow-hidden xl:block xl:max-h-[96vh]">
+                <div className="scrollbar-gray sticky top-5 col-[1] row-[3/5] mt-12 hidden justify-self-end overflow-auto xl:block xl:max-h-[96vh]">
                   <TagNavigation
                     visibleTagIds={visibleTagItems}
                     onTagClick={handleScrollToTag}

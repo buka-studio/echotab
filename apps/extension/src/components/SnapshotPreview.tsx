@@ -63,9 +63,10 @@ type Props = {
     id: string | number;
   };
   className?: string;
+  onVisit?: () => void;
 };
 
-export default function SnapshotPreview({ tab, className }: Props) {
+export default function SnapshotPreview({ tab, className, onVisit }: Props) {
   const { data, isLoading } = useSnapshot(tab.id);
   const queryClient = useQueryClient();
 
@@ -120,7 +121,7 @@ export default function SnapshotPreview({ tab, className }: Props) {
           </ButtonWithTooltip>
         </>
       ) : (
-        <NoSnapshot onVisit={handleVisit} />
+        <NoSnapshot onVisit={onVisit ?? handleVisit} />
       )}
     </div>
   );

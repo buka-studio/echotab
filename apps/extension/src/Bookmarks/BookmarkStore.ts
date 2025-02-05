@@ -7,7 +7,7 @@ import { proxy, subscribe, useSnapshot } from "valtio";
 import { proxySet } from "valtio/utils";
 
 import { version } from "../constants";
-import { List, SavedTab } from "../models";
+import { List, SavedTab, Serializable } from "../models";
 import TagStore, { unassignedTag } from "../TagStore";
 import { pluralize } from "../util";
 import ChromeLocalStorage from "../util/ChromeLocalStorage";
@@ -60,7 +60,7 @@ export const SelectionStore = proxy({
   },
 });
 
-export interface BookmarkStore {
+export interface BookmarkStore extends Serializable<PersistedTabStore> {
   initialized: boolean;
   assignedTagIds: Set<number>;
   tabs: SavedTab[];
@@ -107,6 +107,8 @@ export interface BookmarkStore {
   pinTabs(tabIds: string[]): void;
   import(store: { tabs: SavedTab[] }): void;
   cleanupQuickTags(): void;
+  serialize(): string;
+  deserialize(serialized: string): PersistedTabStore | undefined;
 }
 
 type PersistedTabStore = Pick<BookmarkStore, "tabs" | "lists" | "view">;
@@ -345,31 +347,51 @@ const Store = proxy({
   initStore: async () => {
     let stored = await ChromeLocalStorage.getItem(storageKey);
     if (stored) {
-      try {
-        const init = JSON.parse(stored as string) as PersistedTabStore;
+      const deserialized = Store.deserialize(stored as string);
+      Object.assign(Store, deserialized);
 
-        // repair on init
-        // todo: figure out why sometimes tags are missing
-        const tabs = (init.tabs || []).map((t) => {
-          const validTags = t.tagIds.filter((tagId) => TagStore.tags.has(tagId));
-          t.tagIds = validTags;
-          if (!t.tagIds.length) {
-            t.tagIds = [unassignedTag.id];
-          }
-          return t;
-        });
-        Store.tabs = tabs;
-        Store.lists = init.lists || [];
+      bookmarkFuse.setCollection(Store.tabs);
+    }
+
+    chrome.storage.local.onChanged.addListener((changes) => {
+      if (changes[storageKey]) {
+        const deserialized = Store.deserialize(changes[storageKey].newValue as string);
+        Object.assign(Store, deserialized);
 
         bookmarkFuse.setCollection(Store.tabs);
-
-        Store.view = { ...Store.view, ...init.view };
-      } catch (e) {
-        toast.error("Failed to load tags from local storage");
-        console.error(e);
       }
-    }
+    });
     Store.initialized = true;
+  },
+  serialize: () => {
+    return JSON.stringify({
+      tabs: Store.tabs,
+      lists: Store.lists,
+      view: Store.view,
+    });
+  },
+  deserialize: (serialized: string): PersistedTabStore | undefined => {
+    try {
+      const init = JSON.parse(serialized) as PersistedTabStore;
+
+      const tabs = (init.tabs || []).map((t) => {
+        const validTags = t.tagIds.filter((tagId) => TagStore.tags.has(tagId));
+        t.tagIds = validTags;
+        if (!t.tagIds.length) {
+          t.tagIds = [unassignedTag.id];
+        }
+        return t;
+      });
+
+      return {
+        tabs,
+        lists: init.lists || [],
+        view: { ...Store.view, ...init.view },
+      };
+    } catch (e) {
+      toast.error("Failed to load stored bookmarks");
+      console.error(e);
+    }
   },
 }) as unknown as BookmarkStore;
 
@@ -522,14 +544,8 @@ subscribe(Store, (ops) => {
   }
 
   if (Store.initialized) {
-    ChromeLocalStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        tabs: Store.tabs,
-        lists: Store.lists,
-        view: Store.view,
-      }),
-    );
+    const serialized = Store.serialize();
+    ChromeLocalStorage.setItem(storageKey, serialized);
   }
 });
 

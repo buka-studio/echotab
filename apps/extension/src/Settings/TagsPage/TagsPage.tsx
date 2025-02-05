@@ -1,13 +1,14 @@
 import Button from "@echotab/ui/Button";
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
 import { HeartStraight as HeartIcon, Palette } from "@phosphor-icons/react";
 import React, { useMemo, useRef, useState } from "react";
 
-import { useBookmarkStore } from "../../Bookmarks";
+import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
 import SortButton from "../../components/SortButton";
 import { Tag } from "../../models";
-import { unassignedTag, useTagStore } from "../../TagStore";
+import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
 import { SortDir } from "../../util/sort";
 import TagControl from "./TagControl";
 
@@ -38,7 +39,7 @@ function propComparator<T extends { name: string; tabCount: number; favorite: bo
   return a[prop].localeCompare(b[prop]);
 }
 
-export default function MiscPage() {
+export default function TagsPage() {
   const bookmarkStore = useBookmarkStore();
   const tagStore = useTagStore();
 
@@ -76,14 +77,16 @@ export default function MiscPage() {
   }, [tagStore.tags, bookmarkStore.tabs, tagSort]);
 
   const handleDeleteTag = (tag: Tag) => {
-    bookmarkStore.removeTags([tag.id]);
-    tagStore.deleteTag(tag.id);
+    BookmarkStore.removeTags([tag.id]);
+    TagStore.deleteTag(tag.id);
+
+    toast.success("Tag deleted");
   };
 
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleAddTag = () => {
-    const tag = tagStore.createTag({ name: `Tag ${tagStore.tags.size + 1}` });
+    const tag = TagStore.createTag({ name: `Tag ${tagStore.tags.size + 1}` });
     setTimeout(() => {
       // todo: do via ref
       contentRef?.current?.scrollTo({
@@ -101,7 +104,7 @@ export default function MiscPage() {
   };
 
   const handleShuffleTagColors = () => {
-    tagStore.shuffleTagColors();
+    TagStore.shuffleTagColors();
   };
 
   return (
@@ -129,7 +132,7 @@ export default function MiscPage() {
             variant="ghost"
             size="icon-sm"
             aria-label={`Favorite ${t.name}`}
-            onClick={() => tagStore.toggleTagFavorite(t.id)}>
+            onClick={() => TagStore.toggleTagFavorite(t.id)}>
             <HeartIcon
               className={cn({ "text-red-500": t.favorite })}
               weight={t.favorite ? "fill" : "regular"}
@@ -138,7 +141,8 @@ export default function MiscPage() {
           <span className="">{t.tabCount}</span>
           <TagControl
             tag={t}
-            onChange={(update) => tagStore.updateTag(t.id, update)}
+            tabCount={t.tabCount}
+            onChange={(update) => TagStore.updateTag(t.id, update)}
             onDelete={() => handleDeleteTag(t)}
             disabled={t.id === unassignedTag.id}
           />

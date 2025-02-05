@@ -18,6 +18,25 @@ chrome.runtime.onInstalled.addListener(() => {
       chrome.storage.local.set({ userId: uuidv7() });
     }
   });
+
+  chrome.contextMenus.create({
+    id: "open",
+    title: "Open EchoTab",
+    contexts: ["action", "page"],
+  });
+});
+
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === "open") {
+    const tabs = await chrome.tabs.query({ currentWindow: true });
+    const url = chrome.runtime.getURL("newtab.html");
+    const echotab = tabs.find((t) => t.url?.includes(url));
+    if (echotab && echotab.id) {
+      chrome.tabs.update(echotab.id, { active: true });
+    } else {
+      chrome.tabs.create({ url, active: true });
+    }
+  }
 });
 
 const importStorageKey = "echo-tab-import-queue";

@@ -11,7 +11,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
 import { CheckIcon } from "@radix-ui/react-icons";
-import { ReactNode, useState } from "react";
+import { ReactNode, useMemo, useRef, useState } from "react";
 
 import { Tag } from "~/src/models";
 import { unassignedTag, useTagStore } from "~/src/TagStore";
@@ -29,6 +29,14 @@ interface Props {
   onRemove?: (tag: Partial<Tag>) => void;
   editable?: boolean;
 }
+
+const exactMatchFilter = (value: string, search: string) => {
+  if (value.toLowerCase().includes(search.toLowerCase())) {
+    return 1;
+  }
+
+  return 0;
+};
 
 export default function TagChipCombobox({
   tags,
@@ -50,6 +58,7 @@ export default function TagChipCombobox({
   const [selectedTagIds, setSelectedTagIds] = useState(tagIdSet);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+
   const handleCreateTag = () => {
     const tag = tagStore.createTag({ name: search });
     setSelectedTagIds((tagIds) => {
@@ -61,6 +70,49 @@ export default function TagChipCombobox({
 
     setSearch("");
   };
+
+  const commandRef = useRef<HTMLDivElement>(null);
+
+  const getValue = () => {
+    const highlighted = commandRef.current?.querySelector(`[cmdk-item=""][aria-selected="true"]`);
+    if (highlighted) {
+      return (highlighted as HTMLElement)?.dataset?.value;
+    }
+  };
+
+  const handleSave = () => {
+    onSetTags?.(Array.from(selectedTagIds));
+    setOpen(false);
+  };
+
+  const tagItems = useMemo(() => {
+    return Array.from(tagStore.tags.values())
+      .filter((t) => {
+        if (t.id === unassignedTag.id) {
+          return false;
+        }
+
+        if (editable) {
+          return true;
+        }
+
+        return selectedTagIds.has(t.id);
+      })
+      .sort((a, b) => {
+        const aSelected = selectedTagIds.has(a.id);
+        const bSelected = selectedTagIds.has(b.id);
+
+        if (aSelected && !bSelected) {
+          return -1;
+        }
+
+        if (!aSelected && bSelected) {
+          return 1;
+        }
+
+        return 0;
+      });
+  }, [tagStore.tags, selectedTagIds]);
 
   return (
     <div className="flex items-center gap-2 overflow-hidden">
@@ -91,7 +143,18 @@ export default function TagChipCombobox({
           onWheel={(e) => {
             e.stopPropagation();
           }}>
-          <Command>
+          <Command
+            loop
+            filter={exactMatchFilter}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !getValue() && search) {
+                e.preventDefault();
+                handleCreateTag();
+              } else if (e.key === "Enter" && e.metaKey) {
+                e.preventDefault();
+                handleSave();
+              }
+            }}>
             {editable && (
               <CommandInput
                 placeholder="Search tags..."
@@ -111,57 +174,47 @@ export default function TagChipCombobox({
             </CommandEmpty>
             <CommandList>
               <CommandGroup>
-                {Array.from(tagStore.tags.values())
-                  .filter((t) => t.id !== unassignedTag.id)
-                  .filter((t) => {
-                    if (editable) {
-                      return true;
-                    }
+                {tagItems.map((tag) => (
+                  <CommandItem
+                    value={tag.name}
+                    key={tag.id}
+                    onSelect={() => {
+                      setSelectedTagIds((tagIds) => {
+                        const wipSet = new Set(tagIds);
+                        toggle(wipSet, tag.id);
 
-                    return selectedTagIds.has(t.id);
-                  })
-                  .map((tag) => (
-                    <CommandItem
-                      key={tag.id}
-                      onSelect={() => {
-                        setSelectedTagIds((tagIds) => {
-                          const wipSet = new Set(tagIds);
-                          toggle(wipSet, tag.id);
-
-                          return wipSet;
-                        });
-                      }}
-                      className="aria-selected:before:bg-transparent">
-                      <div className="flex items-center gap-2">
-                        {editable && (
-                          <CheckIcon
-                            className={cn("", {
-                              "opacity-0": !selectedTagIds.has(tag.id),
-                            })}
-                          />
-                        )}
-                        <TagChip
-                          color={tag.color}
-                          onRemove={onRemove && (() => onRemove?.(tag))}
-                          className="border-0">
-                          {tag.name}
-                        </TagChip>
-                      </div>
-                    </CommandItem>
-                  ))}
+                        return wipSet;
+                      });
+                    }}
+                    className="aria-selected:before:bg-transparent">
+                    <div className="flex items-center gap-2">
+                      {editable && (
+                        <CheckIcon
+                          className={cn("", {
+                            "opacity-0": !selectedTagIds.has(tag.id),
+                          })}
+                        />
+                      )}
+                      <TagChip
+                        color={tag.color}
+                        onRemove={onRemove && (() => onRemove?.(tag))}
+                        className="border-0">
+                        {tag.name}
+                      </TagChip>
+                    </div>
+                  </CommandItem>
+                ))}
               </CommandGroup>
             </CommandList>
             {onSetTags && (
               <CommandNotEmpty>
                 <Button
-                  onClick={() => {
-                    onSetTags?.(Array.from(selectedTagIds));
-                    setOpen(false);
-                  }}
+                  onClick={handleSave}
                   size="sm"
                   variant="outline"
-                  className="mt-3 h-6 w-full">
-                  Save
+                  className="relative mt-1 h-6 w-full gap-2">
+                  <span>Save</span>
+                  <span className="text-muted-foreground/60 absolute right-1">⌘ + enter</span>
                 </Button>
               </CommandNotEmpty>
             )}
