@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { LightningBoltIcon } from "@radix-ui/react-icons";
 import { Command as CommandPrimitive } from "cmdk";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from "react";
 
 import { useActiveTabStore } from "../ActiveTabs/ActiveStore";
@@ -35,6 +35,13 @@ const HeaderUrl = ({ children, className }: { children: ReactNode; className?: s
     </span>
   </div>
 );
+
+const buttonVariants = {
+  initial: { y: 20, opacity: 0, filter: "blur(10px)" },
+  animate: { y: 0, opacity: 1, filter: "blur(0px)" },
+  exit: { y: -20, opacity: 0, filter: "blur(10px)" },
+  transition: { duration: 0.15 },
+};
 
 export interface Props {
   onClose: () => void;
@@ -272,8 +279,18 @@ function Widget({ onClose }: Props) {
             </Label>
           </div>
 
-          <Button onClick={handleSave} variant="default">
-            {saved ? "Saved" : "Save"}
+          <Button onClick={handleSave} variant={saved ? "secondary" : "default"}>
+            <AnimatePresence mode="wait">
+              {saved ? (
+                <motion.div key="saved" {...buttonVariants}>
+                  Saved
+                </motion.div>
+              ) : (
+                <motion.div key="save" {...buttonVariants}>
+                  Save
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Button>
         </div>
       </div>
