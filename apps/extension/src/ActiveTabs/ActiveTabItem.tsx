@@ -155,7 +155,7 @@ const ActiveTabItem = forwardRef<
       {...rest}
       ref={ref}
       className={cn({ "border-border-active bg-card-active": selected }, className)}
-      linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} />}
+      linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} onVisit={handleFocusTab} />}
       icon={
         // todo: clean up
         tab.pinned ? (
