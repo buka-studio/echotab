@@ -16,6 +16,7 @@ import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
 import { isValidActiveTab } from "../util/tab";
 import { canonicalizeURL, getDomain } from "../util/url";
+import RecentlyClosedStore from "./RecentlyClosed/RecentlyClosedStore";
 
 export interface Filter {
   keywords: string[];
@@ -213,6 +214,10 @@ const Store = proxy({
     });
 
     chrome.tabs?.onRemoved.addListener((id) => {
+      const removedTab = Store.tabs.find((t) => t.id === id);
+      if (removedTab) {
+        RecentlyClosedStore.addTab(removedTab);
+      }
       Store.tabs = Store.tabs.filter((t) => t.id !== id);
       SelectionStore.selectedTabIds.delete(id);
     });

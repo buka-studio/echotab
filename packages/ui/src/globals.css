@@ -221,3 +221,11 @@
     }
   }
 }
+
+.contained {
+  @apply mx-auto w-full max-w-4xl;
+}
+
+.outlined-side {
+  @apply border-border/50 border-r border-l;
+}

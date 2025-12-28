@@ -24,6 +24,7 @@ import ActiveCommand from "./ActiveCommand";
 import ActiveStore, { SelectionStore, TabGrouping, useActiveTabStore } from "./ActiveStore";
 import ActiveTabItem from "./ActiveTabItem";
 import DomainHeader from "./DomainHeader";
+import RecentlyClosed from "./RecentlyClosed";
 import SelectButton from "./SelectButton";
 import ViewControl from "./ViewControl";
 import WindowHeader from "./WindowHeader";
@@ -148,11 +149,11 @@ export default function ActiveTabs() {
   );
 
   return (
-    <div className={cn("flex h-full flex-col", {})}>
-      <div className="header sticky top-[20px] z-10 mx-auto flex w-full p-3">
+    <div className="flex flex-1 flex-col">
+      <div className="header contained outlined-side sticky top-0 z-10 flex p-3">
         <ActiveCommand />
       </div>
-      <div className="outlined-bottom mx-auto flex w-full max-w-4xl items-center justify-between gap-2 not-empty:p-2">
+      <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:p-2">
         {tabStore.filtersApplied && (
           <div className="flex items-center gap-5">
             <Button variant="ghost" onClick={tabStore.clearFilter}>
@@ -165,77 +166,92 @@ export default function ActiveTabs() {
           </div>
         )}
       </div>
+      <div className="outlined-bottom outlined-side contained p-3 py-5">
+        <Lists />
+      </div>
+      <div className="outlined-bottom outlined-side contained p-3 py-5">
+        <RecentlyClosed />
+      </div>
+
       <SelectableList
+        className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr]"
         onResetSelection={SelectionStore.deselectAllTabs}
         getSelected={() => SelectionStore.selectedTabIds}
         onSelectionChange={(selection) => SelectionStore.selectTabs(selection as Set<number>)}
         onBeforeStart={() => {
           return activeIdRef.current === null;
         }}>
-        <div className="mx-auto mt-12 w-full">
-          <div className="outlined-bottom mb-14 p-3">
-            <Lists />
-          </div>
-          <div className="mx-auto flex w-full items-center justify-start p-3">
-            <div className="flex flex-1 items-center gap-2 px-2 text-sm">
-              <div className="flex items-center gap-2 select-none">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <BrowserIcon weight="fill" className="h-4 w-4" />
-                  Tabs
-                </span>
-                <AnimatedNumberBadge value={tabStore.viewTabIds.length} />
-                <ViewControl />
-              </div>
-              <div className="ml-auto">
-                <SelectButton />
-                {hasFilteredTabs &&
-                  (allCollapsed ? (
-                    <Button variant="ghost" onClick={handleExpandAll}>
-                      Expand All
-                    </Button>
-                  ) : (
-                    <Button variant="ghost" onClick={handleCollapseAll}>
-                      Collapse All
-                    </Button>
-                  ))}
-              </div>
+        <div className="outlined-side col-2 flex w-full items-center justify-start p-3 py-5">
+          <div className="flex flex-1 items-center gap-2 pl-2 text-sm">
+            <div className="flex items-center gap-2 select-none">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <BrowserIcon weight="fill" className="h-4 w-4" />
+                Tabs
+              </span>
+              <AnimatedNumberBadge value={tabStore.viewTabIds.length} />
+              <ViewControl />
+            </div>
+            <div className="ml-auto">
+              <SelectButton />
+              {hasFilteredTabs &&
+                (allCollapsed ? (
+                  <Button variant="ghost" onClick={handleExpandAll}>
+                    Expand All
+                  </Button>
+                ) : (
+                  <Button variant="ghost" onClick={handleCollapseAll}>
+                    Collapse All
+                  </Button>
+                ))}
             </div>
           </div>
-          <div className="not-empty:p-3">
-            {!hasTabs && (
-              <ItemListPlaceholder>
-                <ItemListPlaceholderCopy
-                  title="Currently, there are no open tabs."
-                  subtitle="Open tabs will be displayed here."
-                />
-              </ItemListPlaceholder>
-            )}
-            {hasTabs && !hasFilteredTabs && (
-              <ItemListPlaceholder>
-                <ItemListPlaceholderCopy
-                  title="No items found for the current filters."
-                  subtitle="Try removing some filters or changing the view."
-                />
-              </ItemListPlaceholder>
-            )}
-          </div>
-          <SortableList
-            getSelectedIds={() => SelectionStore.selectedTabIds}
-            items={groupedTabs}
-            onItemsChange={(items) => setTabIdsByWindowId(items)}
-            onSortEnd={(items) => tabStore.syncOrder(items)}
-            onActiveIdChange={setActiveId}>
-            {Object.entries(groupedTabs).map(([groupId, tabIds], i, groups) => (
+        </div>
+        <div className="outlined-side col-2 not-empty:p-3">
+          {!hasTabs && (
+            <ItemListPlaceholder>
+              <ItemListPlaceholderCopy
+                title="Currently, there are no open tabs."
+                subtitle="Open tabs will be displayed here."
+              />
+            </ItemListPlaceholder>
+          )}
+          {hasTabs && !hasFilteredTabs && (
+            <ItemListPlaceholder>
+              <ItemListPlaceholderCopy
+                title="No items found for the current filters."
+                subtitle="Try removing some filters or changing the view."
+              />
+            </ItemListPlaceholder>
+          )}
+        </div>
+        <SortableList
+          getSelectedIds={() => SelectionStore.selectedTabIds}
+          items={groupedTabs}
+          onItemsChange={(items) => setTabIdsByWindowId(items)}
+          onSortEnd={(items) => tabStore.syncOrder(items)}
+          onActiveIdChange={setActiveId}>
+          {Object.entries(groupedTabs).map(([groupId, tabIds], i, groups) => {
+            const isLast = i === groups.length - 1;
+            const expanded =
+              groupedTabs === tabIdsByWindowId
+                ? windowsExpanded[Number(groupId)]
+                : domainsExpanded[Number(groupId)];
+
+            return (
               <div
                 className={cn(
-                  "border-border bg-surface-2 mx-auto border-t border-dashed p-3 select-none",
+                  "border-border outlined-side col-2 mx-auto w-full border-t [border-top-style:dashed] [border-bottom-style:dashed] p-3 select-none",
                   {
-                    "border-b": i === groups.length - 1,
+                    "border-b": isLast,
+                    // 'bg-surface-2':
                   },
                 )}
                 key={groupId}>
                 {groupedTabs === tabIdsByWindowId ? (
                   <WindowHeader
+                    className={cn("pl-2", {
+                      "pb-3": expanded,
+                    })}
                     window={{ id: Number(groupId), label: `Window ${i + 1}` }}
                     actions={
                       <Button
@@ -251,13 +267,17 @@ export default function ActiveTabs() {
                 ) : (
                   <DomainHeader
                     domain={groupId}
+                    className={cn("pl-2", {
+                      "pb-3": expanded,
+                    })}
                     actions={
                       <Button
                         variant="ghost"
+                        size="icon-sm"
                         onClick={() => {
                           toggleDomainsExpanded(Number(groupId));
                         }}>
-                        <CaretSortIcon className="ml-2 h-4 w-4" />
+                        <CaretSortIcon className="h-4 w-4" />
                       </Button>
                     }
                   />
@@ -288,13 +308,6 @@ export default function ActiveTabs() {
                         return (
                           <SelectableItem asChild id={tabId} key={tabId}>
                             <motion.li
-                              // animate={{ opacity: 1 }}
-                              // transition={{
-                              //   type: "tween",
-                              //   delay: isActive ? 0 : 0.01 * j,
-                              //   duration: isActive ? 0 : 0.5,
-                              // }}
-                              // initial={{ opacity: 0 }}
                               className={cn(
                                 "item-container rounded-lg transition-all duration-200 select-none focus-within:z-[1] hover:z-[1] data-[selected=true]:z-[1] [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-[1] [&:last-child_.tab-item]:rounded-b-lg [&:not(:first-child)]:mt-[-1px]",
                                 {
@@ -324,26 +337,28 @@ export default function ActiveTabs() {
                   </DroppableContainer>
                 )}
               </div>
-            ))}
-            <SortableOverlayItem>
-              {activeTab && (
-                <div className="@container">
-                  <TabItem
-                    tab={activeTab}
-                    icon={
-                      hideTabsFavicons ? (
-                        <DragHandleDots2Icon className="text-foreground h-5 w-5" />
-                      ) : (
-                        <Favicon src={activeTab.url} />
-                      )
-                    }
-                  />
-                </div>
-              )}
-            </SortableOverlayItem>
-          </SortableList>
-        </div>
+            );
+          })}
+          <SortableOverlayItem>
+            {activeTab && (
+              <div className="@container">
+                <TabItem
+                  tab={activeTab}
+                  icon={
+                    hideTabsFavicons ? (
+                      <DragHandleDots2Icon className="text-foreground h-5 w-5" />
+                    ) : (
+                      <Favicon src={activeTab.url} />
+                    )
+                  }
+                />
+              </div>
+            )}
+          </SortableOverlayItem>
+        </SortableList>
+        <div className="outlined-side col-2 h-20" />
       </SelectableList>
+      <div className="outlined-side contained flex-1" />
     </div>
   );
 }

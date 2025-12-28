@@ -19,7 +19,15 @@ import { pluralize } from "../util";
 import { getDomain } from "../util/url";
 import { useActiveTabStore } from "./ActiveStore";
 
-export default function DomainHeader({ domain, actions }: { domain: string; actions?: ReactNode }) {
+export default function DomainHeader({
+  domain,
+  actions,
+  className,
+}: {
+  domain: string;
+  actions?: ReactNode;
+  className?: string;
+}) {
   const tabStore = useActiveTabStore();
 
   const domainTabIds = useMemo(() => {
@@ -31,10 +39,10 @@ export default function DomainHeader({ domain, actions }: { domain: string; acti
   const ctaLabel = viewTabIds.length < domainTabIds.length ? `Close` : "Close All";
 
   return (
-    <div className="flex justify-between px-1 pl-2 [&:not(:only-child)]:mb-4">
-      <div className="inline-flex select-none items-center">
+    <div className={cn("flex justify-between", className)}>
+      <div className="inline-flex items-center select-none">
         <span className="mr-2 inline-flex items-center gap-2">
-          {domain !== "Other" && <Favicon src={tabStore.viewTabsById[viewTabIds[0]].url} />}
+          {<Favicon src={tabStore.viewTabsById[viewTabIds[0]].url} />}
           <span className={cn("text-muted-foreground text-sm transition-colors duration-300")}>
             {domain}
           </span>

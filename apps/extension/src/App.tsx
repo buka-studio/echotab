@@ -140,8 +140,8 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Layout>
-            <Tabs value={activePanel} className="mx-auto flex w-full flex-col">
-              <div className="mx-auto mb-10 flex w-full items-center justify-between gap-2 p-3">
+            <Tabs value={activePanel} className="flex w-full flex-1 flex-col gap-0">
+              <div className="contained outlined-side flex items-center justify-between gap-2 p-3 pt-5 pb-10">
                 <TabsList className="flex h-auto gap-2 rounded-full bg-transparent p-0">
                   <PulseLogo />
                   <div className="bg-surface-2 flex rounded-full">
@@ -194,10 +194,12 @@ export default function App() {
                   </NavMenu>
                 </div>
               </div>
-              <TabsContent value={Panel.Tabs} className="flex-1 focus-visible:ring-0">
+              <TabsContent value={Panel.Tabs} className="flex flex-1 flex-col focus-visible:ring-0">
                 <ActiveTabs />
               </TabsContent>
-              <TabsContent value={Panel.Bookmarks} className="flex-1 focus-visible:ring-0">
+              <TabsContent
+                value={Panel.Bookmarks}
+                className="flex flex-1 flex-col focus-visible:ring-0">
                 <Bookmarks />
               </TabsContent>
             </Tabs>

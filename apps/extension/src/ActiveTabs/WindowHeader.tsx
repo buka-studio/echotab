@@ -61,12 +61,14 @@ function CloseConfirmDialog({
 export default function WindowHeader({
   window,
   actions,
+  className,
 }: {
   window: {
     id: number;
     label: string;
   };
   actions?: ReactNode;
+  className?: string;
 }) {
   const tabStore = useActiveTabStore();
   const selection = useActiveSelectionStore();
@@ -113,8 +115,8 @@ export default function WindowHeader({
     Object.keys(tabStore.viewTabIdsByWindowId).length > 1 && window.id === tabStore.activeWindowId;
 
   return (
-    <div className="flex justify-between px-1 pl-2 [&:not(:only-child)]:mb-4">
-      <div className="flex select-none items-center">
+    <div className={cn("flex justify-between", className)}>
+      <div className="flex items-center select-none">
         <span className="mr-2 inline-flex items-center gap-2">
           <button
             className={cn(

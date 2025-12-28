@@ -14,7 +14,6 @@ import FilterTagChips from "../components/FilterTagChips";
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../components/ItemListPlaceholder";
 import { MobileBottomBarPortal } from "../components/MobileBottomBar";
 import { SelectableList } from "../components/SelectableList";
-import LayoutSidebarPortal from "../LayoutSidebarPortal";
 import { Tag } from "../models";
 import { useTagStore } from "../TagStore";
 import { isPopoverOpen } from "../util/dom";
@@ -183,11 +182,11 @@ export default function Bookmarks() {
   );
 
   return (
-    <div className={cn("flex h-full flex-col")}>
-      <div className="header sticky top-0 z-10 mx-auto flex w-full max-w-[57rem] p-3">
+    <div className="flex flex-1 flex-col">
+      <div className="header contained outlined-side sticky top-0 z-10 flex p-3">
         <BookmarkCommand />
       </div>
-      <div className="outlined-bottom mx-auto flex w-full max-w-4xl items-center justify-between gap-2 not-empty:p-2">
+      <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:p-2">
         {bookmarkStore.filtersApplied && (
           <div className="flex items-center gap-5">
             <Button variant="ghost" onClick={bookmarkStore.clearFilter}>
@@ -202,6 +201,13 @@ export default function Bookmarks() {
         )}
       </div>
 
+      <div className="outlined-bottom outlined-side contained p-3 py-5">
+        <Lists />
+      </div>
+      <div className="outlined-bottom outlined-side contained p-3 py-5">
+        <Pinned />
+      </div>
+
       <SelectableList
         features={{
           touch: false,
@@ -213,153 +219,153 @@ export default function Bookmarks() {
         }}
         onResetSelection={() => SelectionStore.deselectAllTabs()}
         getSelected={() => SelectionStore.selectedItemIds}
-        onSelectionChange={(selection) => SelectionStore.selectItems(selection as Set<string>)}>
-        <div className="mt-12 grid grid-cols-1 grid-rows-[repeat(4,auto)] items-start pb-3 lg:gap-x-5">
-          {isTagView && (
-            <>
-              {isXLScreen ? (
-                <LayoutSidebarPortal>
-                  <div className="scrollbar-gray sticky top-5 row-[3/5] mt-12 hidden h-full w-full justify-self-end overflow-auto xl:block xl:max-h-[96vh]">
-                    <TagNavigation
-                      visibleTagIds={visibleTagItems}
-                      onTagClick={handleScrollToTag}
-                      className="h-full max-h-screen w-full [&_li]:max-w-[200px]"
-                    />
+        onSelectionChange={(selection) => SelectionStore.selectItems(selection as Set<string>)}
+        className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr] items-start">
+        {isTagView && (
+          <>
+            {isXLScreen ? (
+              <div className="scrollbar-gray sticky top-5 col-3 row-span-full hidden h-full w-full justify-self-end overflow-auto p-3 xl:block xl:max-h-[96vh]">
+                <TagNavigation
+                  visibleTagIds={visibleTagItems}
+                  onTagClick={handleScrollToTag}
+                  className="h-full max-h-screen w-full [&_li]:max-w-[200px]"
+                />
+              </div>
+            ) : (
+              <Drawer
+                shouldScaleBackground={false}
+                modal={false}
+                nested // prevents vaul's default behavior of setting position:fixed on body
+                direction="bottom">
+                <MobileBottomBarPortal>
+                  <DrawerTrigger asChild>
+                    <ButtonWithTooltip
+                      tooltipText="Toggle tag sidebar"
+                      aria-label="Toggle tag sidebar"
+                      className="absolute right-10 bottom-4"
+                      size="icon"
+                      variant="ghost">
+                      <HamburgerMenuIcon />
+                    </ButtonWithTooltip>
+                  </DrawerTrigger>
+                </MobileBottomBarPortal>
+                <DrawerContent>
+                  <div className="scrollbar-gray mx-auto flex max-h-[40vh] w-full flex-col overflow-auto overscroll-contain p-4 px-5">
+                    <TagNavigation visibleTagIds={visibleTagItems} onTagClick={handleScrollToTag} />
                   </div>
-                </LayoutSidebarPortal>
-              ) : (
-                <Drawer
-                  shouldScaleBackground={false}
-                  modal={false}
-                  nested // prevents vaul's default behavior of setting position:fixed on body
-                  direction="bottom">
-                  <MobileBottomBarPortal>
-                    <DrawerTrigger asChild>
-                      <ButtonWithTooltip
-                        tooltipText="Toggle tag sidebar"
-                        aria-label="Toggle tag sidebar"
-                        className="absolute right-10 bottom-4"
-                        size="icon"
-                        variant="ghost">
-                        <HamburgerMenuIcon />
-                      </ButtonWithTooltip>
-                    </DrawerTrigger>
-                  </MobileBottomBarPortal>
-                  <DrawerContent>
-                    <div className="scrollbar-gray mx-auto flex max-h-[40vh] w-full flex-col overflow-auto overscroll-contain p-4 px-5">
-                      <TagNavigation
-                        visibleTagIds={visibleTagItems}
-                        onTagClick={handleScrollToTag}
-                      />
-                    </div>
-                  </DrawerContent>
-                </Drawer>
-              )}
-            </>
-          )}
-          {/* <div className="col-2 row-[1/5] h-full" /> */}
-          <div className="outlined-bottom row-1 p-3 select-none">
-            <Lists />
-          </div>
-          <div className="outlined-bottom row-2 mb-14 p-3 select-none">
-            <Pinned />
-          </div>
-          <div className="row-3">
-            <div className="mx-auto flex w-full max-w-4xl items-center justify-start gap-2">
-              <div className="flex flex-1 items-center gap-2 px-2 text-sm">
-                <div className="flex items-center gap-2 select-none">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <BookmarkFilledIcon /> Links
-                  </span>
-                  <AnimatedNumberBadge value={bookmarkStore.viewTabIds.length} />
-                  <ViewControl />
-                </div>
-                <div className="ml-auto flex">
-                  <SelectButton />
-                  {hasFilteredTabs &&
-                    bookmarkStore.view.grouping === TabGrouping.Tag &&
-                    (allCollapsed ? (
-                      <Button variant="ghost" onClick={handleExpandAll}>
-                        Expand All
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" onClick={handleCollapseAll}>
-                        Collapse All
-                      </Button>
-                    ))}
-                </div>
+                </DrawerContent>
+              </Drawer>
+            )}
+          </>
+        )}
+
+        <div className="outlined-side col-2 p-3">
+          <div className="flex items-center justify-start gap-2 pl-2">
+            <div className="flex flex-1 items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 select-none">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <BookmarkFilledIcon /> Links
+                </span>
+                <AnimatedNumberBadge value={bookmarkStore.viewTabIds.length} />
+                <ViewControl />
+              </div>
+              <div className="ml-auto flex">
+                <SelectButton />
+                {hasFilteredTabs &&
+                  bookmarkStore.view.grouping === TabGrouping.Tag &&
+                  (allCollapsed ? (
+                    <Button variant="ghost" onClick={handleExpandAll}>
+                      Expand All
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" onClick={handleCollapseAll}>
+                      Collapse All
+                    </Button>
+                  ))}
               </div>
             </div>
           </div>
-          <div className="row-4 mt-4 mb-4 max-w-4xl">
-            {!hasTabs && (
-              <ItemListPlaceholder>
-                <ItemListPlaceholderCopy
-                  title="Currently, there are no links."
-                  subtitle="Once you save links by tagging them, they will appear here."
-                />
-              </ItemListPlaceholder>
-            )}
-            {hasTabs && !hasFilteredTabs && (
-              <ItemListPlaceholder>
-                <ItemListPlaceholderCopy
-                  title="No items found for the current filters."
-                  subtitle="Try removing some filters or changing the view."
-                />
-              </ItemListPlaceholder>
-            )}
+        </div>
+        <div className="outlined-side col-2">
+          {!hasTabs && (
+            <ItemListPlaceholder>
+              <ItemListPlaceholderCopy
+                title="Currently, there are no links."
+                subtitle="Once you save links by tagging them, they will appear here."
+              />
+            </ItemListPlaceholder>
+          )}
+          {hasTabs && !hasFilteredTabs && (
+            <ItemListPlaceholder>
+              <ItemListPlaceholderCopy
+                title="No items found for the current filters."
+                subtitle="Try removing some filters or changing the view."
+              />
+            </ItemListPlaceholder>
+          )}
 
-            <div className="flex flex-col gap-4">
-              {itemGroups.map(({ tag, items }, i) => {
-                const tabsVisible = tag ? tagsExpanded[tag.id] : !isTagView;
-                const key = tag ? `${tag.id}_ ${tag.name}` : i;
-                return (
-                  <div
-                    className="flex flex-col gap-3 [&:has(.sortable-list)]:p-[0.5rem_0.25rem_0.25rem] [&:not(:has(.sortable-list))]:p-[0.5rem_0.25rem] [&:not(:has(.tag-header))]:p-1"
-                    key={key}
-                    data-tagid={tag?.id}
-                    ref={(el) => {
-                      if (!tag) {
-                        return;
+          <div className="flex w-full flex-col">
+            {itemGroups.map(({ tag, items }, i) => {
+              const tabsVisible = tag ? tagsExpanded[tag.id] : !isTagView;
+              const key = tag ? `${tag.id}_ ${tag.name}` : i;
+              const isLast = i === itemGroups.length - 1;
+              const expanded = tag ? tagsExpanded[tag.id] : true;
+
+              return (
+                <div
+                  className={cn(
+                    "flex flex-col border-t [border-top-style:dashed] [border-bottom-style:dashed] p-3",
+                    {
+                      "border-b": isLast,
+                    },
+                  )}
+                  key={key}
+                  data-tagid={tag?.id}
+                  ref={(el) => {
+                    if (!tag) {
+                      return;
+                    }
+                    groupRefs.current[tag.id] = el;
+                  }}>
+                  {tag && (
+                    <TagHeader
+                      className={cn("tag-header pl-2", {
+                        "pb-3": expanded,
+                      })}
+                      tag={tag!}
+                      highlighted={scrollTargetId === tag?.id}
+                      actions={
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => {
+                            toggleTagsExpanded(Number(tag?.id));
+                          }}>
+                          <CaretSortIcon className="h-4 w-4" />
+                        </Button>
                       }
-                      groupRefs.current[tag.id] = el;
-                    }}>
-                    {tag && (
-                      <TagHeader
-                        className="tag-header"
-                        tag={tag!}
-                        highlighted={scrollTargetId === tag?.id}
-                        actions={
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => {
-                              toggleTagsExpanded(Number(tag?.id));
-                            }}>
-                            <CaretSortIcon className="h-4 w-4" />
-                          </Button>
-                        }
-                      />
-                    )}
-                    {tabsVisible && (
-                      <SelectableVirtualList
-                        className="sortable-list"
-                        items={items}
-                        ref={(e) => e?.virtualizer && virtualizerRefs.current.add(e?.virtualizer)}>
-                        {(item) => {
-                          const tabId = items[item.index];
-                          const tab = bookmarkStore.viewTabsById[tabId];
-                          return <SavedTabItem tab={tab} currentGroupTagId={tag?.id} />;
-                        }}
-                      </SelectableVirtualList>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    />
+                  )}
+                  {tabsVisible && (
+                    <SelectableVirtualList
+                      className="sortable-list"
+                      items={items}
+                      ref={(e) => e?.virtualizer && virtualizerRefs.current.add(e?.virtualizer)}>
+                      {(item) => {
+                        const tabId = items[item.index];
+                        const tab = bookmarkStore.viewTabsById[tabId];
+                        return <SavedTabItem tab={tab} currentGroupTagId={tag?.id} />;
+                      }}
+                    </SelectableVirtualList>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
+        <div className="outlined-side col-2 h-20" />
       </SelectableList>
+      <div className="outlined-side contained flex-1" />
     </div>
   );
 }

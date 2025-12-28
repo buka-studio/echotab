@@ -173,12 +173,12 @@ export default function TagHeader({
   };
 
   return (
-    <div className={cn("flex justify-between pl-2", className)}>
-      <div className="flex select-none items-center">
+    <div className={cn("flex justify-between", className)}>
+      <div className="flex items-center select-none">
         <span className="mr-2 inline-flex items-center gap-2">
           <span
             className={cn(
-              "text-muted-foreground max-w-[30cqw] overflow-hidden text-ellipsis whitespace-nowrap text-sm transition-colors duration-300",
+              "text-muted-foreground max-w-[30cqw] overflow-hidden text-sm text-ellipsis whitespace-nowrap transition-colors duration-300",
               {
                 "text-primary": highlighted,
               },
