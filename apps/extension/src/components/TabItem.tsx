@@ -2,7 +2,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@echotab/ui/Hover
 import Spinner from "@echotab/ui/Spinner";
 import { cn } from "@echotab/ui/util";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
-import { forwardRef, ReactNode } from "react";
+import { ComponentProps, ReactNode } from "react";
 
 import { Tab } from "../models";
 import EchoItem from "./EchoItem";
@@ -19,7 +19,7 @@ export function Favicon({ src, className }: { className?: string; src?: string }
   return (
     <div
       className={cn(
-        "outline-muted-foreground/10 flex h-7 w-7 items-center justify-center overflow-hidden rounded shadow outline outline-1",
+        "outline-muted-foreground/10 flex h-7 w-7 items-center justify-center overflow-hidden rounded shadow outline-1",
         className,
       )}>
       {src ? (
@@ -31,7 +31,7 @@ export function Favicon({ src, className }: { className?: string; src?: string }
           />
         </div>
       ) : (
-        <div className="fallback from-foreground/10 to-foreground/5 h-full w-full bg-gradient-to-b" />
+        <div className="fallback from-foreground/10 to-foreground/5 h-full w-full bg-linear-to-b" />
       )}
     </div>
   );
@@ -41,12 +41,12 @@ export function Favicon({ src, className }: { className?: string; src?: string }
 const LinkPreview = ({ url }: { url: string }) => {
   return (
     <div className="relative h-full w-full">
-      <Spinner className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+      <Spinner className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       <iframe
         src={url}
         title={`Preview of ${url}`}
         scrolling="no"
-        className="pointer-events-none relative z-[1] h-full w-full border-none"
+        className="pointer-events-none relative z-1 h-full w-full border-none"
         // @ts-ignore
         credentialless="true"
       />
@@ -65,10 +65,16 @@ interface Props {
   children?: ReactNode;
 }
 
-const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
-  { tab, actions, className, icon, link, hideFavicon, linkPreview = true, ...props },
-  ref,
-) {
+function TabItem({
+  tab,
+  actions,
+  className,
+  icon,
+  link,
+  hideFavicon,
+  linkPreview = true,
+  ...props
+}: Props & Partial<ComponentProps<typeof EchoItem>>) {
   return (
     <EchoItem
       icon={!hideFavicon && (icon || <Favicon src={tab.url} />)}
@@ -77,7 +83,7 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
         linkPreview ? (
           <HoverCard openDelay={1000}>
             <HoverCardTrigger asChild>{link}</HoverCardTrigger>
-            <ArrowTopRightIcon className="icon h-4 w-4 flex-shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
+            <ArrowTopRightIcon className="icon h-4 w-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
             <HoverCardContent className="h-[300px] w-[350px] overflow-hidden p-0">
               {typeof linkPreview === "boolean" ? <LinkPreview url={tab.url} /> : linkPreview}
             </HoverCardContent>
@@ -85,16 +91,15 @@ const TabItem = forwardRef<HTMLDivElement, Props>(function TabItem(
         ) : (
           <>
             {link}
-            <ArrowTopRightIcon className="icon h-4 w-4 flex-shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
+            <ArrowTopRightIcon className="icon h-4 w-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
           </>
         )
       }
       actions={actions}
-      ref={ref}
       className={cn("tab-item", className)}
       {...props}
     />
   );
-});
+}
 
 export default TabItem;

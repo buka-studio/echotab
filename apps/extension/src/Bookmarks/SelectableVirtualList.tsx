@@ -52,7 +52,7 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
               transition={{
                 type: "tween",
                 delay: 0.01,
-                duration: 0.25,
+                duration: 0.1,
               }}
               initial={{ opacity: 0 }}
               data-index={i.index}

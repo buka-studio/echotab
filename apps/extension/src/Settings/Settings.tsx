@@ -75,10 +75,10 @@ export default function Settings() {
                 <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                 Appearance
               </CommandItem>
-              <CommandItem>
+              {/* <CommandItem>
                 <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                 AI
-              </CommandItem>
+              </CommandItem> */}
               <CommandItem>
                 <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                 Curate
@@ -112,10 +112,11 @@ export default function Settings() {
           {versionLabel}
         </div>
         <div
-          className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto pt-2 pr-2 pl-4"
+          className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l pt-2 pr-2 pl-4"
           ref={contentRef}>
+          <div className="mb-5 text-lg font-semibold">{page}</div>
           {page === "Tags" && <TagsPage />}
-          {page === "AI" && <AIPage />}
+          {/* {page === "AI" && <AIPage />} */}
           {page === "Appearance" && <AppearancePage />}
           {page === "Misc" && <MiscPage />}
           {page === "Import" && <ImportPage />}

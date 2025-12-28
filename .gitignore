@@ -36,8 +36,8 @@ dist/
 .plasmo
 
 # wxt
-# .wxt/
-# .output/
+.wxt/
+.output/
 
 # bpp - http://bpp.browser.market/
 keys.json

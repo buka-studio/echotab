@@ -14,8 +14,8 @@ export default function Pinned() {
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div>
-      <div className="mb-2 flex select-none items-center px-2 text-sm">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center px-2 text-sm select-none">
         <span className="mr-2 inline-flex gap-2">
           <span className="text-muted-foreground flex items-center gap-2">
             <DrawingPinFilledIcon /> Pinned

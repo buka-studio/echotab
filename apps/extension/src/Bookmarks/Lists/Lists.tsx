@@ -24,8 +24,8 @@ export default function Lists() {
   }, [publicLists.data]);
 
   return (
-    <div>
-      <div className="mb-2 flex select-none items-center text-sm">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center px-2 text-sm select-none">
         <span className="inline-flex gap-2 px-2">
           <span className="text-muted-foreground flex items-center gap-2">
             <FileTextIcon /> Lists

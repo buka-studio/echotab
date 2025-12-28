@@ -8,8 +8,6 @@ import {
 import { ComponentProps, useEffect, useImperativeHandle, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { remap } from "../util/math";
-
 export type Direction = "left" | "right" | "up" | "down";
 
 export interface SwipeableRef {
@@ -145,12 +143,10 @@ export default function SwipeableCard({
     trajectory.current.direction = "up";
     controls
       .start({
-        opacity: 0.5,
-        filter: "blur(5px)",
-        // y: [-400, -300],
-        rotate: remap(Math.random(), 0, 1, -50, 50),
-        y: -350,
-        scale: 0.7,
+        opacity: 0,
+        filter: "blur(10px)",
+        y: -100,
+        scale: 0.85,
         transition: {
           duration: 0.2,
         },
@@ -164,6 +160,21 @@ export default function SwipeableCard({
 
   const swipeDown = () => {
     trajectory.current.direction = "down";
+    controls
+      .start({
+        opacity: 0,
+        filter: "blur(10px)",
+        y: 100,
+        scale: 0.85,
+        transition: {
+          duration: 0.2,
+        },
+      })
+      .then(() => controls.set({ zIndex: 0 }))
+      .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }))
+      .then(() => {
+        onSwiped("down");
+      });
   };
 
   useHotkeys("left", () => swipeLeft(), {
@@ -178,6 +189,10 @@ export default function SwipeableCard({
     enabled: active && directions.includes("up"),
   });
 
+  useHotkeys("down", () => swipeDown(), {
+    enabled: active && directions.includes("down"),
+  });
+
   useImperativeHandle(swipeableRef, () => ({
     swipe: (direction?: Direction) => {
       if (direction === "left") {
@@ -187,7 +202,7 @@ export default function SwipeableCard({
       } else if (direction === "up") {
         swipeUp();
       } else if (direction === "down") {
-        // swipeDown();
+        swipeDown();
       }
     },
   }));

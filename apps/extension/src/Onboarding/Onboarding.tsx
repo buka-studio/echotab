@@ -73,7 +73,7 @@ export default function OnboardingDialog() {
                 className="h-auto rounded-full p-0 px-0"
                 onPressedChange={() => handleToggleTag(i)}>
                 <button>
-                  <TagChip color={selectedTagIndices.has(i) ? color : "hsl(var(--muted))"}>
+                  <TagChip color={ color } variant={selectedTagIndices.has(i) ? "solid" : "outline"}>
                     {name}
                   </TagChip>
                 </button>

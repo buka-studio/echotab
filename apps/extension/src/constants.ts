@@ -1,6 +1,7 @@
 export const version = 1;
 
 export const tagColors = [
+  "#78716c",
   "#64748b",
   "#ef4444",
   "#f97316",

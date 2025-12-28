@@ -95,7 +95,7 @@ export default function TagControl({ tag, onDelete, onChange, disabled, tabCount
     <div className="flex w-full items-center gap-2 px-1">
       <TagNameInput key={tag.name} name={tag.name} onChange={(name) => onChange({ name })} />
       <div className="ml-auto flex items-center gap-4">
-        <TagColorPicker color={tag.color} onChange={(color) => onChange({ color })} />
+        <TagColorPicker value={tag.color} onChange={(color) => onChange({ color })} />
         <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={handleDelete}>
           <TrashIcon className="h-4 w-4" />
         </Button>

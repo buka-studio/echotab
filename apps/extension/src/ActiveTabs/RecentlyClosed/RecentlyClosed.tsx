@@ -35,8 +35,8 @@ export default function RecentlyClosed() {
   const recentlyClosedTabs = recentlyClosedStore.tabs.slice(0, 10);
 
   return (
-    <div>
-      <div className="mb-2 flex items-center px-2 text-sm select-none">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center px-2 text-sm select-none">
         <span className="mr-2 inline-flex gap-2">
           <span className="text-muted-foreground flex items-center gap-2">
             <ClockIcon /> Recently Closed

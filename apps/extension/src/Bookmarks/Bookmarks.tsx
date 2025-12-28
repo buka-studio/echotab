@@ -224,7 +224,7 @@ export default function Bookmarks() {
         {isTagView && (
           <>
             {isXLScreen ? (
-              <div className="scrollbar-gray sticky top-5 col-3 row-span-full hidden h-full w-full justify-self-end overflow-auto p-3 xl:block xl:max-h-[96vh]">
+              <div className="scrollbar-gray sticky top-5 col-3 row-[1/3] mt-15 hidden h-full w-full justify-self-end overflow-auto p-3 xl:block xl:max-h-[96vh]">
                 <TagNavigation
                   visibleTagIds={visibleTagItems}
                   onTagClick={handleScrollToTag}
@@ -288,7 +288,7 @@ export default function Bookmarks() {
         </div>
         <div className="outlined-side col-2">
           {!hasTabs && (
-            <ItemListPlaceholder>
+            <ItemListPlaceholder className="p-3">
               <ItemListPlaceholderCopy
                 title="Currently, there are no links."
                 subtitle="Once you save links by tagging them, they will appear here."
@@ -296,7 +296,7 @@ export default function Bookmarks() {
             </ItemListPlaceholder>
           )}
           {hasTabs && !hasFilteredTabs && (
-            <ItemListPlaceholder>
+            <ItemListPlaceholder className="p-3">
               <ItemListPlaceholderCopy
                 title="No items found for the current filters."
                 subtitle="Try removing some filters or changing the view."

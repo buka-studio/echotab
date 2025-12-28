@@ -9,11 +9,10 @@ import {
   CommandList,
 } from "@echotab/ui/Command";
 import { NumberFlow } from "@echotab/ui/NumberFlow";
-import Spinner from "@echotab/ui/Spinner";
 import { toast } from "@echotab/ui/Toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
-import { Sparkle as SparkleIcon, Tag as TagIcon } from "@phosphor-icons/react";
+import { TagIcon } from "@phosphor-icons/react";
 import {
   BookmarkIcon,
   CheckCircledIcon,
@@ -376,6 +375,19 @@ export default function ActiveCommand() {
     });
   };
 
+  const handleOpenInLLM = (provider: "chatgpt" | "claude") => () => {
+    const selectedLinks = tabStore.tabs.filter((tab) => SelectionStore.selectedTabIds.has(tab.id));
+    const linksText = selectedLinks.map((tab) => `[${tab.title}](${tab.url})`).join("\n");
+    const prompt = `Open the following links and analyze the content. Tell me when you're done and ready to answer questions about them. ${linksText}`;
+    const promptQuery = `q=${encodeURIComponent(prompt)}`;
+
+    if (provider === "chatgpt") {
+      chrome.tabs.create({ url: `https://chatgpt.com/chat?${promptQuery}` });
+    } else if (provider === "claude") {
+      chrome.tabs.create({ url: `https://claude.ai/chat?${promptQuery}` });
+    }
+  };
+
   return (
     <TabCommandDialog
       label={customLabel ? <CommandLabel page={activePage} /> : undefined}
@@ -480,14 +492,14 @@ export default function ActiveCommand() {
                       <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                       Tag
                     </CommandItem>
-                    {selectedCount > 0 && (
-                      <CommandItem onSelect={withClear(handleQuickSave)}>
-                        <LightningBoltIcon className="text-muted-foreground mr-2" />
-                        Save Session
-                        <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
-                      </CommandItem>
-                    )}
-                    <CommandItem
+
+                    <CommandItem onSelect={withClear(handleQuickSave)}>
+                      <LightningBoltIcon className="text-muted-foreground mr-2" />
+                      Quick Save
+                      <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
+                    </CommandItem>
+
+                    {/* <CommandItem
                       onSelect={withClear(handleAITag)}
                       value="AI Tag"
                       className="group"
@@ -502,10 +514,8 @@ export default function ActiveCommand() {
                           </Badge>
                         </>
                       )}
-                    </CommandItem>
-                    <CommandItem onSelect={withClear(handleCloseSelected)}>
-                      <Cross2Icon className="text-muted-foreground mr-2" /> Close
-                    </CommandItem>
+                    </CommandItem> */}
+
                     <CommandItem onSelect={withClear(handleCopyToClipboard)}>
                       <ClipboardIcon className="text-muted-foreground mr-2" />
                       Copy to clipboard
@@ -513,6 +523,12 @@ export default function ActiveCommand() {
                     <CommandItem onSelect={withClear(handleMoveToNewWindow)}>
                       <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
                       Move to new window
+                    </CommandItem>
+                    <CommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                      Open in ChatGPT
+                    </CommandItem>
+                    <CommandItem onSelect={withClear(handleCloseSelected)}>
+                      <Cross2Icon className="text-muted-foreground mr-2" /> Close
                     </CommandItem>
                   </>
                 )}

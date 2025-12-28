@@ -89,11 +89,11 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Close</DropdownMenuSubTrigger>
+          <DropdownMenuSubTrigger>Close tabs</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuItem onClick={handleCloseBefore}>Close before</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCloseAfter}>Close after</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCloseOthers}>Close others</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseBefore}>Close tabs before</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseAfter}>Close tabs after</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseOthers}>Close other tabs</DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
@@ -168,7 +168,7 @@ const ActiveTabItem = forwardRef<
             )}
             <DrawingPinFilledIcon
               className={cn(
-                "absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
+                "absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
                 {
                   "text-muted-foreground hover:text-foreground relative opacity-100":
                     hideTabsFavicons,
@@ -187,7 +187,7 @@ const ActiveTabItem = forwardRef<
               )}
               <DragHandleDots2Icon
                 className={cn(
-                  "absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
+                  "absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
                   {
                     "text-muted-foreground hover:text-foreground relative opacity-100":
                       hideTabsFavicons,
@@ -201,7 +201,7 @@ const ActiveTabItem = forwardRef<
       tab={tab}
       link={
         <button
-          className="focus-ring overflow-hidden text-ellipsis whitespace-nowrap rounded-sm"
+          className="focus-ring cursor-pointer overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline"
           onClick={handleFocusTab}>
           {tab.url}
         </button>

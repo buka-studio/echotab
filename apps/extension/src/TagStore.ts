@@ -15,7 +15,7 @@ export function pickRandomTagColor() {
 
 export const unassignedTag = {
   id: 0,
-  color: "#000",
+  color: "#000000",
   name: "Untagged",
   favorite: false,
 };

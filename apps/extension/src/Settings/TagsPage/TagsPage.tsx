@@ -2,7 +2,7 @@ import Button from "@echotab/ui/Button";
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { HeartStraight as HeartIcon, Palette } from "@phosphor-icons/react";
+import { HeartIcon, PaletteIcon } from "@phosphor-icons/react";
 import React, { useMemo, useRef, useState } from "react";
 
 import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
@@ -117,10 +117,10 @@ export default function TagsPage() {
             <ButtonWithTooltip
               onClick={handleShuffleTagColors}
               size="icon-sm"
-              className="ml-auto mr-[42px]"
+              className="mr-[42px] ml-auto"
               variant="ghost"
               tooltipText="Shuffle tag colors">
-              <Palette size={18} />
+              <PaletteIcon size={18} />
             </ButtonWithTooltip>
           )}
         </div>

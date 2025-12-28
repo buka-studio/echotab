@@ -34,14 +34,13 @@ import { ClockIcon, LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
-import { remap } from "~/util/math";
-
 import { CurateStore } from ".";
 import { useBookmarkStore } from "../Bookmarks";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { SavedTab } from "../models";
 import { pluralize } from "../util";
 import { getUtcISO } from "../util/date";
+import { remap } from "../util/math";
 import CurateCard from "./CurateCard";
 import CurateDock, { DockAction } from "./CurateDock";
 import { InclusionReason, InclusionResult, useCurateStore } from "./CurateStore";
@@ -74,6 +73,10 @@ const useCurateQueue = (maxCards: number) => {
 
   const dequeue = (choice: "keep" | "delete" | "skip") => {
     const [item, ...wipQueue] = queue;
+
+    if (!item) {
+      return;
+    }
 
     if (choice === "keep") {
       setKept((prev) => [...prev, item]);
@@ -124,7 +127,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
       dequeue("delete");
     } else if (direction === "right") {
       dequeue("keep");
-    } else if (direction === "up") {
+    } else if (direction === "up" || direction === "down") {
       dequeue("skip");
       setSkipCount((prev) => ({ ...prev, [tab.id]: (prev[tab.id] || 0) + 1 }));
     }
@@ -152,7 +155,8 @@ export default function Curate({ children, maxCards = 5 }: Props) {
     curateStore.setOpen(false);
   };
 
-  const currentTab = curateTabsById[queue[0]?.tabId];
+  const tabId = queue[0]?.tabId;
+  const currentTab = tabId ? curateTabsById[tabId] : null;
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [forceFinish, setForceFinish] = useState(false);
@@ -233,13 +237,15 @@ export default function Curate({ children, maxCards = 5 }: Props) {
               )}
               {!forceFinish &&
                 queue.map((result, i) => {
-                  const tab = curateTabsById[result.tabId];
+                  const tab = curateTabsById[result.tabId]!;
                   return (
                     <SwipeableCard
                       autoFocus={i === 0}
                       key={tab.id + skipCount[tab.id]}
                       constrained
-                      className={cn("focus-ring absolute rounded-2xl")}
+                      className={cn(
+                        "focus-ring absolute rounded-2xl perspective-dramatic transform-3d",
+                      )}
                       style={{
                         zIndex: remap(i, 0, maxCards, maxCards, 0),
                         y: remap(i, 0, maxCards, 0, -200),
@@ -253,7 +259,9 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                           swipeableRef.current = e;
                         }
                       }}
-                      directions={left > 1 ? ["left", "right", "up"] : ["left", "right"]}
+                      directions={
+                        left > 1 ? ["left", "right", "up", "down"] : ["left", "right", "up", "down"]
+                      }
                       onSwiped={(direction) => handleSwipe(tab, direction)}>
                       <CurateCard tab={tab} visible={i === 0} />
                     </SwipeableCard>
@@ -310,7 +318,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                       onClick={() => swipeableRef.current?.swipe("right")}
                       tooltipText="Keep">
                       <HeartIcon
-                        className="h-6 w-6 text-[#F05BF0] shadow-current [filter:drop-shadow(0_0_4px_#D328D9)]"
+                        className="h-6 w-6 text-[#F05BF0] shadow-current filter-[drop-shadow(0_0_4px_#D328D9)]"
                         weight="bold"
                       />
                     </DockAction>

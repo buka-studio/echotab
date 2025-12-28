@@ -68,7 +68,7 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
       }
       link={
         <a
-          className="overflow-hidden text-ellipsis whitespace-nowrap rounded-sm focus-visible:underline focus-visible:outline-none"
+          className="cursor-pointer overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline focus-visible:underline focus-visible:outline-none"
           target="_blank"
           href={tab.url}>
           {tab.url}
@@ -76,7 +76,7 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
       }
       tab={tab}
       actions={
-        <div className="@[200px]:flex-row @[200px]:gap-2 flex flex-row-reverse items-center">
+        <div className="flex flex-row-reverse items-center @[200px]:flex-row @[200px]:gap-2">
           <TagChipCombobox
             tags={combinedTags.sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
             onSetTags={handleSetTags}
