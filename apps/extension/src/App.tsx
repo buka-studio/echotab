@@ -149,7 +149,7 @@ export default function App() {
                       value={Panel.Tabs}
                       onClick={() => UIStore.activatePanel(Panel.Tabs)}>
                       {activePanel === Panel.Tabs && <Highlight />}
-                      <span className="relative z-[1] flex items-center gap-1">
+                      <span className="relative z-1 flex items-center gap-1">
                         {activePanel === Panel.Tabs ? (
                           <BrowserIcon weight="fill" className="h-4 w-4" />
                         ) : (
@@ -162,7 +162,7 @@ export default function App() {
                       value={Panel.Bookmarks}
                       onClick={() => UIStore.activatePanel(Panel.Bookmarks)}>
                       {activePanel === Panel.Bookmarks && <Highlight />}
-                      <span className="relative z-[1] flex items-center gap-1">
+                      <span className="relative z-1 flex items-center gap-1">
                         {activePanel === Panel.Bookmarks ? (
                           <BookmarkFilledIcon className="h-4 w-4" />
                         ) : (
@@ -208,7 +208,7 @@ export default function App() {
             <DynamicViewportVarsSetter />
             <MobileBottomBar>
               <ScrollTopFAB className="absolute right-10 bottom-4" />
-              <ShortcutsHint className="absolute bottom-4 left-1/2 z-[1] -translate-x-1/2" />
+              <ShortcutsHint className="absolute bottom-4 left-1/2 z-1 -translate-x-1/2" />
             </MobileBottomBar>
             {import.meta.env.DEV && <ColorTweakpane />}
           </Layout>
