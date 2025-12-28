@@ -117,7 +117,7 @@ const Jumbo = ({ tab, className }: { tab: SavedTab; className?: string }) => {
         className="bg-muted h-14 w-14 flex-shrink-0 rounded-lg [&>*]:h-10 [&>*]:w-10"
       />
       <div className="flex flex-col text-left">
-        <h1 className="line-clamp-1 break-all text-sm font-bold">{tab.title}</h1>
+        <h1 className="line-clamp-1 text-sm font-bold break-all">{tab.title}</h1>
         {tab.savedAt && (
           <div className="text-muted-foreground text-sm">
             <span className="">Saved {formatSavedAt(tab.savedAt)} ago</span> / Visited{" "}
@@ -143,7 +143,7 @@ const AIEmptyState = ({ className, children }: { className?: string; children?: 
         style={{ backgroundImage: patternBg }}
       />
       <div className="text-sm">AI Summary not available</div>
-      <div className="relative z-[1]">
+      <div className="relative z-1">
         <div className="text-muted-foreground text-center">
           {children || "Enable AI Summary by adding LLM endpoint details in settings."}
         </div>

@@ -106,7 +106,7 @@ export function SessionNavigation({
           layout
           exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}>
           <button
-            className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none"
+            className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none"
             onClick={() => onSessionClick(undefined)}>
             Total
           </button>
@@ -124,7 +124,7 @@ export function SessionNavigation({
                 "text-foreground": isActive,
               })}>
               <button
-                className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none"
+                className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none"
                 onClick={() => onSessionClick(s)}>
                 {dayjs(s.date).format("D MMM")}
               </button>
@@ -157,9 +157,9 @@ export default function CuratedStats({ className }: { className?: string }) {
   if (noCurateSessions) {
     return (
       <div className={cn("relative flex flex-col items-center justify-center", className)}>
-        <div className="absolute left-1/2 top-1/2 z-[1] translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-balance text-lg">Currently, there are no curate sessions.</div>
-          <div className="text-foreground/75 text-balance text-sm">
+        <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
+          <div className="text-lg text-balance">Currently, there are no curate sessions.</div>
+          <div className="text-foreground/75 text-sm text-balance">
             Begin curating by clicking the Curate button, and your stats will be displayed here.
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function CuratedStats({ className }: { className?: string }) {
           <ul className={cn("flex flex-col gap-2 py-1 pl-2")}>
             {Array.from({ length: 5 }).map((_, i) => (
               <li key={i}>
-                <button className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none">
+                <button className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none">
                   {dayjs()
                     .subtract(i + 2, "day")
                     .format("D MMM")}

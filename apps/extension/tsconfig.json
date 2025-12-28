@@ -11,7 +11,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "strict": true,
-    "paths": { "~/*": ["./*"] },
+    "paths": { "~/*": ["./src/*"] },
     "baseUrl": ".",
     "types": ["vite/client", "node", "chrome"],
     "jsx": "react-jsx"

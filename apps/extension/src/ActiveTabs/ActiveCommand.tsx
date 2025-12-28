@@ -12,7 +12,7 @@ import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
-import { TagIcon } from "@phosphor-icons/react";
+import { OpenAiLogoIcon, TagIcon } from "@phosphor-icons/react";
 import {
   BookmarkIcon,
   CheckCircledIcon,
@@ -525,6 +525,7 @@ export default function ActiveCommand() {
                       Move to new window
                     </CommandItem>
                     <CommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                      <OpenAiLogoIcon className="text-muted-foreground mr-2" />
                       Open in ChatGPT
                     </CommandItem>
                     <CommandItem onSelect={withClear(handleCloseSelected)}>

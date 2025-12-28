@@ -10,7 +10,7 @@ import ChromeLocalStorage from "./util/ChromeLocalStorage";
 import { intersection } from "./util/set";
 
 export function pickRandomTagColor() {
-  return tagColors[Math.floor(Math.random() * tagColors.length)];
+  return tagColors[Math.floor(Math.random() * tagColors.length)] || defaultTagColor;
 }
 
 export const unassignedTag = {
@@ -118,7 +118,7 @@ const Store = proxy({
 
     return createdTags;
   },
-  createTag: (params: TagParams): Tag => {
+  createTag: (params: TagParams): Tag | undefined => {
     const [tag] = Store.createTags([params]);
 
     return tag;

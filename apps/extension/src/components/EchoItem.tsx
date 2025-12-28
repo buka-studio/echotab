@@ -23,15 +23,15 @@ const EchoItem = forwardRef<HTMLDivElement, Props>(function EchoItem(
         className,
       )}
       {...props}>
-      {icon && <div className="echo-item-icon flex flex-shrink-0">{icon}</div>}
-      <span className="echo-item-title group/title col-[1/3] row-[2] overflow-hidden text-sm text-ellipsis whitespace-nowrap first:pl-2 @[250px]:max-w-[30cqw] [&:not(:first-child)]:mt-2 @[250px]:[&:not(:first-child)]:mt-0">
+      {icon && <div className="echo-item-icon flex shrink-0">{icon}</div>}
+      <span className="echo-item-title group/title col-[1/3] row-2 overflow-hidden text-sm text-ellipsis whitespace-nowrap not-first:mt-2 first:pl-2 @[250px]:max-w-[30cqw] @[250px]:not-first:mt-0">
         {title}
       </span>
-      <span className="group/desc text-muted-foreground col-[1/3] row-[3] flex max-w-[calc(100cqw-16px)] items-center gap-2 transition-colors duration-200 @[250px]:max-w-[25cqw]">
+      <span className="group/desc text-muted-foreground col-[1/3] row-3 flex max-w-[calc(100cqw-16px)] items-center gap-1 transition-colors duration-200 @[250px]:max-w-[25cqw]">
         {desc}
       </span>
       {children}
-      <div className="col-[2] ml-auto opacity-0 group-focus-within/item:opacity-100 group-hover/item:opacity-100 @[250px]:max-w-[45cqw]">
+      <div className="col-2 ml-auto opacity-0 group-focus-within/item:opacity-100 group-hover/item:opacity-100 @[250px]:max-w-[45cqw]">
         {actions}
       </div>
     </div>

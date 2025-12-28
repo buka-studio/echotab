@@ -156,7 +156,7 @@ const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
         className,
       )}
       actions={
-        <div className="to-card-active pointer-events-none absolute top-[1px] right-[1px] z-[1] h-[calc(100%-1px)] bg-gradient-to-r from-transparent to-50% p-1 pl-8">
+        <div className="to-card-active pointer-events-none absolute top-[1px] right-[1px] z-1 h-[calc(100%-1px)] bg-gradient-to-r from-transparent to-50% p-1 pl-8">
           <ListMenu list={list} publicList={publicList} />
         </div>
       }

@@ -179,9 +179,9 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
   if (noTaggedLinks) {
     return (
       <div className="relative">
-        <div className="absolute left-1/2 top-1/2 z-[1] translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-balance text-lg">Currently, there are no tagged links.</div>
-          <div className="text-foreground/75 text-balance text-sm">
+        <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
+          <div className="text-lg text-balance">Currently, there are no tagged links.</div>
+          <div className="text-foreground/75 text-sm text-balance">
             Begin organizing by tagging tabs, and the tag count will be displayed here.
           </div>
         </div>
@@ -197,7 +197,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
 
   return (
     <div className="relative">
-      <span className="text-muted-foreground absolute right-2 top-2 z-10 flex items-center gap-1">
+      <span className="text-muted-foreground absolute top-2 right-2 z-10 flex items-center gap-1">
         Sort:
         <SortButton active={Boolean(sort)} dir={sort!} onClick={handleSort} />
       </span>

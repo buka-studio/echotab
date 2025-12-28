@@ -7,6 +7,7 @@ import { ChangeEventHandler, DragEventHandler, useState } from "react";
 import { z } from "zod";
 
 import { getUtcISO } from "~/util/date";
+import { getBookmarks } from "~/util/import";
 import { normalizedComparator } from "~/util/string";
 
 import { useBookmarkStore } from "../../Bookmarks";
@@ -183,7 +184,7 @@ export default function DNDImport() {
     e.preventDefault();
     const files = Array.from(e.target?.files || []);
     if (files.length) {
-      handleImport(files[0]);
+      handleImport(files[0]!);
       e.target.value = ""; // allow the user to select the same file again
     }
   };
@@ -192,7 +193,7 @@ export default function DNDImport() {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     if (files.length) {
-      handleImport(files[0]);
+      handleImport(files[0]!);
     }
   };
 
@@ -207,25 +208,7 @@ export default function DNDImport() {
   };
 
   const handleImportBookmarks = async () => {
-    const bookmarksRoot = await chrome.bookmarks.getTree();
-    const bookmarks: { title: string; url: string; folders: string[] }[] = [];
-    const folders: Set<string> = new Set();
-
-    const traverseBookmarks = (node: chrome.bookmarks.BookmarkTreeNode, parents: string[]) => {
-      if (!node) {
-        return;
-      }
-      if (node.children) {
-        node.children.forEach((child) =>
-          traverseBookmarks(child, [...parents, node.title].filter(Boolean)),
-        );
-      } else if (node.url) {
-        bookmarks.push({ title: node.title, url: node.url, folders: [...parents] });
-        parents.forEach((p) => folders.add(p.trim()));
-      }
-    };
-
-    bookmarksRoot.forEach((r) => traverseBookmarks(r, []));
+    const { bookmarks, folders } = await getBookmarks();
 
     const tagsByName: Map<string, Tag> = new Map(
       Array.from(folders).map((f) => {
@@ -262,7 +245,7 @@ export default function DNDImport() {
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           Drop a file or click to upload a echotab JSON export.{" "}
           <Tooltip>
-            <TooltipTrigger className="focus-visible:ring-ring flex rounded-full focus-visible:outline-none focus-visible:ring-1">
+            <TooltipTrigger className="focus-visible:ring-ring flex rounded-full focus-visible:ring-1 focus-visible:outline-none">
               <InfoCircledIcon />
             </TooltipTrigger>
             <TooltipContent
@@ -273,7 +256,7 @@ export default function DNDImport() {
                 JSON Format shape:
                 <div
                   className={cn(
-                    "text-muted-foreground scrollbar-gray mt-3 max-h-[150px] overflow-auto whitespace-pre font-mono",
+                    "text-muted-foreground scrollbar-gray mt-3 max-h-[150px] overflow-auto font-mono whitespace-pre",
                   )}>
                   {importHint}
                 </div>
@@ -290,7 +273,7 @@ export default function DNDImport() {
           className="group">
           <div
             className={cn(
-              "peer-focus-visible:group-[]:border-primary hover:border-primary cursor-pointer rounded-md border border-dashed bg-opacity-10 p-10 text-center text-sm transition-all duration-200 hover:bg-opacity-10",
+              "peer-focus-visible:group-[]:border-primary hover:border-primary bg-opacity-10 hover:bg-opacity-10 cursor-pointer rounded-md border border-dashed p-10 text-center text-sm transition-all duration-200",
               { ["border-primary"]: draggingOver },
             )}>
             Drag & drop or click to upload

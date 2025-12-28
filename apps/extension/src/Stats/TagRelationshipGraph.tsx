@@ -149,11 +149,11 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
   if (noRelationships) {
     return (
       <div className="relative">
-        <div className="absolute left-1/2 top-1/2 z-[1] translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-balance text-lg">
+        <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
+          <div className="text-lg text-balance">
             Currently, there are no links with multiple tags.
           </div>
-          <div className="text-foreground/75 text-balance text-sm">
+          <div className="text-foreground/75 text-sm text-balance">
             Add multiple tags to see tag relationships here.
           </div>
         </div>

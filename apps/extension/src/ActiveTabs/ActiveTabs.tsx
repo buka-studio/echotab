@@ -309,9 +309,9 @@ export default function ActiveTabs() {
                           <SelectableItem asChild id={tabId} key={tabId}>
                             <motion.li
                               className={cn(
-                                "item-container rounded-lg transition-all duration-200 select-none focus-within:z-[1] hover:z-[1] data-[selected=true]:z-[1] [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-[1] [&:last-child_.tab-item]:rounded-b-lg [&:not(:first-child)]:mt-[-1px]",
+                                "item-container rounded-lg transition-all duration-200 select-none not-first:-mt-px focus-within:z-1 hover:z-1 data-[selected=true]:z-1 [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-1 [&:last-child_.tab-item]:rounded-b-lg",
                                 {
-                                  "[&_.tab-item]:!rounded-none [&_.tab-item]:transition-all [&_.tab-item]:duration-200":
+                                  "[&_.tab-item]:rounded-none! [&_.tab-item]:transition-all [&_.tab-item]:duration-200":
                                     activeId,
                                 },
                               )}>
@@ -325,7 +325,7 @@ export default function ActiveTabs() {
                                 <div className="group/sortable @container">
                                   <ActiveTabItem
                                     tab={tab}
-                                    className="group-data-[is-dragged=true]/sortable:!opacity-20 group-data-[is-dragged=true]/sortable:blur-sm"
+                                    className="group-data-[is-dragged=true]/sortable:opacity-20! group-data-[is-dragged=true]/sortable:blur-sm"
                                   />
                                 </div>
                               </ConditionalWrapper>

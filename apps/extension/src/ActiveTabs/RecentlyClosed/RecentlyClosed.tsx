@@ -18,7 +18,7 @@ function RecentlyClosedTabItem({ tab }: { tab: ActiveTab }) {
       linkPreview={false}
       link={
         <a
-          className="overflow-hidden rounded-sm text-ellipsis whitespace-nowrap focus-visible:underline focus-visible:outline-none"
+          className="cursor-pointer overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline focus-visible:underline focus-visible:outline-none"
           target="_blank"
           href={tab.url}>
           {tab.url}

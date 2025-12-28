@@ -191,12 +191,12 @@
     left: 50%;
     transform: translateX(-50%);
     bottom: -1px;
-    border-bottom: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
   }
 
   &.dashed {
     &::before {
-      border-bottom: 1px dashed color-mix(in oklab, var(--border) 50%, transparent);
+      border-bottom: 1px dashed color-mix(in oklab, var(--border) 60%, transparent);
     }
   }
 }
@@ -212,12 +212,12 @@
     left: 50%;
     transform: translateX(-50%);
     top: -1px;
-    border-top: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+    border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
   }
 
   &.dashed {
     &::after {
-      border-top: 1px dashed color-mix(in oklab, var(--border) 50%, transparent);
+      border-top: 1px dashed color-mix(in oklab, var(--border) 60%, transparent);
     }
   }
 }
@@ -227,5 +227,5 @@
 }
 
 .outlined-side {
-  @apply border-border/50 border-r border-l;
+  @apply border-border/60 border-r border-l;
 }

@@ -34,7 +34,7 @@ export default function TagChip({
           variant === "solid"
             ? { backgroundColor: color }
             : {
-                border: `1px dashed ${color}`,
+                border: `1px dotted ${color}`,
               }
         }>
         {icon}

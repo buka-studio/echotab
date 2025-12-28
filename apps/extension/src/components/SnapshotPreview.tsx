@@ -42,7 +42,7 @@ const NoSnapshot = ({ onVisit }: { onVisit: () => void }) => {
         style={{ backgroundImage: patternBg }}
       />
       <div className="text-sm">No snapshot available</div>
-      <div className="relative z-[1]">
+      <div className="relative z-1">
         <div className="text-muted-foreground text-center">
           A snapshot will be taken
           <br />
@@ -115,7 +115,7 @@ export default function SnapshotPreview({ tab, className, onVisit }: Props) {
             tooltipText="Remove snapshot"
             size="icon-sm"
             onClick={handleClear}
-            className="absolute right-2 top-2 rounded-full"
+            className="absolute top-2 right-2 rounded-full"
             variant="outline">
             <Cross2Icon />
           </ButtonWithTooltip>

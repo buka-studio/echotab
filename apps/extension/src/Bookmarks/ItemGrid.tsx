@@ -26,11 +26,11 @@ export default function ItemGrid<T extends string | number>({ items, children }:
 
   return (
     <div
-      className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] [&>*]:ml-[-1px] [&>*]:mt-[-1px]"
+      className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] [&>*]:mt-[-1px] [&>*]:ml-[-1px]"
       ref={gridRefCallback}>
       {items.map((item, i) => (
         <div
-          className={cn("@container relative focus-within:z-[1] hover:z-[1]", {
+          className={cn("@container relative focus-within:z-1 hover:z-1", {
             "[&>*]:rounded-tr-lg": i === edgeIndices.topRight,
             "[&>*]:rounded-tl-lg": i === edgeIndices.topLeft,
             "[&>*]:rounded-br-lg": i === edgeIndices.bottomRight,
