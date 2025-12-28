@@ -37,13 +37,13 @@ export default function Share({ list }: { list: PublicList }) {
   const listUrl = `${process.env.NEXT_PUBLIC_WEB_HOST}/lists/${list.publicId}`;
 
   const qr = renderSVG(listUrl, {
-    blackColor: "hsl(var(--foreground))",
-    whiteColor: "hsl(var(--background))",
+    blackColor: "var(--foreground)",
+    whiteColor: "var(--background)",
   });
 
   return (
     <div className="flex flex-col gap-10 p-5">
-      <div className="mx-auto flex w-full max-w-[200px] flex-col items-center justify-center gap-2 [&>*]:w-full">
+      <div className="mx-auto flex w-full max-w-[200px] flex-col items-center justify-center gap-2 *:w-full">
         <CopyToClipboard content={listUrl} />
         <Button variant="outline" asChild>
           <a href={buildTwitterShareLink(list)} target="_blank" rel="noopener noreferrer">

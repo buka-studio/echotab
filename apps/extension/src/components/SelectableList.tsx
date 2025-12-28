@@ -1,5 +1,5 @@
 import { Slot } from "@radix-ui/react-slot";
-import SelectionArea, { SelectionEvent } from "@viselect/react";
+import { SelectionArea, SelectionEvent } from "@viselect/react";
 import { ComponentProps } from "react";
 
 import { equals } from "../util/set";

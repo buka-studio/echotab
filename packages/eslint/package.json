@@ -6,6 +6,6 @@
     "index.js"
   ],
   "devDependencies": {
-    "eslint-config-turbo": "~2.0.14"
+    "eslint-config-turbo": "~2.6.3"
   }
 }

@@ -9,7 +9,9 @@
   },
   "private": true,
   "sideEffects": false,
-  "files": [],
+  "files": [
+    "src"
+  ],
   "exports": {
     "./models": "./src/models.ts",
     "./errors": "./src/errors.ts",
@@ -18,7 +20,8 @@
     "./ListService": "./src/ListService.ts"
   },
   "dependencies": {
-    "@echotab/db": "*",
-    "zod": "^3.23.8"
+    "@echotab/db": "workspace:*",
+    "@echotab/tsconfig": "workspace:*",
+    "zod": "^4.1.13"
   }
 }

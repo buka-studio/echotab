@@ -2,19 +2,23 @@
 
 # Adjust NODE_VERSION as desired
 ARG NODE_VERSION=20
-FROM node:${NODE_VERSION}-alpine as base
+FROM node:${NODE_VERSION}-alpine AS base
 
 LABEL fly_launch_runtime="Next.js"
 
 # Next.js app lives here
 WORKDIR /app
+RUN npm install -g turbo@^2
+RUN npm install -g pnpm@^10.26.0
+COPY . .
+RUN turbo prune @echotab/web --docker
 
 # Set production environment
 ENV NODE_ENV=production
 
 
 # Throw-away build stage to reduce size of final image
-FROM base as build
+FROM base AS build
 
 # Install packages needed to build node modules
 # RUN apt-get update -qq && \
@@ -25,16 +29,18 @@ RUN apk add g++ make py3-pip
 
 # Install node modules
 COPY --link package.json package-lock.json ./
-RUN npm ci --include=dev
+COPY apps/web/package.json ./apps/web/package.json
+RUN pnpm ci --include=dev
 
 # Copy application code
+
 COPY --link . .
 
 # Build application
-RUN npm run build
+RUN turbo run build --filter=@echotab/web
 
 # Remove development dependencies
-RUN npm prune --omit=dev
+RUN pnpm prune --omit=dev
 
 # Final stage for app image
 FROM base
@@ -44,4 +50,4 @@ COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "npm", "run", "start" ]
+CMD [ "npm", "run", "start:web" ]

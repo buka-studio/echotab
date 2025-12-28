@@ -23,7 +23,7 @@ li[role="checkbox"]:before {
 
 li[role="checkbox"]:focus:before,
 li[role="checkbox"]:focus:before {
-  box-shadow: 0 0 0 2px hsl(var(--primary));
+  box-shadow: 0 0 0 2px var(--primary);
   border-radius: 2px;
 }
 li[role="checkbox"]:before {
@@ -31,9 +31,9 @@ li[role="checkbox"]:before {
   border-radius: 2px;
 }
 li[role="checkbox"][aria-checked="true"]:before {
-  border: 1px solid hsl(var(--primary));
+  border: 1px solid var(--primary);
   border-radius: 2px;
-  background-color: hsl(var(--primary));
+  background-color: var(--primary);
   background-repeat: no-repeat;
 }
 li[role="checkbox"][aria-checked="true"]:after {

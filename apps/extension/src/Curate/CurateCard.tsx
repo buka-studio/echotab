@@ -11,8 +11,8 @@ import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 
-import SnapshotPreview from "~/src/components/SnapshotPreview";
-import { Favicon } from "~/src/components/TabItem";
+import SnapshotPreview from "~/components/SnapshotPreview";
+import { Favicon } from "~/components/TabItem";
 
 import { useLLMSummarizeQuery } from "../AI/queries";
 import usePatternBackground from "../hooks/usePatternBackground";

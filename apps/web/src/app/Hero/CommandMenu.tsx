@@ -3,7 +3,7 @@ import { ComponentProps } from "react";
 export default function CommandMenu({ ...props }: ComponentProps<"button">) {
   return (
     <button
-      className="herotab focus-ring bg-card/40 relative mb-10 flex h-11 w-full flex-1 items-center justify-between rounded-lg border p-3 text-sm shadow-[0_0_0_3px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200"
+      className="herotab focus-ring bg-card/40 border-border relative mb-10 flex h-11 w-full flex-1 items-center justify-between rounded-lg border p-3 text-sm shadow-[0_0_0_3px_var(--border)] backdrop-blur-lg transition-all duration-200"
       {...props}>
       <span>Command Menu</span>
       <span className="flex items-center gap-1">

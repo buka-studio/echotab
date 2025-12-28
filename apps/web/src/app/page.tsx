@@ -50,43 +50,6 @@ function Footer() {
   );
 }
 
-// src https://github.com/yoksel/url-encoder
-// const symbols = /[\r\n%#()<>?[\\\]^`{|}]/g;
-// function encodeSVG(svg: string) {
-//   // Use single quotes instead of double to avoid encoding.
-
-//   svg = svg.replace(/>\s{1,}</g, `><`);
-//   svg = svg.replace(/\s{2,}/g, ` `);
-
-//   // Using encodeURIComponent() as replacement function
-//   // allows to keep result code readable
-//   return svg.replace(symbols, encodeURIComponent);
-// }
-
-// function PlaceholderItem({ className = "" }) {
-//   useTheme();
-
-//   const isDarkTheme = document.documentElement.classList.contains("dark");
-
-//   const linesPatternBg =
-//     "data:image/svg+xml," +
-//     encodeSVG(`<svg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'>
-//             <g fill='hsl(${window.getComputedStyle(document.documentElement).getPropertyValue("--muted-foreground")})' fill-opacity=${isDarkTheme ? "'0.15'" : "'0.25'"} fill-rule='evenodd'>
-//                 <path d='M5 0h1L0 6V5zM6 5v1H5z' />
-//             </g>
-//         </svg>`);
-
-//   return (
-//     <div
-//       style={{ backgroundImage: `url("${linesPatternBg}")` }}
-//       className={cn(
-//         "bg-surface-1 flex items-center justify-center border border-dashed",
-//         className,
-//       )}
-//     />
-//   );
-// }
-
 export default function Home() {
   return (
     <div className="flex min-h-screen max-w-[100vw] flex-col overflow-hidden">

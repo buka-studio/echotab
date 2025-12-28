@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { derive } from "derive-valtio";
 import { proxy, subscribe, useSnapshot } from "valtio";
 
-import ChromeLocalStorage from "~/src/util/ChromeLocalStorage";
+import ChromeLocalStorage from "~/util/ChromeLocalStorage";
 
 import { BookmarkStore } from "../Bookmarks";
 import { version } from "../constants";
@@ -26,14 +26,16 @@ const inclusion = ["ai_tag", "quick_tag", "unassigned_tag", "older_than_threshol
 
 export type Inclusion = (typeof inclusion)[number];
 
+export type InclusionReason = {
+  hasUnassignedTags: boolean;
+  hasAITags: boolean;
+  hasQuickTags: boolean;
+  olderThanThreshold: boolean;
+};
+
 export interface InclusionResult {
   tabId: string;
-  reasons: {
-    hasUnassignedTags: boolean;
-    hasAITags: boolean;
-    hasQuickTags: boolean;
-    olderThanThreshold: boolean;
-  };
+  reasons: InclusionReason;
 }
 
 export interface Settings {

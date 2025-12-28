@@ -2,10 +2,9 @@ import { UserList } from "@echotab/lists/models";
 import { toast } from "@echotab/ui/Toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { List } from "~/src/models";
-import { useUIStore } from "~/src/UIStore";
-import { replaceBy } from "~/src/util";
-
+import { List } from "../../models";
+import { useUIStore } from "../../UIStore";
+import { replaceBy } from "../../util";
 import BookmarkStore, { useBookmarkStore } from "../BookmarkStore";
 import { getLists, publishList, unpublishLists, updateList } from "./api";
 
@@ -33,9 +32,9 @@ export function useGetPublicLists() {
   } = useUIStore();
 
   const enabled = Boolean(
-    process.env.PLASMO_PUBLIC_LIST_SHARING_FF &&
-      !disableListSharing &&
-      bookmarkStore.lists.length > 0,
+    import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF &&
+    !disableListSharing &&
+    bookmarkStore.lists.length > 0,
   );
 
   return useQuery({

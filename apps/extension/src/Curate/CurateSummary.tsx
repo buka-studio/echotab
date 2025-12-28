@@ -24,11 +24,11 @@ export default function CurateSummary({ deleted, kept, className, children, empt
       <PCVisual
         style={
           {
-            "--screen": "hsl(var(--card-active))",
-            "--edges": "hsl(var(--muted-foreground) / 0.5)",
-            "--case": "hsl(var(--card))",
-            "--splash": "hsl(var(--surface-2))",
-            "--visual": "hsl(var(--foreground))",
+            "--screen": "var(--card-active)",
+            "--edges": "color-mix(in srgb, var(--muted-foreground) 30%, transparent)",
+            "--case": "var(--card)",
+            "--splash": "var(--surface-2)",
+            "--visual": "var(--foreground)",
           } as CSSProperties
         }
       />

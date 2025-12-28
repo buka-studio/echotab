@@ -4,6 +4,7 @@ import { proxy, subscribe, useSnapshot } from "valtio";
 import { version } from "./constants";
 import { Panel, Serializable } from "./models";
 import ChromeLocalStorage from "./util/ChromeLocalStorage";
+import { getRootElement } from "./util/dom";
 
 export enum Orientation {
   Vertical = "Vertical",
@@ -77,7 +78,7 @@ const Store = proxy({
     aiApiKey: undefined,
     aiApiBaseURL: undefined,
     aiApiModel: undefined,
-    enterToSearch: true,
+    enterToSearch: false,
   } as Settings,
   initialized: false,
   activePanel: Panel.Tabs,
@@ -155,7 +156,7 @@ export function subscribeUIStore() {
       ChromeLocalStorage.setItem(storageKey, serialized);
     }
 
-    const root = window.document.querySelector(".echotab-root") as HTMLElement;
+    const root = getRootElement();
     const enable = disableAnimation();
 
     root.classList.remove("light", "dark");
@@ -171,7 +172,7 @@ export function subscribeUIStore() {
     }
 
     if (Store.settings.primaryColor) {
-      root.style.setProperty("--primary", Store.settings.primaryColor);
+      root.style.setProperty("--primary", `oklch(${Store.settings.primaryColor})`);
     }
 
     enable();

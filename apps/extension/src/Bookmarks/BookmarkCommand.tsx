@@ -338,7 +338,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                 <div className="flex items-center gap-1">
                   <button
                     onClick={handleApply}
-                    className="focus-ring whitespace-nowrap rounded px-2 text-sm">
+                    className="focus-ring rounded px-2 text-sm whitespace-nowrap">
                     Apply
                   </button>
                   <span className="flex items-center gap-1">
@@ -355,7 +355,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
           </div>
           <CommandList
             className={cn(
-              "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg backdrop-blur-lg",
+              "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-full block w-full overscroll-contain rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg backdrop-blur-lg",
             )}>
             {activePage === "/" && (
               <>
@@ -440,7 +440,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                 {bookmarkStore.assignedTagIds.size > 0 && (
                   <div className="tags flex items-center gap-2">
                     <button
-                      className="focus-ring whitespace-nowrap rounded px-2 text-sm"
+                      className="focus-ring rounded px-2 text-sm whitespace-nowrap"
                       onClick={bookmarkStore.clearAssignedTagIds}>
                       Clear all
                     </button>
@@ -556,7 +556,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                       </motion.div>
                     )}
                 </CommandEmpty>
-                <div className="text-muted-foreground absolute bottom-2 right-3 overflow-hidden">
+                <div className="text-muted-foreground absolute right-3 bottom-2 overflow-hidden">
                   Results: <NumberFlow value={bookmarkStore.viewTabIds.length} />
                 </div>
               </div>

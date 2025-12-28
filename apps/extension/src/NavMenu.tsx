@@ -31,7 +31,7 @@ export default function NavMenu({ children }: { children: ReactNode }) {
             <BarChartIcon />
           </ButtonWithTooltip>
         </DialogTrigger>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="sm:max-w-[57rem]">
           <DialogHeader>
             <DialogTitle>Statistics</DialogTitle>
             <DialogDescription>View statistics for your bookmarks and tags.</DialogDescription>
@@ -49,7 +49,7 @@ export default function NavMenu({ children }: { children: ReactNode }) {
             <GearIcon className="h-4 w-4" />
           </ButtonWithTooltip>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[57rem]">
           <DialogTitle className="sr-only">Settings</DialogTitle>
           <DialogDescription className="sr-only">Change your extension settings.</DialogDescription>
           <Settings />

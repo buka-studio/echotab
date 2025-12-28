@@ -14,6 +14,7 @@ import FilterTagChips from "../components/FilterTagChips";
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../components/ItemListPlaceholder";
 import { MobileBottomBarPortal } from "../components/MobileBottomBar";
 import { SelectableList } from "../components/SelectableList";
+import LayoutSidebarPortal from "../LayoutSidebarPortal";
 import { Tag } from "../models";
 import { useTagStore } from "../TagStore";
 import { isPopoverOpen } from "../util/dom";
@@ -183,10 +184,10 @@ export default function Bookmarks() {
 
   return (
     <div className={cn("flex h-full flex-col")}>
-      <div className="header sticky top-[20px] z-10 mx-auto flex w-full max-w-[57rem]">
+      <div className="header sticky top-0 z-10 mx-auto flex w-full max-w-[57rem] p-3">
         <BookmarkCommand />
       </div>
-      <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-2 py-2">
+      <div className="outlined-bottom mx-auto flex w-full max-w-4xl items-center justify-between gap-2 not-empty:p-2">
         {bookmarkStore.filtersApplied && (
           <div className="flex items-center gap-5">
             <Button variant="ghost" onClick={bookmarkStore.clearFilter}>
@@ -213,29 +214,31 @@ export default function Bookmarks() {
         onResetSelection={() => SelectionStore.deselectAllTabs()}
         getSelected={() => SelectionStore.selectedItemIds}
         onSelectionChange={(selection) => SelectionStore.selectItems(selection as Set<string>)}>
-        <div className="mt-12 grid grid-cols-[1fr_minmax(auto,56rem)_1fr] grid-rows-[repeat(4,auto)] items-start pb-3 lg:gap-x-5">
+        <div className="mt-12 grid grid-cols-1 grid-rows-[repeat(4,auto)] items-start pb-3 lg:gap-x-5">
           {isTagView && (
             <>
               {isXLScreen ? (
-                <div className="scrollbar-gray sticky top-5 col-[1] row-[3/5] mt-12 hidden justify-self-end overflow-auto xl:block xl:max-h-[96vh]">
-                  <TagNavigation
-                    visibleTagIds={visibleTagItems}
-                    onTagClick={handleScrollToTag}
-                    className="max-h-screen [&_li]:max-w-[200px]"
-                  />
-                </div>
+                <LayoutSidebarPortal>
+                  <div className="scrollbar-gray sticky top-5 row-[3/5] mt-12 hidden h-full w-full justify-self-end overflow-auto xl:block xl:max-h-[96vh]">
+                    <TagNavigation
+                      visibleTagIds={visibleTagItems}
+                      onTagClick={handleScrollToTag}
+                      className="h-full max-h-screen w-full [&_li]:max-w-[200px]"
+                    />
+                  </div>
+                </LayoutSidebarPortal>
               ) : (
                 <Drawer
                   shouldScaleBackground={false}
                   modal={false}
                   nested // prevents vaul's default behavior of setting position:fixed on body
-                  direction="right">
+                  direction="bottom">
                   <MobileBottomBarPortal>
                     <DrawerTrigger asChild>
                       <ButtonWithTooltip
                         tooltipText="Toggle tag sidebar"
                         aria-label="Toggle tag sidebar"
-                        className="absolute bottom-4 left-10"
+                        className="absolute right-10 bottom-4"
                         size="icon"
                         variant="ghost">
                         <HamburgerMenuIcon />
@@ -243,7 +246,7 @@ export default function Bookmarks() {
                     </DrawerTrigger>
                   </MobileBottomBarPortal>
                   <DrawerContent>
-                    <div className="scrollbar-gray mx-auto flex w-full flex-col overflow-auto overscroll-contain rounded-t-[10px] p-4 px-5">
+                    <div className="scrollbar-gray mx-auto flex max-h-[40vh] w-full flex-col overflow-auto overscroll-contain p-4 px-5">
                       <TagNavigation
                         visibleTagIds={visibleTagItems}
                         onTagClick={handleScrollToTag}
@@ -254,17 +257,17 @@ export default function Bookmarks() {
               )}
             </>
           )}
-          <div className="border-border col-[2] row-[1/5] h-full rounded-[1.125rem] border border-dashed" />
-          <div className="col-[2] row-[1] mx-3 select-none pt-3">
+          {/* <div className="col-2 row-[1/5] h-full" /> */}
+          <div className="outlined-bottom row-1 p-3 select-none">
             <Lists />
           </div>
-          <div className="col-[2] row-[2] mx-3 mb-14 select-none pt-3">
+          <div className="outlined-bottom row-2 mb-14 p-3 select-none">
             <Pinned />
           </div>
-          <div className="col-[2] row-[3] mx-4">
+          <div className="row-3">
             <div className="mx-auto flex w-full max-w-4xl items-center justify-start gap-2">
               <div className="flex flex-1 items-center gap-2 px-2 text-sm">
-                <div className="flex select-none items-center gap-2">
+                <div className="flex items-center gap-2 select-none">
                   <span className="text-muted-foreground flex items-center gap-2">
                     <BookmarkFilledIcon /> Links
                   </span>
@@ -288,7 +291,7 @@ export default function Bookmarks() {
               </div>
             </div>
           </div>
-          <div className="col-[2] row-[4] mx-3 mb-4 mt-4 max-w-4xl rounded-xl">
+          <div className="row-4 mt-4 mb-4 max-w-4xl">
             {!hasTabs && (
               <ItemListPlaceholder>
                 <ItemListPlaceholderCopy
@@ -312,7 +315,7 @@ export default function Bookmarks() {
                 const key = tag ? `${tag.id}_ ${tag.name}` : i;
                 return (
                   <div
-                    className="bg-surface-2 flex flex-col gap-3 rounded-xl border [&:has(.sortable-list)]:p-[0.5rem_0.25rem_0.25rem] [&:not(:has(.sortable-list))]:p-[0.5rem_0.25rem] [&:not(:has(.tag-header))]:p-[0.25rem]"
+                    className="flex flex-col gap-3 [&:has(.sortable-list)]:p-[0.5rem_0.25rem_0.25rem] [&:not(:has(.sortable-list))]:p-[0.5rem_0.25rem] [&:not(:has(.tag-header))]:p-1"
                     key={key}
                     data-tagid={tag?.id}
                     ref={(el) => {

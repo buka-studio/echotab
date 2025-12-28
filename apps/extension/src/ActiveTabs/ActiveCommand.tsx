@@ -7,7 +7,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@echotab/ui/Command";
 import { NumberFlow } from "@echotab/ui/NumberFlow";
 import Spinner from "@echotab/ui/Spinner";
@@ -91,7 +90,7 @@ const SaveSessionTooltip = ({
     <Tooltip>
       <TooltipTrigger
         className={cn(
-          "text-muted-foreground focus-visible:ring-ring flex rounded-full focus-visible:outline-none focus-visible:ring-1",
+          "text-muted-foreground focus-visible:ring-ring flex rounded-full focus-visible:ring-1 focus-visible:outline-none",
           className,
         )}>
         <InfoCircledIcon />
@@ -108,7 +107,7 @@ const AiTagTooltip = ({ className }: { className?: string }) => {
     <Tooltip>
       <TooltipTrigger
         className={cn(
-          "text-muted-foreground focus-visible:ring-ring flex rounded-full focus-visible:outline-none focus-visible:ring-1",
+          "text-muted-foreground focus-visible:ring-ring flex rounded-full focus-visible:ring-1 focus-visible:outline-none",
           className,
         )}>
         <InfoCircledIcon />
@@ -127,8 +126,16 @@ export default function ActiveCommand() {
   const uiStore = useUIStore();
   const selectionStore = useActiveSelectionStore();
 
-  const { pages, goToPage, activePage, pushPage, search, setSearch, setPages, goToPrevPage } =
-    useTabCommand<Page>();
+  const {
+    pages,
+    goToPage,
+    activePage = "/",
+    pushPage,
+    search,
+    setSearch,
+    setPages,
+    goToPrevPage,
+  } = useTabCommand<Page>();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLDivElement>(null);
@@ -426,7 +433,7 @@ export default function ActiveCommand() {
                 <button
                   onClick={handleApply}
                   disabled={ActiveStore.assignedTagIds.size === 0}
-                  className="focus-ring whitespace-nowrap rounded px-2 text-sm disabled:opacity-50">
+                  className="focus-ring rounded px-2 text-sm whitespace-nowrap disabled:opacity-50">
                   Apply
                 </button>
                 <KeyboardShortcut>
@@ -439,7 +446,7 @@ export default function ActiveCommand() {
         </div>
         <CommandList
           className={cn(
-            "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg backdrop-blur-lg",
+            "scrollbar-gray bg-popover text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg",
           )}>
           {activePage === "/" && (
             <>
@@ -449,7 +456,7 @@ export default function ActiveCommand() {
                     Selection{" "}
                     <Badge
                       variant="card"
-                      className={cn("ml-2", {
+                      className={cn("ml-2 inline", {
                         "opacity-0": !selectedCount,
                       })}>
                       {selectedCount}
@@ -510,7 +517,6 @@ export default function ActiveCommand() {
                   </>
                 )}
               </CommandGroup>
-              <CommandSeparator />
               <CommandGroup heading="All Tabs">
                 {selectedCount === 0 && (
                   <CommandItem onSelect={withClear(handleQuickSave)}>
@@ -519,7 +525,7 @@ export default function ActiveCommand() {
                     <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
                   </CommandItem>
                 )}
-                <CommandItem onSelect={() => pushPage("find")}>
+                <CommandItem onSelect={() => pushPage("find")} value="Find Search">
                   <MagnifyingGlassIcon className="text-muted-foreground mr-2" />
                   Find
                 </CommandItem>
@@ -539,7 +545,6 @@ export default function ActiveCommand() {
                   </CommandItem>
                 )}
               </CommandGroup>
-              <CommandSeparator />
               <CommandGroup heading="Other">
                 <CommandItem onSelect={() => UIStore.activatePanel(Panel.Bookmarks)}>
                   <BookmarkIcon className="text-muted-foreground mr-2" />
@@ -554,7 +559,7 @@ export default function ActiveCommand() {
               {tabStore.assignedTagIds.size > 0 && (
                 <div className="tags flex items-center gap-2">
                   <button
-                    className="focus-ring whitespace-nowrap rounded px-2 text-sm"
+                    className="focus-ring rounded px-2 text-sm whitespace-nowrap"
                     onClick={ActiveStore.clearAssignedTagIds}>
                     Clear all
                   </button>
@@ -634,7 +639,7 @@ export default function ActiveCommand() {
                   </motion.div>
                 )}
               </CommandEmpty>
-              <div className="text-muted-foreground absolute bottom-2 right-3 overflow-hidden">
+              <div className="text-muted-foreground absolute right-3 bottom-2 overflow-hidden">
                 Results: <NumberFlow value={tabStore.viewTabIds.length} />
               </div>
             </div>

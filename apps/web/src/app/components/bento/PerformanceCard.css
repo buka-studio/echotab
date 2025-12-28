@@ -32,7 +32,7 @@
 }
 
 .overlay-mask {
-  background: hsl(var(--background));
+  background: var(--background);
   mask-image: radial-gradient(transparent 50%, #9198e5 70%);
 }
 

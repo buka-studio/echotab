@@ -16,10 +16,9 @@ import { cn } from "@echotab/ui/util";
 import { ArrowTopRightIcon, DotsVerticalIcon } from "@radix-ui/react-icons";
 import { ComponentProps, forwardRef } from "react";
 
-import { useUIStore } from "~/src/UIStore";
-
 import EchoItem from "../../components/EchoItem";
 import { List } from "../../models";
+import { useUIStore } from "../../UIStore";
 import { pluralize } from "../../util";
 import ListDeleteDialog from "./ListDeleteDialog";
 import ListFormDialog from "./ListFormDialog";
@@ -31,7 +30,7 @@ function PublishIndicator({ list, publicList }: { list: List; publicList?: UserL
     settings: { disableListSharing },
   } = useUIStore();
 
-  if (!process.env.PLASMO_PUBLIC_LIST_SHARING_FF) {
+  if (!import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF) {
     return null;
   }
 
@@ -86,7 +85,7 @@ function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
           </DialogTrigger>
         </ListFormDialog>
-        {process.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
+        {import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
           <ListPublishDialog list={list} publicList={publicList}>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={disableListSharing}>
@@ -153,11 +152,11 @@ const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
       }
       ref={ref}
       className={cn(
-        "tab-item [&_.echo-item-title:first-child]:line-clamp-2 [&_.echo-item-title]:whitespace-normal [&_.echo-item-title]:pl-0",
+        "tab-item [&_.echo-item-title]:pl-0 [&_.echo-item-title]:whitespace-normal [&_.echo-item-title:first-child]:line-clamp-2",
         className,
       )}
       actions={
-        <div className="to-card-active pointer-events-none absolute right-[1px] top-[1px] z-[1] h-[calc(100%-1px)] bg-gradient-to-r from-transparent to-50% p-1 pl-8">
+        <div className="to-card-active pointer-events-none absolute top-[1px] right-[1px] z-[1] h-[calc(100%-1px)] bg-gradient-to-r from-transparent to-50% p-1 pl-8">
           <ListMenu list={list} publicList={publicList} />
         </div>
       }

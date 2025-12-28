@@ -5,6 +5,25 @@ import { DesktopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
 
 import { Theme, useUIStore } from "../UIStore";
 
+const accentColors = [
+  {
+    name: "Orange",
+    lch: "0.69 0.26 36.81",
+  },
+  {
+    name: "Blue",
+    lch: "0.47 0.32 264.32",
+  },
+  {
+    name: "Green",
+    lch: "0.86 0.31 152.43",
+  },
+  {
+    name: "Purple",
+    lch: "0.7 0.34 340.98",
+  },
+];
+
 export default function AppearancePage() {
   const uiStore = useUIStore();
 
@@ -68,50 +87,21 @@ export default function AppearancePage() {
             type="single"
             value={uiStore.settings.primaryColor}
             onValueChange={(c) => uiStore.updateSettings({ primaryColor: c })}>
-            <ToggleGroupItem
-              value="20.5 90.2% 48.2%"
-              aria-label="Set orange color"
-              className="h-auto rounded-full p-1">
-              <div
-                className="h-5 w-5 rounded-full"
-                style={{
-                  backgroundColor: `hsl(20.5, 90.2%, 48.2%)`,
-                }}
-              />
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="241 95% 63%"
-              aria-label="Set blue color"
-              className="h-auto rounded-full p-1">
-              <div
-                className="h-5 w-5 rounded-full"
-                style={{
-                  backgroundColor: `hsl(241, 95%, 63%)`,
-                }}
-              />
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="158.11 86.05% 41.91%"
-              aria-label="Set green color"
-              className="h-auto rounded-full p-1">
-              <div
-                className="h-5 w-5 rounded-full"
-                style={{
-                  backgroundColor: `hsl(158.11 86.05% 41.91%)`,
-                }}
-              />
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="311.35 93.94% 41.49%"
-              aria-label="Set purple color"
-              className="h-auto rounded-full p-1">
-              <div
-                className="h-5 w-5 rounded-full"
-                style={{
-                  backgroundColor: `hsl(311.35 93.94% 41.49%)`,
-                }}
-              />
-            </ToggleGroupItem>
+            {accentColors.map((color) => {
+              return (
+                <ToggleGroupItem
+                  value={color.lch}
+                  aria-label={`Set ${color.name} color`}
+                  className="h-auto rounded-full p-1">
+                  <div
+                    className="h-5 w-5 rounded-full"
+                    style={{
+                      backgroundColor: `oklch(${color.lch})`,
+                    }}
+                  />
+                </ToggleGroupItem>
+              );
+            })}
           </ToggleGroup>
         </div>
       </div>

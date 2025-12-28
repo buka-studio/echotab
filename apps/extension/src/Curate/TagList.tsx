@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 
-import TagChip from "~/src/components/tag/TagChip";
-import { useTagStore } from "~/src/TagStore";
+import TagChip from "~/components/tag/TagChip";
+import { useTagStore } from "~/TagStore";
 
 import { BookmarkStore } from "../Bookmarks";
 import TagChipCombobox from "../components/tag/TagChipCombobox";

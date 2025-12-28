@@ -1,8 +1,10 @@
 export {
+  default,
   DroppableContainer,
-  OrderChange,
+  // OrderChange,
   SortableHandle,
   SortableItem,
   SortableOverlayItem,
-  default,
 } from "./SortableList";
+
+export { type OrderChange } from "./SortableList";

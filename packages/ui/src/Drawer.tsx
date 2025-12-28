@@ -44,13 +44,13 @@ const DrawerOverlay = React.forwardRef<
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 const drawerContentVariants = cva(
-  "bg-background focus-visible:ring-ring fixed z-[51] flex border focus-visible:outline-none",
+  "bg-background/20 backdrop-blur-lg focus-visible:ring-ring fixed z-[51] flex border focus-visible:outline-none",
   {
     variants: {
       direction: {
         right: "ml-24 right-0 rounded-l-[10px] inset-y-0 h-screen w-[400px]",
         top: "mb-24 top-0 rounded-b-[10px] inset-x-0 h-[90dvh]",
-        bottom: "mt-24 rounded-t-[10px] bottom-0 inset-x-0 h-[90dvh] h-auto",
+        bottom: "flex-col mt-24 rounded-t-[10px] bottom-0 inset-x-0 h-[90dvh] h-auto",
         left: "mr-24 left-0 rounded-r-[10px] inset-y-0 h-screen w-[400px]",
       },
     },

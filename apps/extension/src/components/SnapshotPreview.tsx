@@ -4,7 +4,7 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
-import usePatternBackground from "~/src/hooks/usePatternBackground";
+import usePatternBackground from "~/hooks/usePatternBackground";
 
 import { Message } from "../models";
 import SnapshotStore, { Snapshot } from "../util/SnapshotStore";

@@ -2,7 +2,7 @@ import { Badge } from "@echotab/ui/Badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { ScrollArea, ScrollBar } from "@echotab/ui/ScrollArea";
 
-import { Tag } from "~/src/models";
+import { Tag } from "~/models";
 
 import TagChip from "./TagChip";
 

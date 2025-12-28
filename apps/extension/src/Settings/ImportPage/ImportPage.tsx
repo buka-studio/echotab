@@ -6,8 +6,8 @@ import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { ChangeEventHandler, DragEventHandler, useState } from "react";
 import { z } from "zod";
 
-import { getUtcISO } from "~/src/util/date";
-import { normalizedComparator } from "~/src/util/string";
+import { getUtcISO } from "~/util/date";
+import { normalizedComparator } from "~/util/string";
 
 import { useBookmarkStore } from "../../Bookmarks";
 import { Tag } from "../../models";

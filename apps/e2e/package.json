@@ -8,11 +8,11 @@
     "start": "npx playwright test --ui"
   },
   "dependencies": {
-    "@playwright/test": "^1.45.0"
+    "@playwright/test": "^1.57.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "tsx": "~4.16.2",
+    "@types/node": "^24",
+    "tsx": "~4.21.0",
     "typescript": "^5"
   }
 }

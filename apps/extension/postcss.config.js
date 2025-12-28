@@ -1,7 +1,3 @@
-module.exports = {
-  plugins: {
-    "postcss-import": {},
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-};
+import { postcssConfig } from "@echotab/ui/postcss.config";
+
+export default postcssConfig;

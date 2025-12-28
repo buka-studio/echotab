@@ -2,8 +2,8 @@ import { cn } from "@echotab/ui/util";
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
-import useGridLayoutInfo from "~/src/hooks/useGridLayoutInfo";
-import usePatternBackground from "~/src/hooks/usePatternBackground";
+import useGridLayoutInfo from "~/hooks/useGridLayoutInfo";
+import usePatternBackground from "~/hooks/usePatternBackground";
 
 import { Favicon } from "../TabItem";
 
@@ -54,13 +54,13 @@ export default function ItemListPlaceholder({
         )}>
         {Array.from({ length: count }).map((_, i) => (
           <motion.div
-            animate={{ opacity: 1 }}
+            // animate={{ opacity: 1 }}
             transition={{
-              type: "tween",
+              // type: "tween",
               delay: 0.05 * i,
-              duration: 0.5,
+              duration: 0.25,
             }}
-            initial={{ opacity: 0 }}
+            // initial={{ opacity: 0 }}
             key={i}
             style={{ backgroundImage: layout === "grid" ? patternBg : "" }}
             className={cn(

@@ -13,9 +13,9 @@ import { cn } from "@echotab/ui/util";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { ReactNode, useMemo, useRef, useState } from "react";
 
-import { Tag } from "~/src/models";
-import { unassignedTag, useTagStore } from "~/src/TagStore";
-import { toggle } from "~/src/util/set";
+import { Tag } from "~/models";
+import { unassignedTag, useTagStore } from "~/TagStore";
+import { toggle } from "~/util/set";
 
 import TagChip from "./TagChip";
 

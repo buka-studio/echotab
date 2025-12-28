@@ -7,10 +7,10 @@ import PulseLogo from "./PulseLogo";
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div
-      className="layout flex h-full min-h-screen flex-col bg-[hsl(var(--background-base))] font-sans"
+      className="layout flex h-full min-h-screen flex-col bg-(--background-base) font-sans"
       vaul-drawer-wrapper="true">
       <main className="flex flex-1 flex-col gap-10 px-5 py-4 pb-[100px]">
-        <header className="mx-auto flex w-full max-w-screen-md justify-between gap-2">
+        <header className="mx-auto flex w-full max-w-3xl justify-between gap-2">
           <div className="flex items-center gap-2">
             <PulseLogo />
             <Link
@@ -24,7 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <HeaderCTA />
           </div>
         </header>
-        <div className="mx-auto w-full max-w-screen-md">{children}</div>
+        <div className="mx-auto w-full max-w-3xl">{children}</div>
       </main>
     </div>
   );

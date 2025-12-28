@@ -4,8 +4,8 @@ import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
-import { ActiveTab, SavedTab, Tag } from "~/src/models";
-import { useUIStore } from "~/src/UIStore";
+import { ActiveTab, SavedTab, Tag } from "../models";
+import { useUIStore } from "../UIStore";
 
 const tagSystemPrompt = `Tag saved browser tabs by analyzing their titles, URLs and optional metadata to select the most relevant tags from a provided list. Create new tags only if none apply.
 

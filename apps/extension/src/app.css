@@ -1,11 +1,11 @@
 .echotab-root {
   --font-sans: "Inter", sans-serif;
-  background: hsl(var(--background-base));
+  background: var(--background-base);
 }
 
 .selection-area {
-  background: hsl(var(--primary) / 0.07);
-  border: 1px solid hsla(var(--primary) / 0.7);
+  background: color-mix(in lch, var(--primary) 7%, transparent);
+  border: 1px solid color-mix(in lch, var(--primary) 70%, transparent);
   border-radius: 2px;
 }
 
@@ -23,14 +23,14 @@
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-color: hsl(var(--muted-foreground) / 0.75);
+  background-color: color-mix(in lch, var(--muted-foreground) 75%, transparent);
   background-image: -webkit-gradient(
     linear,
     100% 0,
     0 0,
-    from(hsl(var(--muted-foreground) / 0.75)),
-    color-stop(0.5, hsl(var(--foreground))),
-    to(hsl(var(--muted-foreground) / 0.75))
+    from(color-mix(in lch, var(--muted-foreground) 75%, transparent)),
+    color-stop(0.5, color-mix(in lch, var(--foreground) 100%, transparent)),
+    to(color-mix(in lch, var(--muted-foreground) 75%, transparent))
   );
   animation: shimmer-text 3s 0.25s infinite;
   background-repeat: no-repeat;

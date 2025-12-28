@@ -19,10 +19,10 @@ import RichEditor, {
 import { toast } from "@echotab/ui/Toast";
 import { ComponentProps, ReactNode, useMemo, useRef, useState } from "react";
 
-import TabItem, { Favicon } from "~/src/components/TabItem";
-import TagChipCombobox from "~/src/components/tag/TagChipCombobox";
-import TagStore from "~/src/TagStore";
-import { useUIStore } from "~/src/UIStore";
+import TabItem, { Favicon } from "~/components/TabItem";
+import TagChipCombobox from "~/components/tag/TagChipCombobox";
+import TagStore from "~/TagStore";
+import { useUIStore } from "~/UIStore";
 
 import { List, SavedTab } from "../../models";
 import { formatDate } from "../../util/date";

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import Lists from "../Bookmarks/Lists";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { ConditionalWrapper } from "../components/ConditionalWrapper";
 import FilterTagChips from "../components/FilterTagChips";
@@ -148,10 +149,10 @@ export default function ActiveTabs() {
 
   return (
     <div className={cn("flex h-full flex-col", {})}>
-      <div className="header sticky top-[20px] z-10 mx-auto flex w-full max-w-[57rem]">
+      <div className="header sticky top-[20px] z-10 mx-auto flex w-full p-3">
         <ActiveCommand />
       </div>
-      <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-2 py-2">
+      <div className="outlined-bottom mx-auto flex w-full max-w-4xl items-center justify-between gap-2 not-empty:p-2">
         {tabStore.filtersApplied && (
           <div className="flex items-center gap-5">
             <Button variant="ghost" onClick={tabStore.clearFilter}>
@@ -171,10 +172,13 @@ export default function ActiveTabs() {
         onBeforeStart={() => {
           return activeIdRef.current === null;
         }}>
-        <div className="mx-auto mt-12 w-full max-w-4xl rounded-[1.125rem] border border-dashed p-3">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-start">
+        <div className="mx-auto mt-12 w-full">
+          <div className="outlined-bottom mb-14 p-3">
+            <Lists />
+          </div>
+          <div className="mx-auto flex w-full items-center justify-start p-3">
             <div className="flex flex-1 items-center gap-2 px-2 text-sm">
-              <div className="flex select-none items-center gap-2">
+              <div className="flex items-center gap-2 select-none">
                 <span className="text-muted-foreground flex items-center gap-2">
                   <BrowserIcon weight="fill" className="h-4 w-4" />
                   Tabs
@@ -197,7 +201,7 @@ export default function ActiveTabs() {
               </div>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="not-empty:p-3">
             {!hasTabs && (
               <ItemListPlaceholder>
                 <ItemListPlaceholderCopy
@@ -221,9 +225,14 @@ export default function ActiveTabs() {
             onItemsChange={(items) => setTabIdsByWindowId(items)}
             onSortEnd={(items) => tabStore.syncOrder(items)}
             onActiveIdChange={setActiveId}>
-            {Object.entries(groupedTabs).map(([groupId, tabIds], i) => (
+            {Object.entries(groupedTabs).map(([groupId, tabIds], i, groups) => (
               <div
-                className="bg-surface-2 mx-auto mt-4 max-w-4xl select-none rounded-xl border [&:has(ul)]:p-[0.5rem_0.25rem_0.25rem] [&:not(:has(ul))]:p-[0.5rem_0.25rem]"
+                className={cn(
+                  "border-border bg-surface-2 mx-auto border-t border-dashed p-3 select-none",
+                  {
+                    "border-b": i === groups.length - 1,
+                  },
+                )}
                 key={groupId}>
                 {groupedTabs === tabIdsByWindowId ? (
                   <WindowHeader
@@ -264,13 +273,10 @@ export default function ActiveTabs() {
                         }
                         focusSiblingItem(e, ".item-container");
                       }}
-                      className={cn(
-                        "data-[over=true]:bg-muted/30 flex w-full flex-col rounded-xl",
-                        {
-                          "[&_.echo-item-icon]:hidden":
-                            groupedTabs === tabStore.viewTabIdsByDomain && groupId !== "Other",
-                        },
-                      )}>
+                      className={cn("data-[over=true]:bg-muted/30 flex w-full flex-col", {
+                        "[&_.echo-item-icon]:hidden":
+                          groupedTabs === tabStore.viewTabIdsByDomain && groupId !== "Other",
+                      })}>
                       {tabIds.map((tabId, j) => {
                         const tab = tabStore.viewTabsById[tabId];
                         if (!tab) {
@@ -282,15 +288,15 @@ export default function ActiveTabs() {
                         return (
                           <SelectableItem asChild id={tabId} key={tabId}>
                             <motion.li
-                              animate={{ opacity: 1 }}
-                              transition={{
-                                type: "tween",
-                                delay: isActive ? 0 : 0.01 * j,
-                                duration: isActive ? 0 : 0.5,
-                              }}
-                              initial={{ opacity: 0 }}
+                              // animate={{ opacity: 1 }}
+                              // transition={{
+                              //   type: "tween",
+                              //   delay: isActive ? 0 : 0.01 * j,
+                              //   duration: isActive ? 0 : 0.5,
+                              // }}
+                              // initial={{ opacity: 0 }}
                               className={cn(
-                                "item-container select-none rounded-lg transition-all duration-200 focus-within:z-[1] hover:z-[1] data-[selected=true]:z-[1] [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-[1] [&:last-child_.tab-item]:rounded-b-lg [&:not(:first-child)]:mt-[-1px]",
+                                "item-container rounded-lg transition-all duration-200 select-none focus-within:z-[1] hover:z-[1] data-[selected=true]:z-[1] [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-[1] [&:last-child_.tab-item]:rounded-b-lg [&:not(:first-child)]:mt-[-1px]",
                                 {
                                   "[&_.tab-item]:!rounded-none [&_.tab-item]:transition-all [&_.tab-item]:duration-200":
                                     activeId,

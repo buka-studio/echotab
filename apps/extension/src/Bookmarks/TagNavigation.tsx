@@ -44,7 +44,7 @@ export default function TagNavigationLinks({ visibleTagIds, onTagClick, classNam
   return (
     // todo: implement skip navigation for keyboard users
     <motion.ul
-      className={cn("flex flex-col gap-2 py-1 pl-2", className)}
+      className={cn("flex flex-col gap-2 py-1 pb-3 pl-2", className)}
       variants={container}
       initial="hidden"
       animate="show">
@@ -54,7 +54,7 @@ export default function TagNavigationLinks({ visibleTagIds, onTagClick, classNam
             <motion.li
               variants={item}
               custom={visibleTagIds.has(tag.id)}
-              layout
+              layout="position"
               exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
               key={tag.id}
               className={cn(
@@ -62,6 +62,8 @@ export default function TagNavigationLinks({ visibleTagIds, onTagClick, classNam
                 {
                   "text-foreground": visibleTagIds.has(tag.id),
                   favorite: tag.favorite,
+                  ai: tag.isAI,
+                  quick: tag.isQuick,
                 },
               )}>
               <button

@@ -74,8 +74,8 @@ export default function PerformanceCard({ className }: { className?: string }) {
                     style={{ "--index": i } as CSSProperties}
                     className="segment select-none">
                     <TabItem
-                      key={tab.link}
-                      tab={tab}
+                      key={tab!.link}
+                      tab={tab!}
                       className="transition-all duration-150 group-hover:blur-sm"
                     />
                   </div>

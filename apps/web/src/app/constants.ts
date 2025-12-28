@@ -15,9 +15,9 @@ export const mockTabs = [
     favicon: "/echotab/bento/vercel.png",
   },
   {
-    title: "Awwwards",
-    link: "https://www.awwwards.com/",
-    favicon: "/echotab/bento/awwwards.png",
+    title: "SmartAccount",
+    link: "https://smartaccount.hr/",
+    favicon: "/echotab/bento/smartaccount.png",
   },
   {
     title: "MDN Web Docs",

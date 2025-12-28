@@ -20,7 +20,7 @@ import {
 } from "@radix-ui/react-icons";
 import { ComponentProps, ReactNode, useRef, useState } from "react";
 
-import { List } from "~/src/models";
+import { List } from "~/models";
 
 import { formatDate } from "../../util/date";
 import BookmarkStore from "../BookmarkStore";

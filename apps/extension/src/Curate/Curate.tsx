@@ -20,26 +20,31 @@ import {
   DialogTrigger,
 } from "@echotab/ui/Dialog";
 import { NumberFlow } from "@echotab/ui/NumberFlow";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import {
-  ArrowLineUpRight as ArrowLineUpRightIcon,
-  FastForward as FastForwardIcon,
-  HeartStraight as HeartIcon,
-  X as XIcon,
+  ArrowLineUpRightIcon,
+  FastForwardIcon,
+  HeartIcon,
+  SparkleIcon,
+  TagIcon,
+  XIcon,
 } from "@phosphor-icons/react";
+import { ClockIcon, LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
-import { remap } from "~/src/util/math";
+import { remap } from "~/util/math";
 
 import { CurateStore } from ".";
 import { useBookmarkStore } from "../Bookmarks";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { SavedTab } from "../models";
+import { pluralize } from "../util";
 import { getUtcISO } from "../util/date";
 import CurateCard from "./CurateCard";
 import CurateDock, { DockAction } from "./CurateDock";
-import { InclusionResult, useCurateStore } from "./CurateStore";
+import { InclusionReason, InclusionResult, useCurateStore } from "./CurateStore";
 import CurateSummary from "./CurateSummary";
 import Ruler from "./Ruler";
 import SwipeableCard, { Direction, SwipeableRef } from "./SwipeableCard";
@@ -156,6 +161,10 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
   const [skipCount, setSkipCount] = useState<Record<string, number>>({});
 
+  const applicableReasons = Object.entries(queue[0]?.reasons || {})
+    .filter(([_, value]) => value)
+    .map(([reason]) => reason);
+
   return (
     <Dialog
       open={curateStore.open}
@@ -177,7 +186,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
           e.preventDefault();
         }}
         className={cn(
-          "flex h-full max-h-[100vh] max-w-[100vw] flex-col overflow-hidden border-none bg-transparent p-0",
+          "flex h-full max-h-screen flex-col overflow-hidden border-none bg-transparent p-0 sm:max-w-[100vw]",
         )}
         overlay={
           <DialogOverlay className="bg-background dark:bg-background-base dark:brightness-90" />
@@ -191,7 +200,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
         <DialogHeader
           className={cn(
-            "border-border fixed left-0 right-0 top-0 z-50 mx-auto w-full max-w-[calc(100vw-200px)] border-b p-8 pb-2 text-center backdrop-blur-md transition-all duration-300 ease-in-out",
+            "border-border fixed top-0 right-0 left-0 z-50 mx-auto w-full max-w-[calc(100vw-200px)] border-b p-8 pb-2 text-center backdrop-blur-md transition-all duration-300 ease-in-out",
             {
               "translate-y-[-200px] opacity-0": ended,
             },
@@ -255,9 +264,9 @@ export default function Curate({ children, maxCards = 5 }: Props) {
         </div>
         <div
           className={cn(
-            "border-border bg-surface-1 fixed bottom-0 z-50 flex min-h-[170px] w-full flex-col items-center justify-center border-t pb-5 backdrop-blur-md transition-all duration-300 ease-in-out",
+            "border-border bg-surface-1 fixed bottom-0 z-50 flex min-h-[170px] w-full flex-col items-center justify-center border-t pb-3 backdrop-blur-md transition-all duration-300 ease-in-out",
           )}>
-          <div className="flex flex-col items-center justify-center gap-5">
+          <div className="flex flex-col items-center justify-center gap-3">
             {!ended && <TagList tagIds={currentTab?.tagIds || []} tabId={currentTab?.id || ""} />}
             <AnimatePresence mode="popLayout">
               {!ended && (
@@ -270,7 +279,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                       onClick={() => swipeableRef.current?.swipe("left")}
                       tooltipText="Delete">
                       <XIcon
-                        className="h-6 w-6 text-[#F05B5D] shadow-current [filter:drop-shadow(0_0_4px_#D9282B)]"
+                        className="h-6 w-6 text-[#F05B5D] shadow-current filter-[drop-shadow(0_0_4px_#D9282B)]"
                         weight="bold"
                       />
                     </DockAction>
@@ -309,6 +318,45 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                 </motion.div>
               )}
             </AnimatePresence>
+            {!ended && (
+              <ul className="flex items-center gap-2">
+                <AnimatePresence mode="popLayout">
+                  {applicableReasons.map((r) => {
+                    const reason = r as keyof InclusionReason;
+                    const threshold = curateStore.settings.reminder.value;
+                    const unit = curateStore.settings.reminder.unit;
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: 0 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}>
+                        <Tooltip>
+                          <TooltipTrigger className="text-muted-foreground">
+                            {reason === "hasUnassignedTags" && <TagIcon />}
+                            {reason === "hasAITags" && <SparkleIcon />}
+                            {reason === "hasQuickTags" && <LightningBoltIcon />}
+                            {reason === "olderThanThreshold" && <ClockIcon />}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {reason === "hasUnassignedTags" && (
+                              <span>This tab has unassigned tags</span>
+                            )}
+                            {reason === "hasAITags" && <span>This tab has AI tags</span>}
+                            {reason === "hasQuickTags" && <span>This tab has quick tags</span>}
+                            {reason === "olderThanThreshold" && (
+                              <span>
+                                This bookmark is older than {threshold} {pluralize(threshold, unit)}
+                              </span>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </ul>
+            )}
           </div>
         </div>
         <AlertDialog open={confirmDialogOpen}>

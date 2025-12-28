@@ -111,7 +111,7 @@ export default function MiscPage() {
         </div>
       </div>
       <hr className="last:hidden" />
-      {process.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
+      {import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
         <div className="flex flex-col gap-2">
           <div className="text-muted-foreground mb-2 text-sm">Lists</div>
           <div className="flex items-center justify-between space-x-2">

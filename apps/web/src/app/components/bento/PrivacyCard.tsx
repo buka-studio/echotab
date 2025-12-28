@@ -171,12 +171,12 @@ const CanvasSwitchboard = ({
     prevTimestamp.current = timestamp;
     if (!animating) {
       playingDots.current.forEach((i) => {
-        dotsRef.current[i].stop();
+        dotsRef.current[i]!.stop();
       });
     } else {
       if (playingDots.current.length) {
         playingDots.current.forEach((i) => {
-          dotsRef.current[i].play();
+          dotsRef.current[i]!.play();
         });
       } else {
         const playing = Array.from({ length: cols * rows })
@@ -184,8 +184,8 @@ const CanvasSwitchboard = ({
           .filter(Boolean) as number[];
         playingDots.current = playing;
         playing.forEach((i) => {
-          dotsRef.current[i].setStep(getRandomNumber(0, 3));
-          dotsRef.current[i].play();
+          dotsRef.current[i]!.setStep(getRandomNumber(0, 3));
+          dotsRef.current[i]!.play();
         });
       }
     }

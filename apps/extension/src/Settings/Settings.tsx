@@ -6,12 +6,7 @@ import {
   CommandItem,
   CommandList,
 } from "@echotab/ui/Command";
-import {
-  Broom as BroomIcon,
-  Palette as PaletteIcon,
-  Sparkle as SparkleIcon,
-  Tag as TagIcon,
-} from "@phosphor-icons/react";
+import { BroomIcon, PaletteIcon, SparkleIcon, TagIcon } from "@phosphor-icons/react";
 import {
   DownloadIcon,
   ExclamationTriangleIcon,
@@ -65,56 +60,59 @@ export default function Settings() {
 
   return (
     <Command loop value={page} onValueChange={(p) => setPage(p as Page)} className="min-h-[450px]">
-      <div className="mb-4 flex items-center border-b">
-        <CommandInput placeholder="Search settings..." ref={cmdInputRef} autoFocus />
-      </div>
       <div className="grid h-full grid-cols-[150px_auto] grid-rows-[1fr_30px] gap-4">
-        <CommandList>
-          <CommandGroup>
-            <CommandItem>
-              <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              Tags
-            </CommandItem>
-            <CommandItem>
-              <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              Appearance
-            </CommandItem>
-            <CommandItem>
-              <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              AI
-            </CommandItem>
-            <CommandItem>
-              <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              Curate
-            </CommandItem>
-            <CommandItem>
-              <MixerHorizontalIcon className="text-muted-foreground mr-2" />
-              Misc
-            </CommandItem>
-            <CommandItem>
-              <DownloadIcon className="text-muted-foreground mr-2" />
-              Import
-            </CommandItem>
-            <CommandItem>
-              <UploadIcon className="text-muted-foreground mr-2" />
-              Export
-            </CommandItem>
-            <CommandItem>
-              <BukaIcon className="text-muted-foreground mr-2" />
-              Feedback
-            </CommandItem>
-            <CommandItem value="Delete" className="text-destructive">
-              <ExclamationTriangleIcon className="mr-2" />
-              Delete Data
-            </CommandItem>
-          </CommandGroup>
-          <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
-        </CommandList>
+        <div>
+          <div className="mb-4 flex items-center">
+            <CommandInput placeholder="Search settings..." ref={cmdInputRef} autoFocus />
+          </div>
+          <CommandList className="max-h-[400px]">
+            <CommandGroup>
+              <CommandItem>
+                <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                Tags
+              </CommandItem>
+              <CommandItem>
+                <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                Appearance
+              </CommandItem>
+              <CommandItem>
+                <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                AI
+              </CommandItem>
+              <CommandItem>
+                <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                Curate
+              </CommandItem>
+              <CommandItem>
+                <MixerHorizontalIcon className="text-muted-foreground mr-2" />
+                Misc
+              </CommandItem>
+              <CommandItem>
+                <DownloadIcon className="text-muted-foreground mr-2" />
+                Import
+              </CommandItem>
+              <CommandItem>
+                <UploadIcon className="text-muted-foreground mr-2" />
+                Export
+              </CommandItem>
+              <CommandItem>
+                <BukaIcon className="text-muted-foreground mr-2" />
+                Feedback
+              </CommandItem>
+              <CommandItem value="Delete" className="text-destructive">
+                <ExclamationTriangleIcon className="mr-2" />
+                Delete Data
+              </CommandItem>
+            </CommandGroup>
+            <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
+          </CommandList>
+        </div>
+
         <div className="text-muted-foreground col-start-1 row-start-2 mt-auto font-mono">
           {versionLabel}
         </div>
         <div
-          className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4 pr-2 pt-2"
+          className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto pt-2 pr-2 pl-4"
           ref={contentRef}>
           {page === "Tags" && <TagsPage />}
           {page === "AI" && <AIPage />}

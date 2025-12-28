@@ -101,7 +101,7 @@ export default function Hero() {
 
   return (
     <div className={cn("hero relative")} ref={scope}>
-      <div className="window border-border-active bg-background-base relative w-[min(1024px,90vw)] rounded-xl border pb-5 opacity-0 shadow-[0_4px_4px_1px_rgba(0,0,0,.10),0_0_0_8px_hsl(var(--secondary))] [transform-origin:center_bottom] [transform-style:preserve-3d]">
+      <div className="window border-border-active bg-background-base relative w-[min(1024px,90vw)] origin-[center_bottom] rounded-xl border pb-5 opacity-0 shadow-[0_4px_4px_1px_rgba(0,0,0,.10),0_0_0_8px_var(--secondary)] transform-3d">
         <div className="bg-background mb-10 w-full rounded-t-[11px] p-5 py-4">
           <div className="flex gap-2">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -118,7 +118,7 @@ export default function Hero() {
             <CommandMenu onClick={() => setGlowKey((k) => k + 1)} />
             {glow && <GlowOutline className="rounded-xl" width={2} key={glowKey} />}
           </div>
-          <div className="herotabs border-border bg-surface-1 relative mx-auto flex max-w-[650px] flex-col rounded-xl border p-3">
+          <div className="herotabs border-border bg-surface-2 relative mx-auto flex max-w-[650px] flex-col rounded-xl border p-3">
             <div className="mb-3 flex items-center text-left text-sm">
               Window 1{" "}
               <Badge variant="card" className="ml-2">
@@ -132,7 +132,7 @@ export default function Hero() {
                   className="[&:first-child_.herotab]:rounded-t-lg [&:last-child_.herotab]:rounded-b-lg">
                   <div
                     className={cn(
-                      "herotab-shadow bg-neutral-650 absolute left-0 right-0 mx-auto h-10 w-full rounded-lg",
+                      "herotab-shadow bg-neutral-650 absolute right-0 left-0 mx-auto h-10 w-full rounded-lg",
                     )}
                   />
                   <TabItem tab={tab} className="herotab rounded-none" />

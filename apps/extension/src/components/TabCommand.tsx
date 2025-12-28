@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogTitle } from "@echotab/ui/Dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@echotab/ui/Dialog";
 import GlowOutline from "@echotab/ui/GlowOutline";
 import { cn } from "@echotab/ui/util";
 import {
@@ -163,7 +163,7 @@ export function TabCommandDialog({
     <div ref={setCommandContainer} className={cn("relative flex w-full")}>
       <button
         className={cn(
-          "focus-ring bg-card/40 flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
+          "focus-ring bg-card/40 hover:bg-card/20 flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
           {
             "opacity-0": open,
           },
@@ -180,11 +180,12 @@ export function TabCommandDialog({
       <GlowOutline className="rounded-lg" />
       <Dialog scrollLock={false} open={open} onOpenChange={closeDialog}>
         <DialogTitle className="sr-only">{label}</DialogTitle>
+        <DialogDescription className="sr-only"></DialogDescription>
         <DialogContent
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] absolute top-[-1px] max-w-[57rem] translate-y-0 overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none">
+          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px translate-y-0 overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none sm:max-w-[57rem] transform-gpu">
           <DialogStateContext.Provider value={{ open, setOpen }}>
             {children}
           </DialogStateContext.Provider>
