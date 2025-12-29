@@ -29,6 +29,40 @@ export default defineContentScript({
       }
     }
 
+    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+      if (message.type === "snapdom_snapshot") {
+        snapdom
+          .toPng(document.body, {
+            scale: 1,
+            quality: 0.8,
+            cache: "soft",
+            exclude: [".echotab-root"],
+          })
+          .then((img) => {
+            sendResponse({ success: true, dataUrl: img.src });
+          })
+          .catch((error: any) => {
+            console.warn("EchoTab Snapshot failed:", error);
+            sendResponse({ success: false, error: error.message });
+          });
+        return true;
+      }
+
+      if (message.action === "open-popup" || message.type === "open-popup") {
+        if (ui) {
+          if (isMounted) {
+            ui.remove();
+            isMounted = false;
+          } else {
+            ui.mount();
+          }
+        }
+        return false;
+      }
+
+      return false;
+    });
+
     const queryClient = new QueryClient();
 
     ui = await createShadowRootUi(ctx, {
@@ -69,41 +103,6 @@ export default defineContentScript({
         }
         isMounted = false;
       },
-    });
-
-    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      if (message.type === "REQUEST_SNAPDOM_SNAPSHOT") {
-        (async () => {
-          try {
-            const img = await snapdom.toPng(document.body, {
-              scale: 1,
-              quality: 0.8,
-              cache: "soft",
-              exclude: [".echotab-root"],
-            });
-
-            sendResponse({ success: true, dataUrl: img.src });
-          } catch (error: any) {
-            console.warn("EchoTab Snapshot failed:", error);
-            sendResponse({ success: false, error: error.message });
-          }
-        })();
-        return true;
-      }
-
-      if (message.action === "open-popup" || message.type === "open-popup") {
-        if (ui) {
-          if (isMounted) {
-            ui.remove();
-            isMounted = false;
-          } else {
-            ui.mount();
-          }
-        }
-        return false;
-      }
-
-      return false;
     });
   },
 });

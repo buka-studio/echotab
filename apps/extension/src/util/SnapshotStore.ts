@@ -1,9 +1,12 @@
 import { IDBPDatabase, openDB } from "idb";
 
+export type SnapshotSource = "snapdom" | "captureVisibleTab";
+
 export interface Snapshot {
   blob: Blob;
   url: string;
   savedAt: string;
+  source: SnapshotSource;
 }
 
 class SnapshotStore {
@@ -28,8 +31,8 @@ class SnapshotStore {
     return this.db.get("snapshots_tmp", tabId);
   }
 
-  async saveTmp(tabId: number, { blob, url, savedAt }: Snapshot) {
-    await this.db.put("snapshots_tmp", { blob, url, savedAt }, tabId);
+  async saveTmp(tabId: number, snapshot: Snapshot) {
+    await this.db.put("snapshots_tmp", snapshot, tabId);
   }
 
   async discardTmp(tabId: number) {
@@ -46,17 +49,16 @@ class SnapshotStore {
     const tmp = await tx.objectStore("snapshots_tmp").get(tabId);
     if (!tmp) {
       tx.abort();
-
       throw new Error("Snapshot not found");
     }
-    console.log(tmp, url);
+
     if (url && tmp.url !== url) {
       tx.abort();
-
       throw new Error("Snapshot URL mismatch");
     }
 
     await tx.objectStore("snapshots").put(tmp, savedId);
+    await tx.objectStore("snapshots_tmp").delete(tabId);
 
     await tx.done;
   }

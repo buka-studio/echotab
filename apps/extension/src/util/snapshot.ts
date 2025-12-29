@@ -13,8 +13,6 @@ export async function resizeSnapshot(blob: Blob, options: ResizeOptions = {}) {
 
   const { width: originalWidth, height: originalHeight } = imageBitmap;
 
-  // 16:9, 1024x576
-  // may need to reduce size further if this clogs up IDB
   const targetWidth = width;
   const targetHeight = targetWidth / ratio;
 
@@ -23,14 +21,13 @@ export async function resizeSnapshot(blob: Blob, options: ResizeOptions = {}) {
   const scaledWidth = originalWidth * scaleFactor;
   const scaledHeight = originalHeight * scaleFactor;
 
-  // contain or cover?
   const x = targetWidth / 2 - scaledWidth / 2;
   const y = targetHeight / 2 - scaledHeight / 2;
 
   const canvas = new OffscreenCanvas(targetWidth, targetHeight);
   const ctx = canvas.getContext("2d");
 
-  ctx!.drawImage(imageBitmap, x, 0, scaledWidth, scaledHeight);
+  ctx!.drawImage(imageBitmap, x, y, scaledWidth, scaledHeight);
 
   const resizedBlob = await canvas.convertToBlob();
 
@@ -46,101 +43,98 @@ interface SnapshotOptions {
   notify?: boolean;
 }
 
-// export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotOptions = {}) {
-//   if (!isTabSnapshotable(tab)) {
-//     return;
-//   }
-
-//   const { quality = 80, notify = true } = options;
-
-//   const { windowId, id, url } = tab;
-
-//   const image = await chrome.tabs.captureVisibleTab(windowId, {
-//     quality,
-//   });
-
-//   const blob = await fetch(image).then((r) => r.blob());
-
-//   const resizedBlob = await resizeSnapshot(blob);
-
-//   const snapshotStore = await SnapshotStore.init();
-//   await snapshotStore.saveTmp(id!, {
-//     blob: resizedBlob,
-//     url: url!,
-//     savedAt: new Date().toISOString(),
-//   });
-
-//   if (notify) {
-//     chrome.runtime.sendMessage({ type: "snapshot_tmp", tabId: id, url } as Message);
-//   }
-// }
-
-
-
-
-async function captureViaContentScript(tabId: number, timeoutMs = 1000): Promise<string> {
+async function captureViaContentScript(tabId: number, timeoutMs = 2000): Promise<string> {
   return new Promise((resolve, reject) => {
     let hasResolved = false;
 
-    // 1. Timeout Timer
     const timer = setTimeout(() => {
       if (!hasResolved) {
         hasResolved = true;
-        reject(new Error("TIMEOUT"));
+        reject(new Error(`SnapDOM capture timeout after ${timeoutMs}ms`));
       }
     }, timeoutMs);
 
-    // 2. Send message to content script
-    chrome.tabs.sendMessage(
-      tabId, 
-      { type: "REQUEST_SNAPDOM_SNAPSHOT" }, // Updated Message Type
-      (response) => {
+    try {
+      chrome.tabs.sendMessage(tabId, { type: "snapdom_snapshot" }, (response) => {
         clearTimeout(timer);
-        
-        // Handle runtime errors (e.g., content script not injected yet)
-        if (chrome.runtime.lastError || !response || !response.success) {
-           if (!hasResolved) {
-             hasResolved = true;
-             reject(new Error("FAILED_OR_NO_RESPONSE"));
-           }
-           return;
+
+        if (hasResolved) {
+          return;
         }
 
-        if (!hasResolved) {
+        if (chrome.runtime.lastError) {
           hasResolved = true;
-          resolve(response.dataUrl);
+          const errorMsg = chrome.runtime.lastError.message || "Unknown error";
+          if (
+            errorMsg.includes("Receiving end does not exist") ||
+            errorMsg.includes("message channel closed")
+          ) {
+            reject(new Error("Content script not available"));
+          } else {
+            reject(new Error(`SnapDOM capture failed: ${errorMsg}`));
+          }
+          return;
         }
+
+        if (!response || !response.success) {
+          hasResolved = true;
+          const errorMsg = response?.error || "No response from content script";
+          reject(new Error(`SnapDOM capture failed: ${errorMsg}`));
+          return;
+        }
+
+        hasResolved = true;
+        resolve(response.dataUrl);
+      });
+    } catch (err) {
+      clearTimeout(timer);
+      if (!hasResolved) {
+        hasResolved = true;
+        reject(
+          new Error(`SnapDOM capture failed: ${err instanceof Error ? err.message : String(err)}`),
+        );
       }
-    );
+    }
   });
 }
 
 export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotOptions = {}) {
-  // 1. Basic checks
   if (!isTabSnapshotable(tab)) return;
 
   const { quality = 80, notify = true } = options;
   const { windowId, id: tabId, url } = tab;
-  
-  let rawBlob: Blob | null = null;
 
-  // --- STRATEGY 1: SNAPDOM (Content Script) ---
-  try {
-    // We try SnapDOM first because it captures full page content (if you scrolled)
-    // and works without permissions warnings in some contexts.
-    const dataUrl = await captureViaContentScript(tabId!);
-    rawBlob = await fetch(dataUrl).then((r) => r.blob());
-  } catch (err) {
-    // console.debug(`SnapDOM failed/timed out, switching to native: ${err}`);
+  if (!tabId || !url) {
+    console.error("Snapshot failed: missing tabId or url");
+    return;
   }
 
-  // --- STRATEGY 2: FALLBACK (Native API) ---
+  let rawBlob: Blob | null = null;
+  let source: "snapdom" | "captureVisibleTab" = "captureVisibleTab";
+
+  try {
+    const currentTab = await chrome.tabs.get(tabId);
+    if (!currentTab.active) {
+      return;
+    }
+  } catch (err) {
+    console.error("Snapshot failed: tab no longer exists", err);
+    return;
+  }
+
+  try {
+    const dataUrl = await captureViaContentScript(tabId);
+    rawBlob = await fetch(dataUrl).then((r) => r.blob());
+    source = "snapdom";
+  } catch (err) {
+    console.error("SnapDOM capture failed:", err);
+  }
+
   if (!rawBlob) {
     try {
-      // Safety Check: user might have switched tabs during the 1s timeout
-      const currentTab = await chrome.tabs.get(tabId!);
+      const currentTab = await chrome.tabs.get(tabId);
       if (!currentTab.active) {
-        return; // Abort to avoid screenshotting the wrong tab
+        return;
       }
 
       const dataUrl = await chrome.tabs.captureVisibleTab(windowId, {
@@ -149,22 +143,31 @@ export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotO
       });
       rawBlob = await fetch(dataUrl).then((r) => r.blob());
     } catch (nativeErr) {
-       console.error("Native capture failed:", nativeErr);
-       return; 
+      console.error("Native capture failed:", nativeErr);
+      return;
     }
   }
 
-  // --- SAVE ---
-  const resizedBlob = await resizeSnapshot(rawBlob);
-  const snapshotStore = await SnapshotStore.init();
-  
-  await snapshotStore.saveTmp(tabId!, {
-    blob: resizedBlob,
-    url: url!,
-    savedAt: new Date().toISOString(),
-  });
+  if (!rawBlob) {
+    console.error("Snapshot failed: both capture methods failed");
+    return;
+  }
 
-  if (notify) {
-    chrome.runtime.sendMessage({ type: "snapshot_tmp", tabId: tabId, url } as Message);
+  try {
+    const resizedBlob = await resizeSnapshot(rawBlob);
+    const snapshotStore = await SnapshotStore.init();
+
+    await snapshotStore.saveTmp(tabId, {
+      blob: resizedBlob,
+      url,
+      savedAt: new Date().toISOString(),
+      source,
+    });
+
+    if (notify) {
+      chrome.runtime.sendMessage({ type: "snapshot_tmp", tabId, url } as Message);
+    }
+  } catch (resizeErr) {
+    console.error("Snapshot failed: resize or save error", resizeErr);
   }
 }
