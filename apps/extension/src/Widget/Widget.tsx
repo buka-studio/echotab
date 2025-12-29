@@ -4,15 +4,11 @@ import { Checkbox } from "@echotab/ui/Checkbox";
 import { Label } from "@echotab/ui/Label";
 import Spinner from "@echotab/ui/Spinner";
 import { cn } from "@echotab/ui/util";
-import {
-  GlobeSimple as GlobeSimpleIcon,
-  Sparkle as SparkleIcon,
-  X as XIcon,
-} from "@phosphor-icons/react";
+import { GlobeSimpleIcon, SparkleIcon, XIcon } from "@phosphor-icons/react";
 import { LightningBoltIcon } from "@radix-ui/react-icons";
 import { Command as CommandPrimitive } from "cmdk";
 import { AnimatePresence, motion } from "framer-motion";
-import { CSSProperties, ReactNode, useEffect, useRef, useState } from "react";
+import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { useActiveTabStore } from "../ActiveTabs/ActiveStore";
 import { useLLMTagMutation } from "../AI/queries";
@@ -20,7 +16,7 @@ import TagChip from "../components/tag/TagChip";
 import { ActiveTab } from "../models";
 import PulseLogo from "../PulseLogo";
 import TagStore, { unassignedTag, useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
+import { subscribeUIStore, useUIStore } from "../UIStore";
 import { getWidgetRoot } from "./util";
 
 const HeaderUrl = ({ children, className }: { children: ReactNode; className?: string }) => (
@@ -29,7 +25,7 @@ const HeaderUrl = ({ children, className }: { children: ReactNode; className?: s
       "text-muted-foreground border-border flex items-center gap-2 overflow-hidden rounded-full border px-2 py-1 pl-1 text-xs",
       className,
     )}>
-    <GlobeSimpleIcon className="h-4 w-4 flex-shrink-0" />
+    <GlobeSimpleIcon className="h-4 w-4 shrink-0" />
     <span className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
       {children}
     </span>
@@ -37,9 +33,9 @@ const HeaderUrl = ({ children, className }: { children: ReactNode; className?: s
 );
 
 const buttonVariants = {
-  initial: { y: 20, opacity: 0, filter: "blur(10px)" },
+  initial: { y: 4, opacity: 0, filter: "blur(4px)" },
   animate: { y: 0, opacity: 1, filter: "blur(0px)" },
-  exit: { y: -20, opacity: 0, filter: "blur(10px)" },
+  exit: { y: -4, opacity: 0, filter: "blur(4px)" },
   transition: { duration: 0.15 },
 };
 
@@ -60,6 +56,8 @@ function Widget({ onClose }: Props) {
   const activeStore = useActiveTabStore();
   const tagStore = useTagStore();
   const uiStore = useUIStore();
+
+  subscribeUIStore();
 
   const [closeAfterSave, setCloseAfterSave] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -154,8 +152,25 @@ function Widget({ onClose }: Props) {
     }
   };
 
+  const theme = useMemo(() => {
+    if (uiStore.settings.theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+
+      return systemTheme;
+    } else {
+      return uiStore.settings.theme;
+    }
+  }, [uiStore.settings.theme]);
+
   return (
-    <>
+    <motion.main
+      className={cn("echotab-root rounded-xl", theme)}
+      initial={{ opacity: 0, y: 20, filter: "blur(5px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: -20, filter: "blur(5px)" }}
+      transition={{ duration: 0.15 }}>
       <div className="bg-background-base border-border rounded-xl border p-4 shadow-sm">
         <div className="mx-auto flex items-center justify-between gap-3 rounded-full text-sm">
           <div className="flex items-center gap-1">
@@ -194,7 +209,6 @@ function Widget({ onClose }: Props) {
                 <ButtonWithTooltip
                   tooltipText="Quick save"
                   tooltipContainer={getWidgetRoot()}
-                  variant="secondary"
                   size="icon-sm"
                   onClick={handleQuickSave}>
                   <LightningBoltIcon className="text-muted-foreground" />
@@ -203,7 +217,6 @@ function Widget({ onClose }: Props) {
                   <ButtonWithTooltip
                     tooltipText={aiEnabled ? "AI tag" : "AI tagging disabled"}
                     tooltipContainer={getWidgetRoot()}
-                    variant="secondary"
                     size="icon-sm"
                     onClick={handleAITag}>
                     <Spinner
@@ -225,7 +238,7 @@ function Widget({ onClose }: Props) {
                 )}
               </div>
             </div>
-            <CommandPrimitive.List className="[&>*]:scrollbar-gray flex focus-visible:outline-none [&>*]:flex [&>*]:max-w-full [&>*]:gap-2 [&>*]:overflow-auto [&>*]:pb-3 [&>*:focus-visible]:outline-none">
+            <CommandPrimitive.List className="scrollbar-gray flex overflow-auto *:flex *:max-w-full *:gap-2 *:pb-3 focus-visible:outline-none [&>*:focus-visible]:outline-none">
               <CommandPrimitive.Empty
                 className="text-muted-foreground flex cursor-pointer items-center gap-2 text-sm"
                 onClick={handleCreateTag}>
@@ -279,7 +292,7 @@ function Widget({ onClose }: Props) {
             </Label>
           </div>
 
-          <Button onClick={handleSave} variant={saved ? "secondary" : "default"}>
+          <Button onClick={handleSave}>
             <AnimatePresence mode="wait">
               {saved ? (
                 <motion.div key="saved" {...buttonVariants}>
@@ -327,7 +340,7 @@ function Widget({ onClose }: Props) {
           />
         </span>
       )}
-    </>
+    </motion.main>
   );
 }
 

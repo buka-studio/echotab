@@ -23,9 +23,20 @@ export default defineBackground({
     );
 
     chrome.action.onClicked.addListener(async (tab) => {
-      chrome.runtime.sendMessage({ action: "open-popup" });
-      if (tab.id && tab.active) {
-        await chrome.tabs.sendMessage(tab.id, { type: "open-popup" });
+      if (tab.id && tab.url) {
+        try {
+          const url = new URL(tab.url);
+          const canHaveContentScript =
+            url.protocol !== "chrome:" && url.protocol !== "chrome-extension:";
+
+          if (canHaveContentScript) {
+            chrome.tabs.sendMessage(tab.id, { type: "open-popup" }).catch(() => {
+              // Content script might not be loaded yet, ignore error
+            });
+          }
+        } catch (error) {
+          // Invalid URL or other error, ignore
+        }
       }
     });
 
