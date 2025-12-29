@@ -230,6 +230,9 @@ importers:
       '@types/react-dom':
         specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.7)
+      '@wxt-dev/auto-icons':
+        specifier: ~1.1.0
+        version: 1.1.0(wxt@0.20.13(@types/node@24.10.1)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(sass@1.97.1)(tsx@4.21.0)(yaml@2.8.2))
       autoprefixer:
         specifier: ~10.4.22
         version: 10.4.23(postcss@8.5.6)
@@ -5294,6 +5297,11 @@ packages:
 
   '@webext-core/match-patterns@1.0.3':
     resolution: {integrity: sha512-NY39ACqCxdKBmHgw361M9pfJma8e4AZo20w9AY+5ZjIj1W2dvXC8J31G5fjfOGbulW9w4WKpT8fPooi0mLkn9A==}
+
+  '@wxt-dev/auto-icons@1.1.0':
+    resolution: {integrity: sha512-lDFZjDbrY5gDaapUuUOYTPudE88oB3Z7rTdg0N7iq2WIWga1h0bhzCJDaqNqMvPN2DCYvHFfA0cnqA12vEJjiA==}
+    peerDependencies:
+      wxt: '>=0.19.0'
 
   '@wxt-dev/browser@0.1.32':
     resolution: {integrity: sha512-jvfSppeLzlH4sOkIvMBJoA1pKoI+U5gTkjDwMKdkTWh0P/fj+KDyze3lzo3S6372viCm8tXUKNez+VKyVz2ZDw==}
@@ -10980,8 +10988,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@img/colour@1.0.0':
-    optional: true
+  '@img/colour@1.0.0': {}
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
@@ -15094,6 +15101,13 @@ snapshots:
 
   '@webext-core/match-patterns@1.0.3': {}
 
+  '@wxt-dev/auto-icons@1.1.0(wxt@0.20.13(@types/node@24.10.1)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(sass@1.97.1)(tsx@4.21.0)(yaml@2.8.2))':
+    dependencies:
+      defu: 6.1.4
+      fs-extra: 11.3.3
+      sharp: 0.34.5
+      wxt: 0.20.13(@types/node@24.10.1)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(sass@1.97.1)(tsx@4.21.0)(yaml@2.8.2)
+
   '@wxt-dev/browser@0.1.32':
     dependencies:
       '@types/filesystem': 0.0.36
@@ -18901,7 +18915,6 @@ snapshots:
       '@img/sharp-win32-arm64': 0.34.5
       '@img/sharp-win32-ia32': 0.34.5
       '@img/sharp-win32-x64': 0.34.5
-    optional: true
 
   shebang-command@2.0.0:
     dependencies:

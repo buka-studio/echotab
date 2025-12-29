@@ -42,10 +42,10 @@ import {
 } from "../components/TabCommand";
 import TagChip from "../components/tag/TagChip";
 import TagChipList from "../components/tag/TagChipList";
-import { Panel } from "../models";
+import { ActiveTab, Panel } from "../models";
 import TagStore, { unassignedTag, useTagStore } from "../TagStore";
 import UIStore, { useUIStore } from "../UIStore";
-import { formatLinks, wait } from "../util";
+import { formatLinks, pluralize, wait } from "../util";
 import { isAlphanumeric } from "../util/string";
 import ActiveStore, {
   SelectionStore,
@@ -187,7 +187,9 @@ export default function ActiveCommand() {
       const tabsToSave = Array.from(SelectionStore.selectedTabIds)
         .map((id) => ActiveStore.viewTabsById[id])
         .filter(Boolean)
-        .map((tab) => {
+        .map((t) => {
+          const tab = t as ActiveTab;
+
           const tabToSave = {
             id: tab.id,
             url: tab.url,
@@ -549,7 +551,7 @@ export default function ActiveCommand() {
                 {tabStore.viewDuplicateTabIds.size > 0 && (
                   <CommandItem onSelect={withClear(ActiveStore.removeDuplicateTabs)}>
                     <CopyIcon className="text-muted-foreground mr-2" />
-                    Close {tabStore.viewDuplicateTabIds.size} Duplicates
+                    Close {pluralize(tabStore.viewDuplicateTabIds.size, "Duplicate")}
                   </CommandItem>
                 )}
                 {tabStore.viewStaleTabIds.size > 0 && (

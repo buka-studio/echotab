@@ -161,7 +161,7 @@ function Widget({ onClose }: Props) {
           <div className="flex items-center gap-1">
             <PulseLogo />{" "}
             <button
-              onClick={() => window.open(chrome.runtime.getURL("newtab.html"), "_blank")}
+              onClick={() => window.open(chrome.runtime.getURL("home.html"), "_blank")}
               className="text-muted-foreground">
               EchoTab
             </button>
@@ -171,7 +171,7 @@ function Widget({ onClose }: Props) {
             <XIcon />
           </Button>
         </div>
-        <div className="mb-1 mt-4">
+        <div className="mt-4 mb-1">
           <CommandPrimitive
             ref={commandRef}
             loop
@@ -225,7 +225,7 @@ function Widget({ onClose }: Props) {
                 )}
               </div>
             </div>
-            <CommandPrimitive.List className="[&>*]:scrollbar-gray flex focus-visible:outline-none [&>*:focus-visible]:outline-none [&>*]:flex [&>*]:max-w-full [&>*]:gap-2 [&>*]:overflow-auto [&>*]:pb-3">
+            <CommandPrimitive.List className="[&>*]:scrollbar-gray flex focus-visible:outline-none [&>*]:flex [&>*]:max-w-full [&>*]:gap-2 [&>*]:overflow-auto [&>*]:pb-3 [&>*:focus-visible]:outline-none">
               <CommandPrimitive.Empty
                 className="text-muted-foreground flex cursor-pointer items-center gap-2 text-sm"
                 onClick={handleCreateTag}>

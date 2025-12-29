@@ -153,7 +153,7 @@ export default function ActiveTabs() {
       <div className="header contained outlined-side sticky top-0 z-10 flex p-3">
         <ActiveCommand />
       </div>
-      <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:p-2">
+      <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:px-3 not-empty:py-2">
         {tabStore.filtersApplied && (
           <div className="flex items-center gap-5">
             <Button variant="ghost" onClick={tabStore.clearFilter}>

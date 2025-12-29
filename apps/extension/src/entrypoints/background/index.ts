@@ -7,6 +7,21 @@ import { isValidActiveTab } from "../../util/tab";
 
 export default defineBackground({
   main() {
+    chrome.contextMenus.create(
+      {
+        id: "open",
+        title: "Open EchoTab",
+        contexts: ["action", "page"],
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.error("Error creating context menu:", chrome.runtime.lastError.message);
+        } else {
+          console.log("Context menu created");
+        }
+      },
+    );
+
     chrome.action.onClicked.addListener(async (tab) => {
       chrome.runtime.sendMessage({ action: "open-popup" });
       if (tab.id && tab.active) {
@@ -20,23 +35,23 @@ export default defineBackground({
           chrome.storage.local.set({ userId: uuidv7() });
         }
       });
-
-      chrome.contextMenus.create({
-        id: "open",
-        title: "Open EchoTab",
-        contexts: ["action", "page"],
-      });
     });
 
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       if (info.menuItemId === "open") {
-        const tabs = await chrome.tabs.query({ currentWindow: true });
-        const url = chrome.runtime.getURL("newtab.html");
-        const echotab = tabs.find((t) => t.url?.includes(url));
+        const url = chrome.runtime.getURL("home.html");
+
+        const tabs = await chrome.tabs.query({ pinned: true });
+        const echotab = tabs.find((t) => t.url === url);
+
         if (echotab && echotab.id) {
-          chrome.tabs.update(echotab.id, { active: true });
+          await chrome.tabs.update(echotab.id, { active: true });
+
+          if (echotab.windowId) {
+            await chrome.windows.update(echotab.windowId, { focused: true });
+          }
         } else {
-          chrome.tabs.create({ url, active: true });
+          await chrome.tabs.create({ url, pinned: true, active: true });
         }
       }
     });
