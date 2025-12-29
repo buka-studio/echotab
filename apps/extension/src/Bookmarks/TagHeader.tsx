@@ -210,7 +210,9 @@ export default function TagHeader({
             affectedCount={affectedTabIds.size}>
             {tag.id !== unassignedTag.id && (
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Untag</DropdownMenuItem>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  Untag <span className="text-muted-foreground">{tag.name}</span>
+                </DropdownMenuItem>
               </AlertDialogTrigger>
             )}
           </UntagConfirmDialog>

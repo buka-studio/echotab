@@ -23,7 +23,7 @@ import {
 import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { Broom as BroomIcon, Browser as BrowserIcon, Tag as TagIcon } from "@phosphor-icons/react";
+import { BroomIcon, BrowserIcon, OpenAiLogoIcon, TagIcon } from "@phosphor-icons/react";
 import {
   CheckCircledIcon,
   ClipboardIcon,
@@ -281,6 +281,21 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     });
   };
 
+  const handleOpenInLLM = (provider: "chatgpt" | "claude") => () => {
+    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
+      selectionStore.selectedItemIds.has(tab.id),
+    );
+    const linksText = selectedLinks.map((tab) => `[${tab.title}](${tab.url})`).join("\n");
+    const prompt = `Open the following links and analyze the content. Tell me when you're done and ready to answer questions about them. ${linksText}`;
+    const promptQuery = `q=${encodeURIComponent(prompt)}`;
+
+    if (provider === "chatgpt") {
+      chrome.tabs.create({ url: `https://chatgpt.com/chat?${promptQuery}` });
+    } else if (provider === "claude") {
+      chrome.tabs.create({ url: `https://claude.ai/chat?${promptQuery}` });
+    }
+  };
+
   return (
     <>
       <TabCommandDialog
@@ -395,9 +410,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                         <DrawingPinIcon className="text-muted-foreground mr-2" />
                         Pin
                       </CommandItem>
-                      <CommandItem onSelect={() => setDeleteDialogOpen(true)}>
-                        <TrashIcon className="text-muted-foreground mr-2" /> Delete
-                      </CommandItem>
+
                       <CommandItem onSelect={withClear(handleOpenSelected)}>
                         <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in this
                         window
@@ -409,6 +422,13 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                       <CommandItem onSelect={withClear(handleCopyToClipboard)}>
                         <ClipboardIcon className="text-muted-foreground mr-2" />
                         Copy to clipboard
+                      </CommandItem>
+                      <CommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                        <OpenAiLogoIcon className="text-muted-foreground mr-2" />
+                        Open in ChatGPT
+                      </CommandItem>
+                      <CommandItem onSelect={() => setDeleteDialogOpen(true)}>
+                        <TrashIcon className="text-muted-foreground mr-2" /> Delete
                       </CommandItem>
                     </>
                   )}

@@ -181,7 +181,7 @@ export default function ActiveTabs() {
         onBeforeStart={() => {
           return activeIdRef.current === null;
         }}>
-        <div className="outlined-side col-2 flex w-full items-center justify-start p-3 py-5">
+        <div className="outlined-side col-2 flex w-full items-center justify-start p-3">
           <div className="flex flex-1 items-center gap-2 pl-2 text-sm">
             <div className="flex items-center gap-2 select-none">
               <span className="text-muted-foreground flex items-center gap-2">
@@ -240,7 +240,7 @@ export default function ActiveTabs() {
             return (
               <div
                 className={cn(
-                  "border-border outlined-side col-2 mx-auto w-full border-t [border-top-style:dashed] [border-bottom-style:dashed] p-3 select-none",
+                  "border-border! outlined-side col-2 mx-auto w-full border-t [border-top-style:dashed] [border-bottom-style:dashed] p-3 select-none",
                   {
                     "border-b": isLast,
                     // 'bg-surface-2':

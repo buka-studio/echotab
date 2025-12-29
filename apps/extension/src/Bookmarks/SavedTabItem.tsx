@@ -1,6 +1,6 @@
 import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
-import { Tag as TagIcon } from "@phosphor-icons/react";
+import { TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ComponentRef, forwardRef } from "react";
 
@@ -50,6 +50,8 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
   };
 
   const isInTagGroup = Boolean(currentGroupTagId && currentGroupTagId !== unassignedTag.id);
+
+  const currentGroupTag = tags.get(currentGroupTagId!);
 
   return (
     <TabItem
@@ -103,8 +105,8 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
                   size="icon-sm"
                   onClick={() => BookmarkStore.removeTabTag(tab.id, currentGroupTagId!)}
                   side="top"
-                  tooltipText="Untag">
-                  <TagIcon className="h-5 w-5" />
+                  tooltipText={currentGroupTag ? `Untag "${currentGroupTag.name}"` : "Untag"}>
+                  <TagIcon className="h-5 w-5" weight="fill" />
                 </ButtonWithTooltip>
               )}
               <ButtonWithTooltip

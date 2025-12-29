@@ -39,7 +39,7 @@ export default function TagChipList({
       {excess > 0 && (
         <Popover>
           <PopoverTrigger asChild disabled={!expandable}>
-            <button className="focus-ring m-[1px] rounded">
+            <button className="focus-ring m-px rounded">
               <Badge variant="secondary" className="whitespace-nowrap">
                 + {tags.length - max}
               </Badge>

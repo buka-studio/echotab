@@ -11,6 +11,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
 import { CheckIcon } from "@radix-ui/react-icons";
+import { motion } from "framer-motion";
 import { ReactNode, useMemo, useRef, useState } from "react";
 
 import { Tag } from "~/models";
@@ -53,7 +54,9 @@ export default function TagChipCombobox({
 
   const tagStore = useTagStore();
 
-  const tagIdSet = new Set(tags.filter(Boolean).map((t) => t.id)) as Set<number>;
+  const tagIdSet = new Set(
+    tags.filter((t) => Boolean(t.id) && t.id !== unassignedTag.id).map((t) => t.id),
+  ) as Set<number>;
 
   const [selectedTagIds, setSelectedTagIds] = useState(tagIdSet);
   const [search, setSearch] = useState("");
@@ -86,33 +89,34 @@ export default function TagChipCombobox({
   };
 
   const tagItems = useMemo(() => {
-    return Array.from(tagStore.tags.values())
-      .filter((t) => {
-        if (t.id === unassignedTag.id) {
-          return false;
-        }
+    return Array.from(tagStore.tags.values()).filter((t) => {
+      if (t.id === unassignedTag.id) {
+        return false;
+      }
 
-        if (editable) {
-          return true;
-        }
+      if (editable) {
+        return true;
+      }
 
-        return selectedTagIds.has(t.id);
-      })
-      .sort((a, b) => {
-        const aSelected = selectedTagIds.has(a.id);
-        const bSelected = selectedTagIds.has(b.id);
+      return selectedTagIds.has(t.id);
+    });
+    // .sort((a, b) => {
+    //   const aSelected = selectedTagIds.has(a.id);
+    //   const bSelected = selectedTagIds.has(b.id);
 
-        if (aSelected && !bSelected) {
-          return -1;
-        }
+    //   if (aSelected && !bSelected) {
+    //     return -1;
+    //   }
 
-        if (!aSelected && bSelected) {
-          return 1;
-        }
+    //   if (!aSelected && bSelected) {
+    //     return 1;
+    //   }
 
-        return 0;
-      });
+    //   return 0;
+    // });
   }, [tagStore.tags, selectedTagIds]);
+
+  const atLeastOneChecked = selectedTagIds.size > 0;
 
   return (
     <div className="flex items-center gap-2 overflow-hidden">
@@ -124,7 +128,7 @@ export default function TagChipCombobox({
         }}>
         <PopoverTrigger asChild disabled={!expandable} onClick={() => setOpen(true)}>
           {trigger || (
-            <button className="focus-ring m-[1px] flex items-center rounded">
+            <button className="focus-ring m-px flex items-center rounded">
               <div className="flex gap-1 p-1">
                 {visibleTags.map((t) => (
                   <div
@@ -174,7 +178,7 @@ export default function TagChipCombobox({
             </CommandEmpty>
             <CommandList>
               <CommandGroup>
-                {tagItems.map((tag) => (
+                {tagItems.map((tag, i) => (
                   <CommandItem
                     value={tag.name}
                     key={tag.id}
@@ -186,21 +190,23 @@ export default function TagChipCombobox({
                         return wipSet;
                       });
                     }}
-                    className="aria-selected:before:bg-transparent">
+                    className="min-h-auto aria-selected:before:bg-transparent">
                     <div className="flex items-center gap-2">
-                      {editable && (
+                      {editable && atLeastOneChecked && (
                         <CheckIcon
                           className={cn("", {
                             "opacity-0": !selectedTagIds.has(tag.id),
                           })}
                         />
                       )}
-                      <TagChip
-                        color={tag.color}
-                        onRemove={onRemove && (() => onRemove?.(tag))}
-                        className="border-0">
-                        {tag.name}
-                      </TagChip>
+                      <motion.div layout transition={{ duration: 0.15, delay: 0.025 * i }}>
+                        <TagChip
+                          color={tag.color}
+                          onRemove={onRemove && (() => onRemove?.(tag))}
+                          className="border-0">
+                          {tag.name}
+                        </TagChip>
+                      </motion.div>
                     </div>
                   </CommandItem>
                 ))}
