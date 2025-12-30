@@ -2,10 +2,10 @@ import Button from "@echotab/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import { cn } from "@echotab/ui/util";
 import {
-  BookmarkSimple as BookmarkSimpleIcon,
-  FrameCorners as FrameCornersIcon,
-  GlobeSimple as GlobeSimpleIcon,
-  Sparkle as SparkleIcon,
+  BookmarkSimpleIcon,
+  FrameCornersIcon,
+  GlobeSimpleIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
@@ -57,7 +57,7 @@ const HeaderUrl = ({ children, className }: { children: ReactNode; className?: s
       "text-muted-foreground border-border flex items-center gap-2 overflow-hidden rounded-full border px-2 py-1 pl-1 text-xs",
       className,
     )}>
-    <GlobeSimpleIcon className="h-4 w-4 flex-shrink-0" />
+    <GlobeSimpleIcon className="h-4 w-4 shrink-0" />
     <span className="line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">{children}</span>
   </div>
 );
@@ -112,10 +112,7 @@ const useTypingAnimation = ({
 const Jumbo = ({ tab, className }: { tab: SavedTab; className?: string }) => {
   return (
     <div className={cn("flex items-center gap-4 pr-2", className)}>
-      <Favicon
-        src={tab.url}
-        className="bg-muted h-14 w-14 flex-shrink-0 rounded-lg [&>*]:h-10 [&>*]:w-10"
-      />
+      <Favicon src={tab.url} className="bg-muted h-14 w-14 shrink-0 rounded-lg *:h-10 *:w-10" />
       <div className="flex flex-col text-left">
         <h1 className="line-clamp-1 text-sm font-bold break-all">{tab.title}</h1>
         {tab.savedAt && (
@@ -139,7 +136,7 @@ const AIEmptyState = ({ className, children }: { className?: string; children?: 
         className,
       )}>
       <div
-        className="bg-background absolute inset-0 rounded-lg [mask-image:linear-gradient(180deg,transparent_60%,black)]"
+        className="bg-background absolute inset-0 rounded-lg mask-[linear-gradient(180deg,transparent_60%,black)]"
         style={{ backgroundImage: patternBg }}
       />
       <div className="text-sm">AI Summary not available</div>
@@ -233,12 +230,12 @@ export default function CurateCard({ tab, visible }: { tab: SavedTab; visible: b
             </TabsList>
           </div>
 
-          <TabsContent value="summary" className="overflow-auto [&:not(:empty)]:flex-1">
+          <TabsContent value="summary" className="overflow-auto not-empty:flex-1">
             <AISummaryDescription tab={tab} className="p-2 pb-3" />
           </TabsContent>
           <TabsContent
             value="snapshot"
-            className="relative flex flex-col justify-center [&:not(:empty)]:flex-1">
+            className="relative flex flex-col justify-center not-empty:flex-1">
             <SnapshotPreview
               tab={{ id: tab.id, url: tab.url }}
               className="border-border rounded-lg border"

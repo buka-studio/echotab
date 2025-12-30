@@ -2,7 +2,7 @@ import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
 import { TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
-import { ComponentProps, ComponentRef, forwardRef } from "react";
+import { ComponentProps, ComponentRef } from "react";
 
 import SnapshotPreview from "../components/SnapshotPreview";
 import TabItem, { Favicon } from "../components/TabItem";
@@ -28,10 +28,7 @@ function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagI
 type Props = ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId?: number };
 type Ref = ComponentRef<typeof TabItem>;
 
-const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
-  { tab, currentGroupTagId, ...rest },
-  ref,
-) {
+function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref: Ref }) {
   const { assignedTagIds } = useBookmarkStore();
   const { tags } = useTagStore();
   const {
@@ -124,6 +121,6 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
       {...rest}
     />
   );
-});
+}
 
 export default SavedTabItem;

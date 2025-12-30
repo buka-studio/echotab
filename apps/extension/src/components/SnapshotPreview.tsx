@@ -7,21 +7,17 @@ import { motion } from "framer-motion";
 import usePatternBackground from "~/hooks/usePatternBackground";
 
 import { Message } from "../models";
-import SnapshotStore, { Snapshot } from "../util/SnapshotStore";
+import SnapshotStore from "../util/SnapshotStore";
 
 const isSavedTab = (id: string | number): id is string => typeof id === "string";
 
-function useSnapshot(id: string | number) {
+function useSnapshot({ id, url }: { id: string | number; url?: string }) {
   return useQuery({
-    queryKey: ["snapshots", id],
+    queryKey: ["snapshots", id, url],
+    staleTime: 0,
     queryFn: async () => {
       const snapshotStore = await SnapshotStore.init();
-      let snap: Snapshot | undefined;
-      if (isSavedTab(id)) {
-        snap = await snapshotStore.getSnapshot(id);
-      } else {
-        snap = await snapshotStore.getTmp(id);
-      }
+      const snap = await snapshotStore.getSnapshot({ id, url });
 
       if (snap?.blob) {
         return URL.createObjectURL(snap.blob);
@@ -67,7 +63,7 @@ type Props = {
 };
 
 export default function SnapshotPreview({ tab, className, onVisit }: Props) {
-  const { data, isLoading } = useSnapshot(tab.id);
+  const { data, isLoading } = useSnapshot({ id: tab.id, url: tab.url });
   const queryClient = useQueryClient();
 
   const handleVisit = () => {

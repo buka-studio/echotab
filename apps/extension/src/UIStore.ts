@@ -92,14 +92,26 @@ const Store = proxy({
     const stored = await ChromeLocalStorage.getItem(storageKey);
 
     if (stored) {
-      const deserialized = Store.deserialize(stored as string);
-      Object.assign(Store, deserialized);
+      try {
+        const deserialized = Store.deserialize(stored as string);
+        if (deserialized) {
+          Object.assign(Store, deserialized);
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     chrome.storage.local.onChanged.addListener((changes) => {
       if (changes[storageKey]) {
-        const deserialized = Store.deserialize(changes[storageKey].newValue as string);
-        Object.assign(Store, deserialized);
+        try {
+          const deserialized = Store.deserialize(changes[storageKey].newValue as string);
+          if (deserialized) {
+            Object.assign(Store, deserialized);
+          }
+        } catch (e) {
+          console.error(e);
+        }
       }
     });
 

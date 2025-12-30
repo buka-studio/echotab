@@ -347,18 +347,28 @@ const Store = proxy({
   initStore: async () => {
     let stored = await ChromeLocalStorage.getItem(storageKey);
     if (stored) {
-      const deserialized = Store.deserialize(stored as string);
-      Object.assign(Store, deserialized);
-
-      bookmarkFuse.setCollection(Store.tabs);
+      try {
+        const deserialized = Store.deserialize(stored as string);
+        if (deserialized) {
+          Object.assign(Store, deserialized);
+          bookmarkFuse.setCollection(Store.tabs);
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     chrome.storage.local.onChanged.addListener((changes) => {
       if (changes[storageKey]) {
-        const deserialized = Store.deserialize(changes[storageKey].newValue as string);
-        Object.assign(Store, deserialized);
-
-        bookmarkFuse.setCollection(Store.tabs);
+        try {
+          const deserialized = Store.deserialize(changes[storageKey].newValue as string);
+          if (deserialized) {
+            Object.assign(Store, deserialized);
+            bookmarkFuse.setCollection(Store.tabs);
+          }
+        } catch (e) {
+          console.error(e);
+        }
       }
     });
     Store.initialized = true;

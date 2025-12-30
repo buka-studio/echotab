@@ -30,6 +30,7 @@ export interface TagStore extends Serializable<PersistedTagStore> {
   tags: Map<number, Tag>;
   tagsByNormalizedName: Map<string, Tag>;
   initialized: boolean;
+  skipStorageSave: boolean;
   getQuickSaveTagName(unique?: boolean): string;
   getTagByName(name: string): Tag | undefined;
   getNextTagId(): number;
@@ -55,6 +56,7 @@ type PersistedTagStore = Pick<TagStore, "tags">;
 type ImportedTagStore = Partial<Pick<TagStore, "tags">>;
 
 const Store = proxy({
+  skipStorageSave: false,
   tags: proxyMap<number, Tag>(defaultTags),
   initialized: false,
   getQuickSaveTagName: (unique = true) => {
@@ -174,14 +176,28 @@ const Store = proxy({
     const stored = await ChromeLocalStorage.getItem(storageKey);
 
     if (stored) {
-      const deserialized = Store.deserialize(stored as string);
-      Object.assign(Store, deserialized);
+      Store.skipStorageSave = true;
+      try {
+        const deserialized = Store.deserialize(stored as string);
+        if (deserialized) {
+          Object.assign(Store, deserialized);
+        }
+      } finally {
+        Store.skipStorageSave = false;
+      }
     }
 
     chrome.storage.local.onChanged.addListener((changes) => {
       if (changes[storageKey]) {
-        const deserialized = Store.deserialize(changes[storageKey].newValue as string);
-        Object.assign(Store, deserialized);
+        Store.skipStorageSave = true;
+        try {
+          const deserialized = Store.deserialize(changes[storageKey].newValue as string);
+          if (deserialized) {
+            Object.assign(Store, deserialized);
+          }
+        } finally {
+          Store.skipStorageSave = false;
+        }
       }
     });
 
@@ -223,7 +239,7 @@ derive(
 );
 
 subscribe(Store, () => {
-  if (Store.initialized) {
+  if (Store.initialized && !Store.skipStorageSave) {
     const serialized = Store.serialize();
     ChromeLocalStorage.setItem(storageKey, serialized);
   }

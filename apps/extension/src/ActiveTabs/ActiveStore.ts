@@ -249,7 +249,7 @@ const Store = proxy({
       return;
     }
 
-    return Store.removeTabsSeq(tabIds, opts);
+    return Store.removeTabsPar(tabIds, opts);
   },
   removeTabSeq: async (tabId: number, opts: RemoveTabOpts = {}) => {
     try {
@@ -348,7 +348,7 @@ const Store = proxy({
       return;
     }
 
-    return Store.saveTabsSeq(tabs, remove, snapshot);
+    return Store.saveTabsPar(tabs, remove, snapshot);
   },
   saveTabsSeq: async (
     tabs: (ActiveTab & { tagIds: number[] })[],

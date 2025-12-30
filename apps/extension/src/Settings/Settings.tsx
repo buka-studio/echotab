@@ -6,7 +6,7 @@ import {
   CommandItem,
   CommandList,
 } from "@echotab/ui/Command";
-import { BroomIcon, PaletteIcon, SparkleIcon, TagIcon } from "@phosphor-icons/react";
+import { BroomIcon, PaletteIcon, TagIcon } from "@phosphor-icons/react";
 import {
   DownloadIcon,
   ExclamationTriangleIcon,
@@ -15,7 +15,6 @@ import {
 } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
-import AIPage from "./AIPage";
 import AppearancePage from "./AppearancePage";
 import CuratePage from "./CuratePage";
 import DeletePage from "./DeletePage";
@@ -112,7 +111,7 @@ export default function Settings() {
           {versionLabel}
         </div>
         <div
-          className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l pt-2 pr-2 pl-4"
+          className="content scrollbar-gray col-start-2 row-[1/3] h-full max-h-[450px] flex-1 overflow-auto border-l pt-2 pr-2 pl-4"
           ref={contentRef}>
           <div className="mb-5 text-lg font-semibold">{page}</div>
           {page === "Tags" && <TagsPage />}

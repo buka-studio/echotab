@@ -46,7 +46,7 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
         const item = items[i.index];
 
         return (
-          <SelectableItem asChild id={item} key={i.key}>
+          <SelectableItem asChild id={item} key={item}>
             <motion.li
               animate={{ opacity: 1 }}
               transition={{
@@ -57,7 +57,7 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
               initial={{ opacity: 0 }}
               data-index={i.index}
               className={cn(
-                "item-container @container absolute top-0 mt-[-1px] w-full select-none hover:z-1 [&:first-child>*]:rounded-t-lg [&:has(+.tag-group)>*]:rounded-b-lg [&:last-child>*]:rounded-b-lg [.tag-group+&>*]:rounded-t-lg",
+                "item-container @container absolute top-0 mt-px w-full select-none hover:z-1 [&:first-child>*]:rounded-t-lg [&:has(+.tag-group)>*]:rounded-b-lg [&:last-child>*]:rounded-b-lg [.tag-group+&>*]:rounded-t-lg",
                 "[.light_&+&>*]:border-t-transparent",
                 "[.dark_&:is(:hover,:focus-within,[data-selected=true],:has([data-selected=true]))+&:is(:hover,:focus-within,[data-selected=true],:has([data-selected=true]))>*]:border-t-transparent",
               )}
