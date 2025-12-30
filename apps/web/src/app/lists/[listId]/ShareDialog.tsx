@@ -1,7 +1,7 @@
 "use client";
 
 import { PublicList } from "@echotab/lists/models";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   Dialog,
   DialogContent,

@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 
 import { PerformanceCard, WorkflowCard } from "./components/bento";
@@ -19,7 +19,7 @@ function Heading({ className }: { className?: string }) {
             EchoTab <span className="align-super text-xs">tm</span>
           </div>
         </div>
-        <h1 className="max-w-[700px] text-pretty text-center font-serif text-4xl md:text-5xl">
+        <h1 className="max-w-[700px] text-center font-serif text-4xl text-pretty md:text-5xl">
           Clean & simple tab management browser extension
         </h1>
         <Button variant="outline" size="lg" className="px-6 font-mono text-base uppercase" asChild>

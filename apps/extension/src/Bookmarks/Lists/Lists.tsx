@@ -1,5 +1,5 @@
 import { Badge } from "@echotab/ui/Badge";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { DialogTrigger } from "@echotab/ui/Dialog";
 import { cn } from "@echotab/ui/util";
 import { CaretSortIcon, FilePlusIcon, FileTextIcon } from "@radix-ui/react-icons";

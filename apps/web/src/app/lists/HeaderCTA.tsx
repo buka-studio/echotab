@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@echotab/ui/Button";
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { toast } from "@echotab/ui/Toast";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

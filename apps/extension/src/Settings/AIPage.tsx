@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import Input from "@echotab/ui/Input";
 import { Label } from "@echotab/ui/Label";
 import Spinner from "@echotab/ui/Spinner";

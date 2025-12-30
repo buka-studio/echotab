@@ -1,5 +1,5 @@
-import Button from "@echotab/ui/Button";
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { Drawer, DrawerContent, DrawerTrigger } from "@echotab/ui/Drawer";
 import { useMatchMedia } from "@echotab/ui/hooks";
 import { cn } from "@echotab/ui/util";

@@ -1,6 +1,6 @@
 import { UserList } from "@echotab/lists/models";
 import { AlertDialogTrigger } from "@echotab/ui/AlertDialog";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { DialogTrigger } from "@echotab/ui/Dialog";
 import {
   DropdownMenu,

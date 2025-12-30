@@ -14,7 +14,7 @@ import Stats from "./Stats";
 import "@echotab/ui/globals.css";
 import "./app.css";
 
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { ReactNode } from "react";
 
 export default function NavMenu({ children }: { children: ReactNode }) {

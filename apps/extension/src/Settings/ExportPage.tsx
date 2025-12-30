@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 
 import { useBookmarkStore } from "../Bookmarks";
 import { unassignedTag, useTagStore } from "../TagStore";

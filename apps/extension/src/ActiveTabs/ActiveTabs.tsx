@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 import { Browser as BrowserIcon } from "@phosphor-icons/react";
 import { CaretSortIcon, DragHandleDots2Icon } from "@radix-ui/react-icons";

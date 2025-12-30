@@ -1,4 +1,4 @@
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
 import { TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";

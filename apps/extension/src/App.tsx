@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
-import Toaster, { toast } from "@echotab/ui/Toast";
+import { toast, Toaster } from "@echotab/ui/Toast";
 import { TooltipProvider } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import { BroomIcon, BrowserIcon } from "@phosphor-icons/react";
@@ -21,7 +21,7 @@ import UIStore, { subscribeUIStore, useUIStore } from "./UIStore";
 import "@echotab/ui/globals.css";
 import "./app.css";
 
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { ComponentProps, useEffect } from "react";

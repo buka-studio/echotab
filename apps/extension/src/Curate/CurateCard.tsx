@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import { cn } from "@echotab/ui/util";
 import {

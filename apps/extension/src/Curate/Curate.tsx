@@ -8,8 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@echotab/ui/AlertDialog";
-import Button from "@echotab/ui/Button";
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import {
   Dialog,
   DialogContent,

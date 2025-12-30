@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   Dialog,
   DialogClose,
@@ -182,7 +182,7 @@ export default function ListFormDialog({
                                 }
                                 link={
                                   <a
-                                    className="overflow-hidden text-ellipsis whitespace-nowrap rounded-sm focus-visible:underline focus-visible:outline-none"
+                                    className="overflow-hidden rounded-sm text-ellipsis whitespace-nowrap focus-visible:underline focus-visible:outline-none"
                                     target="_blank"
                                     href={tab.url}>
                                     {tab.url}

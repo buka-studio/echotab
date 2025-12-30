@@ -1,5 +1,5 @@
 import { Badge } from "@echotab/ui/Badge";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   DropdownMenu,
   DropdownMenuContent,

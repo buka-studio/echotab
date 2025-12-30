@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@echotab/ui/AlertDialog";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { toast } from "@echotab/ui/Toast";
 import { useState } from "react";
 

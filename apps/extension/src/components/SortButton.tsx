@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 import { ArrowDownIcon, ArrowUpIcon } from "@radix-ui/react-icons";
 import { ComponentProps } from "react";

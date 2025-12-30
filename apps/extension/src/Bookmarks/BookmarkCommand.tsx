@@ -10,7 +10,7 @@ import {
   AlertDialogTrigger,
 } from "@echotab/ui/AlertDialog";
 import { Badge } from "@echotab/ui/Badge";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   Command,
   CommandEmpty,

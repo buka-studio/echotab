@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 
 import { SelectionStore, useActiveSelectionStore, useActiveTabStore } from "./ActiveStore";
 

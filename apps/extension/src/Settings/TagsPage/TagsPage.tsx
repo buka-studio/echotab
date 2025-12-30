@@ -1,5 +1,5 @@
-import Button from "@echotab/ui/Button";
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
 import { HeartIcon, PaletteIcon } from "@phosphor-icons/react";

@@ -1,5 +1,5 @@
 import { Badge } from "@echotab/ui/Badge";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { CaretSortIcon, DrawingPinFilledIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 

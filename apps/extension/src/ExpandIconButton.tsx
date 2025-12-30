@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 import { motion, Variants } from "framer-motion";
 import { ComponentProps } from "react";

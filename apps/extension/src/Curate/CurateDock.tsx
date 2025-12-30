@@ -1,4 +1,4 @@
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
 import { ComponentProps } from "react";
 

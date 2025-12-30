@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 
 import PulseLogo from "./PulseLogo";
 
@@ -6,7 +6,7 @@ export default function AppError({ resetErrorBoundary }: { resetErrorBoundary: (
   return (
     <div className="bg-background flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-md flex-col text-center">
-        <div className="border-border mx-auto flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm">
+        <div className="border-border mx-auto flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm">
           <PulseLogo /> EchoTab
         </div>
         <h1 className="text-foreground mt-4 text-3xl font-bold tracking-tight sm:text-4xl">

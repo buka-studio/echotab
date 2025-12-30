@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { CSSProperties } from "react";
 
 import "./CTA.css";

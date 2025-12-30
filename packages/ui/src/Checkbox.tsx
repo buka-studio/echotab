@@ -6,26 +6,22 @@ import * as React from "react";
 
 import { cn } from "./util";
 
-interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
-  size?: "sm" | "default";
-}
-
-const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root>, CheckboxProps>(
-  ({ className, size, ...props }, ref) => (
+function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+  return (
     <CheckboxPrimitive.Root
-      ref={ref}
+      data-slot="checkbox"
       className={cn(
-        "border-muted-foreground ring-offset-background focus-visible:ring-ring data-[state=checked]:bg-muted-foreground data-[state=checked]:text-background peer h-5 w-5 shrink-0 rounded-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
         className,
-        { "h-4 w-4": size === "sm" },
       )}
       {...props}>
-      <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center text-current")}>
-        <CheckIcon className="h-4 w-4" />
+      <CheckboxPrimitive.Indicator
+        data-slot="checkbox-indicator"
+        className="grid place-content-center text-current transition-none">
+        <CheckIcon className="size-3.5" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
-  ),
-);
-Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+  );
+}
 
 export { Checkbox };

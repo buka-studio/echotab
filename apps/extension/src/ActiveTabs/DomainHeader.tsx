@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@echotab/ui/AlertDialog";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 import { ReactNode, useMemo } from "react";
 

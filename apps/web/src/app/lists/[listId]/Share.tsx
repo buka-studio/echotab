@@ -1,7 +1,7 @@
 "use client";
 
 import { PublicList } from "@echotab/lists/models";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { Label } from "@echotab/ui/Label";
 import { XLogo as XLogoIcon } from "@phosphor-icons/react";
 import { CopyIcon } from "@radix-ui/react-icons";

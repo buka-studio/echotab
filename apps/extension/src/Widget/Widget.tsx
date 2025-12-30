@@ -1,8 +1,8 @@
-import Button from "@echotab/ui/Button";
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { Checkbox } from "@echotab/ui/Checkbox";
 import { Label } from "@echotab/ui/Label";
-import Spinner from "@echotab/ui/Spinner";
+import { Spinner } from "@echotab/ui/Spinner";
 import { cn } from "@echotab/ui/util";
 import { GlobeSimpleIcon, SparkleIcon, XIcon } from "@phosphor-icons/react";
 import { LightningBoltIcon } from "@radix-ui/react-icons";

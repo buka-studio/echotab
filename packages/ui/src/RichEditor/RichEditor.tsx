@@ -35,7 +35,7 @@ function Placeholder({
   children?: ReactNode;
 }) {
   return (
-    <div className="text-muted-foreground pointer-events-none absolute left-4 top-4 inline-block overflow-hidden text-ellipsis whitespace-pre text-pretty text-sm">
+    <div className="text-muted-foreground pointer-events-none absolute top-4 left-4 inline-block overflow-hidden text-sm text-pretty text-ellipsis whitespace-pre">
       {children}
     </div>
   );
@@ -91,7 +91,7 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
   }: Props,
   ref,
 ) {
-  const editor = useRef<LexicalEditor>();
+  const editor = useRef<LexicalEditor>(null);
 
   function onChange(editorState: EditorState) {
     const editorStateJSON = editorState.toJSON();
@@ -145,7 +145,7 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
 
   return (
     <LexicalComposer initialConfig={{ ...editorConfig, ...config, editorState: defaultState }}>
-      <div className="border-border text-foreground ring-offset-background [&:has([role='textbox']:focus-visible)]:ring-ring relative rounded-lg border text-left font-normal leading-5 [&:has([role='textbox']:focus-visible)]:ring-2 [&:has([role='textbox']:focus-visible)]:ring-offset-2">
+      <div className="border-border text-foreground ring-offset-background [&:has([role='textbox']:focus-visible)]:ring-ring relative rounded-lg border text-left leading-5 font-normal [&:has([role='textbox']:focus-visible)]:ring-2 [&:has([role='textbox']:focus-visible)]:ring-offset-2">
         <ToolbarPlugin />
         <div className="bg-background relative rounded-b-lg">
           <RichTextPlugin
