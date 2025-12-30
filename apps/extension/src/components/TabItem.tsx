@@ -1,5 +1,5 @@
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@echotab/ui/HoverCard";
-import Spinner from "@echotab/ui/Spinner";
+import { Spinner } from "@echotab/ui/Spinner";
 import { cn } from "@echotab/ui/util";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ReactNode } from "react";

@@ -1,10 +1,10 @@
 import { Button } from "@echotab/ui/Button";
-import Input from "@echotab/ui/Input";
+import { Input } from "@echotab/ui/Input";
 import { Label } from "@echotab/ui/Label";
-import Spinner from "@echotab/ui/Spinner";
+import { Spinner } from "@echotab/ui/Spinner";
 import { toast } from "@echotab/ui/Toast";
 import { ToggleGroup, ToggleGroupItem } from "@echotab/ui/ToggleGroup";
-import { Brain as BrainIcon, OpenAiLogo as OpenAiLogoIcon } from "@phosphor-icons/react";
+import { BrainIcon, OpenAiLogoIcon } from "@phosphor-icons/react";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { FormEvent, useRef, useState } from "react";
 import { z } from "zod";

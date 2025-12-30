@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@echotab/ui/Dialog";
-import Input from "@echotab/ui/Input";
+import { Input } from "@echotab/ui/Input";
 import { Label } from "@echotab/ui/Label";
 import { PopoverContent } from "@echotab/ui/Popover";
 import RichEditor, {

@@ -10,7 +10,7 @@ import {
   AlertDialogTrigger,
 } from "@echotab/ui/AlertDialog";
 import { Button } from "@echotab/ui/Button";
-import Input from "@echotab/ui/Input";
+import { Input } from "@echotab/ui/Input";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 

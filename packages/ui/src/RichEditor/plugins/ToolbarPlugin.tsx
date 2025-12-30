@@ -22,7 +22,7 @@ import {
 } from "lexical";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
 
-import Button from "../../Button";
+import { Button } from "../../Button";
 import { cn } from "../../util";
 
 function ToolbarButton(props: ComponentProps<typeof Button>) {

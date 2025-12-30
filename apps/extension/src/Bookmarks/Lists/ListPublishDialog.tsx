@@ -10,8 +10,8 @@ import {
   DialogTitle,
 } from "@echotab/ui/Dialog";
 import { Label } from "@echotab/ui/Label";
-import Spinner from "@echotab/ui/Spinner";
-import Switch from "@echotab/ui/Switch";
+import { Spinner } from "@echotab/ui/Spinner";
+import { Switch } from "@echotab/ui/Switch";
 import {
   ArrowTopRightIcon,
   BookmarkIcon,

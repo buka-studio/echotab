@@ -1,17 +1,19 @@
-// import { ClipboardFormat, Settings, useUIStore } from "../UIStore";
-import Input, { InputProps } from "@echotab/ui/Input";
+import { Input } from "@echotab/ui/Input";
 import { Label } from "@echotab/ui/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@echotab/ui/Select";
-import Switch from "@echotab/ui/Switch";
-import { forwardRef, useState } from "react";
+import { Switch } from "@echotab/ui/Switch";
+import { ComponentProps, useState } from "react";
 
 import { Settings, TimeUnit, timeUnits, useCurateStore } from "../Curate/CurateStore";
 import { pluralize } from "../util";
 
-const BlurInput = forwardRef<
-  HTMLInputElement,
-  Omit<InputProps, "onChange" | "value"> & { onChange: (value: number) => void }
->(function BlurInput({ onChange, defaultValue, ...props }, ref) {
+function BlurInput({
+  onChange,
+  defaultValue,
+  ...props
+}: Omit<ComponentProps<typeof Input>, "onChange" | "value"> & {
+  onChange: (value: number) => void;
+}) {
   const [value, setValue] = useState(String(defaultValue));
 
   const onBlur = () => {
@@ -19,15 +21,9 @@ const BlurInput = forwardRef<
   };
 
   return (
-    <Input
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={onBlur}
-      ref={ref}
-      {...props}
-    />
+    <Input value={value} onChange={(e) => setValue(e.target.value)} onBlur={onBlur} {...props} />
   );
-});
+}
 
 export default function CuratePage() {
   const curateStore = useCurateStore();

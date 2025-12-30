@@ -1,5 +1,5 @@
 import { Label } from "@echotab/ui/Label";
-import Switch from "@echotab/ui/Switch";
+import { Switch } from "@echotab/ui/Switch";
 import { ToggleGroup, ToggleGroupItem } from "@echotab/ui/ToggleGroup";
 import { DesktopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
 

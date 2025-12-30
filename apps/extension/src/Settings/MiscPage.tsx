@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@echotab/ui/Select";
-import Switch from "@echotab/ui/Switch";
+import { Switch } from "@echotab/ui/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useState } from "react";

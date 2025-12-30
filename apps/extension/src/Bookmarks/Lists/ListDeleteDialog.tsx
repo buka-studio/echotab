@@ -11,7 +11,7 @@ import {
 } from "@echotab/ui/AlertDialog";
 import { Checkbox } from "@echotab/ui/Checkbox";
 import { Label } from "@echotab/ui/Label";
-import Spinner from "@echotab/ui/Spinner";
+import { Spinner } from "@echotab/ui/Spinner";
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useRef } from "react";
 
