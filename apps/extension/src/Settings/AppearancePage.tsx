@@ -77,34 +77,6 @@ export default function AppearancePage() {
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
-      <div className="text-muted-foreground flex flex-col gap-2 text-sm">
-        <Label htmlFor="color">Primary color</Label>
-        <div className="flex items-center justify-between gap-2">
-          <ToggleGroup
-            className="justify-start"
-            id="color"
-            variant="outline"
-            type="single"
-            value={uiStore.settings.primaryColor}
-            onValueChange={(c) => uiStore.updateSettings({ primaryColor: c })}>
-            {accentColors.map((color) => {
-              return (
-                <ToggleGroupItem
-                  value={color.lch}
-                  aria-label={`Set ${color.name} color`}
-                  className="h-auto rounded-full p-1">
-                  <div
-                    className="h-5 w-5 rounded-full"
-                    style={{
-                      backgroundColor: `oklch(${color.lch})`,
-                    }}
-                  />
-                </ToggleGroupItem>
-              );
-            })}
-          </ToggleGroup>
-        </div>
-      </div>
     </div>
   );
 }
