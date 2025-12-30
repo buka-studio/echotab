@@ -26,7 +26,7 @@ export interface Filter {
 function toActiveTab(tab: Partial<chrome.tabs.Tab> = {}): Partial<ActiveTab> {
   return {
     favIconUrl: tab.favIconUrl,
-    id: tab.id,
+    id: tab.id!,
     title: tab.title,
     url: tab.url,
     windowId: tab.windowId,
@@ -214,7 +214,7 @@ const Store = proxy({
     chrome.tabs?.onUpdated.addListener((tabId, change, tab) => {
       const tabIndex = Store.tabs.findIndex((t) => t.id === tabId);
       if (tabIndex !== -1) {
-        Store.tabs[tabIndex] = { ...Store.tabs[tabIndex], ...toActiveTab(tab) };
+        Store.tabs[tabIndex] = { ...Store.tabs[tabIndex], ...toActiveTab(tab) } as ActiveTab;
       } else if (change.status === "complete") {
         const newTab = toActiveTab(tab);
         if (isValidActiveTab(newTab)) {
@@ -512,7 +512,7 @@ const Store = proxy({
   },
   moveTabsToNewWindow: async (tabIds: number[], incognito = false) => {
     await chrome.windows.create({
-      url: tabIds.map((id) => Store.viewTabsById[id]?.url).filter(Boolean),
+      url: tabIds.map((id) => Store.viewTabsById[id]?.url).filter(Boolean) as string[],
       incognito,
     });
 
@@ -640,12 +640,12 @@ derive(
         if (!ids[t.windowId]) {
           ids[t.windowId] = [];
         }
-        ids[t.windowId].push(t.id);
+        ids[t.windowId]!.push(t.id);
       }
 
       if (view.sort.dir === SortDir.Desc) {
         for (const windowId of Object.keys(ids)) {
-          ids[Number(windowId)] = ids[Number(windowId)].reverse();
+          ids[Number(windowId)] = ids[Number(windowId)]!.reverse();
         }
       }
 
@@ -664,7 +664,7 @@ derive(
 
       for (const t of tabs) {
         const domain = getDomain(t.url);
-        tabsByDomain[domain].push(t.id);
+        tabsByDomain[domain]!.push(t.id);
       }
 
       const singleTabDomains = Object.entries(tabsByDomain)
@@ -672,7 +672,7 @@ derive(
         .map(([domain]) => domain);
 
       if (singleTabDomains.length) {
-        tabsByDomain["Other"] = singleTabDomains.flatMap((domain) => tabsByDomain[domain]);
+        tabsByDomain["Other"] = singleTabDomains.flatMap((domain) => tabsByDomain[domain] ?? []);
         for (const domain of singleTabDomains) {
           delete tabsByDomain[domain];
         }

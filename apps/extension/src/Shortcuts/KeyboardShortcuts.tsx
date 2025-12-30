@@ -37,7 +37,7 @@ export default function KeyboardShortcuts({ className }: { className?: string })
               <KeyboardShortcutKey className="h-5 text-[0.625rem]">alt</KeyboardShortcutKey>
               <KeyboardShortcutKey className="h-5 w-5 text-sm">t</KeyboardShortcutKey>
             </KeyboardShortcut>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 text-right">
               <span>Toggle tagging</span>
               <span className="text-muted-foreground text-xs">with tabs selected</span>
             </div>

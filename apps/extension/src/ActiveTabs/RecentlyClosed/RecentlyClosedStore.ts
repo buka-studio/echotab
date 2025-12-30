@@ -2,25 +2,52 @@ import { proxy, subscribe, useSnapshot } from "valtio";
 
 import { version } from "../../constants";
 import { ActiveTab } from "../../models";
-import ChromeLocalStorage from "../../util/ChromeLocalStorage";
+import { StoragePersistence } from "../../util/StoragePersistence";
 
 const storageKey = `cmdtab-recently-closed-${version}`;
+const persistence = new StoragePersistence({ key: storageKey });
 const MAX_RECENTLY_CLOSED = 10;
 
 interface RecentlyClosedStore {
   tabs: ActiveTab[];
+  initialized: boolean;
+  initStore(): Promise<void>;
   addTab(tab: ActiveTab): void;
   clear(): void;
 }
 
 const Store = proxy<RecentlyClosedStore>({
   tabs: [],
+  initialized: false,
+  initStore: async () => {
+    const stored = await persistence.load();
+    if (stored) {
+      try {
+        const tabs = JSON.parse(stored) as ActiveTab[];
+        if (Array.isArray(tabs)) {
+          Store.tabs = tabs;
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+
+    persistence.subscribe((data) => {
+      try {
+        const tabs = JSON.parse(data) as ActiveTab[];
+        if (Array.isArray(tabs)) {
+          Store.tabs = tabs;
+        }
+      } catch {
+        // ignore parse errors
+      }
+    });
+
+    Store.initialized = true;
+  },
   addTab: (tab: ActiveTab) => {
-    // Remove if already exists (to move to front)
     Store.tabs = Store.tabs.filter((t) => t.id !== tab.id);
-    // Add to front
     Store.tabs.unshift(tab);
-    // Keep only last 10
     Store.tabs = Store.tabs.slice(0, MAX_RECENTLY_CLOSED);
   },
   clear: () => {
@@ -28,16 +55,10 @@ const Store = proxy<RecentlyClosedStore>({
   },
 });
 
-// Load from storage on init
-ChromeLocalStorage.getItem(storageKey).then((stored) => {
-  if (stored && Array.isArray(stored)) {
-    Store.tabs = stored as ActiveTab[];
-  }
-});
-
-// Save to storage on changes
 subscribe(Store, () => {
-  ChromeLocalStorage.setItem(storageKey, Store.tabs);
+  if (Store.initialized) {
+    persistence.save(JSON.stringify(Store.tabs));
+  }
 });
 
 export function useRecentlyClosedStore() {

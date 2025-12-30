@@ -69,6 +69,7 @@ export default function RecentlyClosed() {
           <ItemGrid items={recentlyClosedTabs.map((t) => t.id!)}>
             {({ index }) => {
               const tab = recentlyClosedTabs[index];
+              if (!tab) return null;
               return <RecentlyClosedTabItem tab={tab} />;
             }}
           </ItemGrid>

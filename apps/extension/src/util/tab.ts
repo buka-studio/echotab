@@ -8,6 +8,9 @@ export function isValidActiveTab(tab?: Partial<chrome.tabs.Tab>) {
     if (url.protocol === "chrome-extension:") {
       return false;
     }
+    if (url.protocol === "chrome:") {
+      return false;
+    }
   } catch {
     // pass
   }

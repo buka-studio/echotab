@@ -45,7 +45,7 @@ export default function ViewControl() {
   function handleSetGrouping(grouping: TabGrouping) {
     tabStore.setView({
       grouping,
-      sort: { prop: sortOptionsByView[grouping][0].value, dir: SortDir.Asc },
+      sort: { prop: sortOptionsByView[grouping]![0]!.value, dir: SortDir.Asc },
     });
   }
 

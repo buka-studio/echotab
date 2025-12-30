@@ -183,7 +183,7 @@ export default function Bookmarks() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="header contained outlined-side sticky top-0 z-10 flex p-3">
+      <div className="header contained outlined-side sticky top-0 z-10 flex p-3 px-2">
         <BookmarkCommand />
       </div>
       <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:p-2">

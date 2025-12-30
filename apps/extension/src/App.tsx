@@ -9,6 +9,7 @@ import { BookmarkFilledIcon, BookmarkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 
 import ActiveTabs, { ActiveStore, useActiveTabStore } from "./ActiveTabs";
+import RecentlyClosedStore from "./ActiveTabs/RecentlyClosed/RecentlyClosedStore";
 import Bookmarks, { BookmarkStore } from "./Bookmarks";
 import ScrollTopFAB from "./components/ScrollTopFAB";
 import { DynamicViewportVarsSetter, updateViewport } from "./hooks/useDynamicViewportVars";
@@ -38,14 +39,17 @@ import PulseLogo from "./PulseLogo";
 import { ShortcutsHint } from "./Shortcuts";
 import TagStore from "./TagStore";
 import { getUtcISO } from "./util/date";
+import { createLogger } from "./util/Logger";
+
+const logger = createLogger("App");
 
 async function initStores() {
   try {
     await Promise.all([UIStore.initStore(), TagStore.initStore()]);
     await Promise.all([BookmarkStore.initStore(), ActiveStore.initStore()]);
-    await CurateStore.initStore();
+    await Promise.all([CurateStore.initStore(), RecentlyClosedStore.initStore()]);
   } catch (e) {
-    console.error(e);
+    logger.error("Failed to initialize application", e);
     toast.error("Failed to initialize application. Please reload the page.");
   }
 }
@@ -87,7 +91,7 @@ const queryClient = new QueryClient();
 const handleAppReset = () => window.location.reload();
 
 const handleAppError = (error: Error, info: { componentStack?: string | null }) => {
-  // todo: log to sentry
+  logger.error("App error", error, info);
 };
 
 if (import.meta.env.DEV) {
