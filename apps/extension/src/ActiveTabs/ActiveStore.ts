@@ -10,10 +10,10 @@ import { version } from "../constants";
 import { ActiveTab, Serializable } from "../models";
 import { pluralize, sortRecord } from "../util";
 import { zip } from "../util/array";
-import ChromeLocalStorage from "../util/ChromeLocalStorage";
 import { toggle } from "../util/set";
 import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
+import { StoragePersistence } from "../util/StoragePersistence";
 import { isValidActiveTab } from "../util/tab";
 import { canonicalizeURL, getDomain } from "../util/url";
 import RecentlyClosedStore from "./RecentlyClosed/RecentlyClosedStore";
@@ -97,6 +97,7 @@ interface RemoveTabOpts {
 type PersistedActiveStore = Pick<ActiveStore, "view">;
 
 const storageKey = `cmdtab-active-store-${version}`;
+const persistence = new StoragePersistence({ key: storageKey });
 
 // todo: deduplicate stores
 export interface ActiveStore extends Serializable<PersistedActiveStore> {
@@ -185,11 +186,20 @@ const Store = proxy({
   initStore: async () => {
     Store.tabs = await getActiveTabs();
 
-    const stored = await ChromeLocalStorage.getItem(storageKey);
+    const stored = await persistence.load();
     if (stored) {
-      const deserialized = Store.deserialize(stored as string);
-      Object.assign(Store, deserialized);
+      const deserialized = Store.deserialize(stored);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
+      }
     }
+
+    persistence.subscribe((data) => {
+      const deserialized = Store.deserialize(data);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
+      }
+    });
 
     let syncDebounceTimer: null | ReturnType<typeof setTimeout> = null;
     chrome.tabs?.onMoved.addListener(() => {
@@ -704,8 +714,7 @@ subscribe(Store, (ops) => {
   }
 
   if (Store.initialized) {
-    const serialized = Store.serialize();
-    ChromeLocalStorage.setItem(storageKey, serialized);
+    persistence.save(Store.serialize());
   }
 });
 

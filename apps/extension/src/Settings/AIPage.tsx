@@ -9,8 +9,12 @@ import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { FormEvent, useRef, useState } from "react";
 import { z } from "zod";
 
+import { createLogger } from "~/util/Logger";
+
 import { useTestLLMMutation } from "../AI/queries";
 import UIStore, { useUIStore } from "../UIStore";
+
+const logger = createLogger("AIPage");
 
 const customSchema = z.object({
   aiApiBaseURL: z.string().url(),
@@ -75,7 +79,7 @@ export default function AIPage() {
     const { error } =
       provider === "openai" ? openAISchema.safeParse(values) : customSchema.safeParse(values);
     if (error) {
-      console.log(error);
+      logger.error(error);
       setErrors(error.flatten());
       return;
     }

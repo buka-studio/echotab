@@ -6,14 +6,16 @@ import { uuidv7 } from "uuidv7";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { proxySet } from "valtio/utils";
 
+import { createLogger } from "~/util/Logger";
+
 import { version } from "../constants";
 import { List, SavedTab, Serializable } from "../models";
 import TagStore, { unassignedTag } from "../TagStore";
 import { pluralize } from "../util";
-import ChromeLocalStorage from "../util/ChromeLocalStorage";
 import { getUtcISO } from "../util/date";
 import { intersection, toggle } from "../util/set";
 import { numberComparator, SortDir, stringComparator } from "../util/sort";
+import { StoragePersistence } from "../util/StoragePersistence";
 import { canonicalizeURL } from "../util/url";
 
 const fuseOptions = {
@@ -22,6 +24,9 @@ const fuseOptions = {
 };
 
 const bookmarkFuse = new Fuse([] as SavedTab[], fuseOptions);
+const storageKey = `cmdtab-tab-store-${version}`;
+const persistence = new StoragePersistence({ key: storageKey });
+const logger = createLogger("BookmarkStore");
 
 export interface Filter {
   tags: number[];
@@ -41,8 +46,6 @@ export enum TabSortProp {
   TabCount = "TabCount",
   SavedAt = "SavedAt",
 }
-
-const storageKey = `cmdtab-tab-store-${version}`;
 
 export const SelectionStore = proxy({
   selectedItemIds: proxySet<string>(),
@@ -345,32 +348,23 @@ const Store = proxy({
     return savedTabs;
   },
   initStore: async () => {
-    let stored = await ChromeLocalStorage.getItem(storageKey);
+    const stored = await persistence.load();
     if (stored) {
-      try {
-        const deserialized = Store.deserialize(stored as string);
-        if (deserialized) {
-          Object.assign(Store, deserialized);
-          bookmarkFuse.setCollection(Store.tabs);
-        }
-      } catch (e) {
-        console.error(e);
+      const deserialized = Store.deserialize(stored);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
+        bookmarkFuse.setCollection(Store.tabs);
       }
     }
 
-    chrome.storage.local.onChanged.addListener((changes) => {
-      if (changes[storageKey]) {
-        try {
-          const deserialized = Store.deserialize(changes[storageKey].newValue as string);
-          if (deserialized) {
-            Object.assign(Store, deserialized);
-            bookmarkFuse.setCollection(Store.tabs);
-          }
-        } catch (e) {
-          console.error(e);
-        }
+    persistence.subscribe((data) => {
+      const deserialized = Store.deserialize(data);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
+        bookmarkFuse.setCollection(Store.tabs);
       }
     });
+
     Store.initialized = true;
   },
   serialize: () => {
@@ -545,19 +539,22 @@ derive(
   { proxy: Store },
 );
 
-subscribe(Store, (ops) => {
-  const tabsUpdated = ops.filter((op) => op[1][0] === "tabs");
+subscribe(
+  Store,
+  (ops) => {
+    const tabsUpdated = ops.filter((op) => op[1][0] === "tabs");
+    logger.debug("tabsUpdated", tabsUpdated);
 
-  if (tabsUpdated.length) {
-    bookmarkFuse.setCollection(Store.tabs);
-    // reconcile lists
-  }
+    if (tabsUpdated.length) {
+      bookmarkFuse.setCollection(Store.tabs);
+    }
 
-  if (Store.initialized) {
-    const serialized = Store.serialize();
-    ChromeLocalStorage.setItem(storageKey, serialized);
-  }
-});
+    if (Store.initialized) {
+      persistence.save(Store.serialize());
+    }
+  },
+  true,
+);
 
 export function useBookmarkStore() {
   return useSnapshot(Store) as typeof Store;

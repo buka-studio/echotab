@@ -3,8 +3,8 @@ import { proxy, subscribe, useSnapshot } from "valtio";
 
 import { version } from "./constants";
 import { Panel, Serializable } from "./models";
-import ChromeLocalStorage from "./util/ChromeLocalStorage";
 import { getRootElement } from "./util/dom";
+import { StoragePersistence } from "./util/StoragePersistence";
 
 export enum Orientation {
   Vertical = "Vertical",
@@ -50,6 +50,7 @@ export interface Settings {
 }
 
 const storageKey = `cmdtab-ui-store-${version}`;
+const persistence = new StoragePersistence({ key: storageKey });
 
 export interface UIStore extends Serializable<PersistedUIStore> {
   settings: Settings;
@@ -89,29 +90,18 @@ const Store = proxy({
     Store.activePanel = panel;
   },
   initStore: async () => {
-    const stored = await ChromeLocalStorage.getItem(storageKey);
-
+    const stored = await persistence.load();
     if (stored) {
-      try {
-        const deserialized = Store.deserialize(stored as string);
-        if (deserialized) {
-          Object.assign(Store, deserialized);
-        }
-      } catch (e) {
-        console.error(e);
+      const deserialized = Store.deserialize(stored);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
       }
     }
 
-    chrome.storage.local.onChanged.addListener((changes) => {
-      if (changes[storageKey]) {
-        try {
-          const deserialized = Store.deserialize(changes[storageKey].newValue as string);
-          if (deserialized) {
-            Object.assign(Store, deserialized);
-          }
-        } catch (e) {
-          console.error(e);
-        }
+    persistence.subscribe((data) => {
+      const deserialized = Store.deserialize(data);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
       }
     });
 
@@ -164,8 +154,7 @@ const disableAnimation = () => {
 export function subscribeUIStore() {
   subscribe(Store, () => {
     if (Store.initialized) {
-      const serialized = Store.serialize();
-      ChromeLocalStorage.setItem(storageKey, serialized);
+      persistence.save(Store.serialize());
     }
 
     const root = getRootElement();

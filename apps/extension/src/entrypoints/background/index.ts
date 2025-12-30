@@ -1,9 +1,13 @@
 import { uuidv7 } from "uuidv7";
 
+import { createLogger } from "~/util/Logger";
+
 import { getPublicList } from "../../Bookmarks/Lists/api";
 import { snapshotActiveTab } from "../../util/snapshot";
 import SnapshotStore from "../../util/SnapshotStore";
 import { isValidActiveTab } from "../../util/tab";
+
+const logger = createLogger("background");
 
 export default defineBackground({
   main() {
@@ -17,7 +21,7 @@ export default defineBackground({
         if (chrome.runtime.lastError) {
           console.error("Error creating context menu:", chrome.runtime.lastError.message);
         } else {
-          console.log("Context menu created");
+          logger.info("Context menu created");
         }
       },
     );

@@ -6,8 +6,8 @@ import { proxyMap } from "valtio/utils";
 
 import { tagColors, version } from "./constants";
 import { Serializable, Tag } from "./models";
-import ChromeLocalStorage from "./util/ChromeLocalStorage";
 import { intersection } from "./util/set";
+import { StoragePersistence } from "./util/StoragePersistence";
 
 export function pickRandomTagColor() {
   return tagColors[Math.floor(Math.random() * tagColors.length)] || defaultTagColor;
@@ -25,12 +25,12 @@ export const defaultTagColor = "#4338ca";
 const defaultTags = [[unassignedTag.id, unassignedTag]] as [number, Tag][];
 
 const storageKey = `cmdtab-tag-store-${version}`;
+const persistence = new StoragePersistence({ key: storageKey });
 
 export interface TagStore extends Serializable<PersistedTagStore> {
   tags: Map<number, Tag>;
   tagsByNormalizedName: Map<string, Tag>;
   initialized: boolean;
-  skipStorageSave: boolean;
   getQuickSaveTagName(unique?: boolean): string;
   getTagByName(name: string): Tag | undefined;
   getNextTagId(): number;
@@ -56,7 +56,6 @@ type PersistedTagStore = Pick<TagStore, "tags">;
 type ImportedTagStore = Partial<Pick<TagStore, "tags">>;
 
 const Store = proxy({
-  skipStorageSave: false,
   tags: proxyMap<number, Tag>(defaultTags),
   initialized: false,
   getQuickSaveTagName: (unique = true) => {
@@ -173,31 +172,18 @@ const Store = proxy({
     }
   },
   initStore: async () => {
-    const stored = await ChromeLocalStorage.getItem(storageKey);
-
+    const stored = await persistence.load();
     if (stored) {
-      Store.skipStorageSave = true;
-      try {
-        const deserialized = Store.deserialize(stored as string);
-        if (deserialized) {
-          Object.assign(Store, deserialized);
-        }
-      } finally {
-        Store.skipStorageSave = false;
+      const deserialized = Store.deserialize(stored);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
       }
     }
 
-    chrome.storage.local.onChanged.addListener((changes) => {
-      if (changes[storageKey]) {
-        Store.skipStorageSave = true;
-        try {
-          const deserialized = Store.deserialize(changes[storageKey].newValue as string);
-          if (deserialized) {
-            Object.assign(Store, deserialized);
-          }
-        } finally {
-          Store.skipStorageSave = false;
-        }
+    persistence.subscribe((data) => {
+      const deserialized = Store.deserialize(data);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
       }
     });
 
@@ -239,9 +225,8 @@ derive(
 );
 
 subscribe(Store, () => {
-  if (Store.initialized && !Store.skipStorageSave) {
-    const serialized = Store.serialize();
-    ChromeLocalStorage.setItem(storageKey, serialized);
+  if (Store.initialized) {
+    persistence.save(Store.serialize());
   }
 });
 
