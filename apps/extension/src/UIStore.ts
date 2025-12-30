@@ -73,7 +73,7 @@ const Store = proxy({
     clipboardFormat: ClipboardFormat.Text,
     clipboardIncludeTags: true,
     theme: Theme.System,
-    primaryColor: undefined,
+    primaryColor: "oklch(65% 0.23 41)",
     disableListSharing: false,
     aiApiProvider: undefined,
     aiApiKey: undefined,
@@ -170,10 +170,6 @@ export function subscribeUIStore() {
       root.classList.add(systemTheme);
     } else {
       root.classList.add(Store.settings.theme);
-    }
-
-    if (Store.settings.primaryColor) {
-      root.style.setProperty("--primary", `oklch(${Store.settings.primaryColor})`);
     }
 
     enable();
