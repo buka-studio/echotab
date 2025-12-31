@@ -8,21 +8,21 @@
 @custom-variant light (&:is(.light *):not(.dark *));
 
 .echotab-root {
-  --background-base: oklch(97.2% 0.006 256);
+  --background-base: oklch(96.5% 0 0);
   --background: oklch(100% 0 0);
   --foreground: oklch(22.1% 0.013 20);
-  --card: oklch(99.4% 0.002 253);
-  --card-active: oklch(94.6% 0.004 253);
+  --card: oklch(99.4% 0.002 85);
+  --card-active: oklch(95% 0 0);
   --card-foreground: oklch(22.1% 0.013 20);
-  --popover: oklch(100% 0 0);
+  --popover: oklch(99% 0 0);
   --popover-foreground: oklch(22.1% 0.013 20);
   --primary: oklch(65% 0.23 41);
-  --primary-foreground: oklch(98.2% 0.005 85);
-  --secondary: oklch(88.6% 0.005 85);
+  --primary-foreground: oklch(98% 0 0);
+  --secondary: oklch(90% 0 0);
   --secondary-foreground: oklch(22.5% 0.009 25);
   --muted: oklch(94.8% 0.003 15);
   --muted-foreground: oklch(55.4% 0.003 252);
-  --accent: oklch(92.2% 0.004 85);
+  --accent: oklch(95.2% 0.004 85);
   --accent-foreground: oklch(22.5% 0.009 25);
   --destructive: oklch(62% 0.25 25);
   --destructive-foreground: oklch(50.8% 0.146 25);
