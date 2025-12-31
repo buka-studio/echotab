@@ -1,13 +1,3 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@echotab/ui/AlertDialog";
 import { Label } from "@echotab/ui/Label";
 import {
   Select,
@@ -25,6 +15,7 @@ import { useState } from "react";
 import { useGetPublicLists, useUnpublishAllListsMutation } from "../Bookmarks/Lists/queries";
 import { ClipboardFormat, useUIStore } from "../UIStore";
 import { getFormattedLinksExample } from "../util";
+import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 
 export default function MiscPage() {
   const uiStore = useUIStore();
@@ -44,24 +35,16 @@ export default function MiscPage() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <div className="text-muted-foreground text-sm">Search</div>
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="enter-to-search">Require Enter to search</Label>
-          <Switch
-            id="enter-to-search"
-            checked={uiStore.settings?.enterToSearch ?? true}
-            onCheckedChange={(v) => {
-              uiStore.updateSettings({ enterToSearch: v });
-            }}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="text-muted-foreground text-sm">Clipboard</div>
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="include-tags">Include Tags</Label>
+    <SettingsPage>
+      <SettingsTitle>Misc</SettingsTitle>
+      <SettingsContent className="flex flex-col gap-5">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <Label htmlFor="include-tags">Clipboard tags</Label>
+            <div className="text-muted-foreground text-sm">
+              Include or exclude tags when copying links to the clipboard
+            </div>
+          </div>
           <Switch
             id="include-tags"
             checked={uiStore.settings?.clipboardIncludeTags ?? false}
@@ -70,24 +53,29 @@ export default function MiscPage() {
             }}
           />
         </div>
-        <div className="my-2 flex items-center justify-between space-x-2">
-          <span className="flex items-center gap-1">
-            <Label htmlFor="clipboard-format">Clipboard Format</Label>
-            <Tooltip>
-              <TooltipTrigger>
-                <InfoCircledIcon className="text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="mb-5 text-sm">Clipboard content preview:</div>
-                <pre className="scrollbar-gray text-muted-foreground font-mono text-xs">
-                  {getFormattedLinksExample(
-                    uiStore.settings.clipboardFormat,
-                    uiStore.settings.clipboardIncludeTags,
-                  )}
-                </pre>
-              </TooltipContent>
-            </Tooltip>
-          </span>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <Label htmlFor="clipboard-format">
+              Clipboard Format{" "}
+              <Tooltip>
+                <TooltipTrigger>
+                  <InfoCircledIcon className="text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="mb-5 text-sm">Clipboard content preview:</div>
+                  <pre className="scrollbar-gray text-muted-foreground font-mono text-xs">
+                    {getFormattedLinksExample(
+                      uiStore.settings.clipboardFormat,
+                      uiStore.settings.clipboardIncludeTags,
+                    )}
+                  </pre>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <div className="text-muted-foreground text-sm">
+              Set the format when copying links to the clipboard
+            </div>
+          </div>
           <Select
             value={uiStore.settings?.clipboardFormat}
             onValueChange={(v) => {
@@ -95,7 +83,7 @@ export default function MiscPage() {
                 clipboardFormat: v as ClipboardFormat,
               });
             }}>
-            <SelectTrigger className="w-[180px]" id="clipboard-format">
+            <SelectTrigger id="clipboard-format">
               <SelectValue placeholder="Select a format" />
             </SelectTrigger>
             <SelectContent>
@@ -109,56 +97,7 @@ export default function MiscPage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
-      <hr className="last:hidden" />
-      {import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
-        <div className="flex flex-col gap-2">
-          <div className="text-muted-foreground mb-2 text-sm">Lists</div>
-          <div className="flex items-center justify-between space-x-2">
-            <span className="flex items-center gap-1">
-              <Label htmlFor="disable-list-sharing">Disable list sharing</Label>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoCircledIcon className="text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="max-w-[250px]">
-                    Disables list sharing features for a completely offline experience.
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </span>
-            <Switch
-              id="disable-list-sharing"
-              checked={uiStore.settings?.disableListSharing ?? false}
-              onCheckedChange={(v) => {
-                uiStore.updateSettings({ disableListSharing: v });
-                if (v && publicLists.data?.some((l) => l.published)) {
-                  setUnpublishDialogOpen(true);
-                }
-              }}
-            />
-            <AlertDialog
-              open={unpublishDialogOpen}
-              onOpenChange={() => setUnpublishDialogOpen(false)}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>You have published lists</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    You have published lists. Do you also want to unpublish them?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Keep Published</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleConfirmUnpublish} variant="destructive">
-                    Unpublish
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-      )}
-    </div>
+      </SettingsContent>
+    </SettingsPage>
   );
 }

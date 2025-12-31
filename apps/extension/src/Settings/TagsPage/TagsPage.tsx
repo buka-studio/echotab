@@ -10,6 +10,7 @@ import SortButton from "../../components/SortButton";
 import { Tag } from "../../models";
 import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
 import { SortDir } from "../../util/sort";
+import { SettingsContent, SettingsPage, SettingsTitle } from "../SettingsLayout";
 import TagControl from "./TagControl";
 
 interface TagSetting extends Tag {
@@ -108,51 +109,64 @@ export default function TagsPage() {
   };
 
   return (
-    <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4">
-      {sortableColumns.map((c, i) => (
-        <div className="text-muted-foreground flex items-center gap-2 text-sm" key={c}>
-          {columnLabels[c]}{" "}
-          <SortButton active={tagSort.col === c} dir={tagSort.dir} onClick={() => handleSort(c)} />
-          {i === sortableColumns.length - 1 && (
-            <ButtonWithTooltip
-              onClick={handleShuffleTagColors}
-              size="icon-sm"
-              className="mr-[42px] ml-auto"
-              variant="ghost"
-              tooltipText="Shuffle tag colors">
-              <PaletteIcon size={18} />
-            </ButtonWithTooltip>
-          )}
-        </div>
-      ))}
-      {tagSettings.map((t) => (
-        <React.Fragment key={t.id}>
-          <Button
-            className="mr-auto"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Favorite ${t.name}`}
-            onClick={() => TagStore.toggleTagFavorite(t.id)}>
-            <HeartIcon
-              className={cn({ "text-red-500": t.favorite })}
-              weight={t.favorite ? "fill" : "regular"}
-            />
+    <SettingsPage>
+      <SettingsTitle
+        className="flex items-center"
+        right={
+          <Button variant="outline" onClick={handleAddTag} className="ml-auto">
+            Add new tag
           </Button>
-          <span className="">{t.tabCount}</span>
-          <TagControl
-            tag={t}
-            tabCount={t.tabCount}
-            onChange={(update) => TagStore.updateTag(t.id, update)}
-            onDelete={() => handleDeleteTag(t)}
-            disabled={t.id === unassignedTag.id}
-          />
-        </React.Fragment>
-      ))}
-      <div className="sticky bottom-0 z-10 col-span-3 pt-4">
-        <Button variant="outline" className="w-full" onClick={handleAddTag}>
-          Add new tag
-        </Button>
-      </div>
-    </div>
+        }>
+        Tags
+      </SettingsTitle>
+
+      <SettingsContent>
+        <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4">
+          {sortableColumns.map((c, i) => (
+            <div className="text-muted-foreground flex items-center gap-2 text-sm" key={c}>
+              {columnLabels[c]}{" "}
+              <SortButton
+                active={tagSort.col === c}
+                dir={tagSort.dir}
+                onClick={() => handleSort(c)}
+              />
+              {i === sortableColumns.length - 1 && (
+                <ButtonWithTooltip
+                  onClick={handleShuffleTagColors}
+                  size="icon-sm"
+                  className="mr-[42px] ml-auto"
+                  variant="ghost"
+                  tooltipText="Shuffle tag colors">
+                  <PaletteIcon size={18} />
+                </ButtonWithTooltip>
+              )}
+            </div>
+          ))}
+          {tagSettings.map((t) => (
+            <React.Fragment key={t.id}>
+              <Button
+                className="mr-auto"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Favorite ${t.name}`}
+                onClick={() => TagStore.toggleTagFavorite(t.id)}>
+                <HeartIcon
+                  className={cn("size-4", { "text-red-500": t.favorite })}
+                  weight={t.favorite ? "fill" : "regular"}
+                />
+              </Button>
+              <span className="">{t.tabCount}</span>
+              <TagControl
+                tag={t}
+                tabCount={t.tabCount}
+                onChange={(update) => TagStore.updateTag(t.id, update)}
+                onDelete={() => handleDeleteTag(t)}
+                disabled={t.id === unassignedTag.id}
+              />
+            </React.Fragment>
+          ))}
+        </div>
+      </SettingsContent>
+    </SettingsPage>
   );
 }

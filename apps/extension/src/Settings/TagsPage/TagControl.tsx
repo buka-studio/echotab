@@ -23,7 +23,7 @@ function TagNameInput({ name, onChange }: { name: string; onChange(name: string)
 
   return (
     <Input
-      className="focus-visible:border-input hover:border-input h-7 rounded border-transparent bg-transparent px-2 py-1 text-sm outline-none focus-visible:ring-1"
+      className="focus-visible:border-input hover:border-input h-7 rounded border-transparent px-2 py-1 text-sm shadow-none outline-none not-focus-visible:bg-transparent! focus-visible:ring-1"
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onBlur={() => onChange(value)}

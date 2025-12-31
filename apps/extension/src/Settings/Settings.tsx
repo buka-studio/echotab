@@ -6,21 +6,15 @@ import {
   CommandItem,
   CommandList,
 } from "@echotab/ui/Command";
-import { BroomIcon, PaletteIcon, TagIcon } from "@phosphor-icons/react";
-import {
-  DownloadIcon,
-  ExclamationTriangleIcon,
-  MixerHorizontalIcon,
-  UploadIcon,
-} from "@radix-ui/react-icons";
+import { cn } from "@echotab/ui/util";
+import { BroomIcon, DatabaseIcon, PaletteIcon, TagIcon } from "@phosphor-icons/react";
+import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
 import AppearancePage from "./AppearancePage";
 import CuratePage from "./CuratePage";
-import DeletePage from "./DeletePage";
-import ExportPage from "./ExportPage";
+import DataPage from "./DataPage";
 import FeedbackPage from "./FeedbackPage";
-import ImportPage from "./ImportPage";
 import MiscPage from "./MiscPage";
 import TagsPage from "./TagsPage";
 
@@ -37,93 +31,90 @@ const BukaIcon = (props: ComponentProps<"svg">) => (
 
 const versionLabel = `Version: ${chrome.runtime.getManifest().version}`;
 
-const pages = [
-  "Tags",
-  "Appearance",
-  "AI",
-  "Misc",
-  "Import",
-  "Export",
-  "Feedback",
-  "Delete",
-  "Curate",
-] as const;
+const pages = ["Tags", "Appearance", "AI", "Misc", "Data", "Feedback", "Delete", "Curate"] as const;
 
 type Page = (typeof pages)[number];
+
+function SettingsCommandItem({
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof CommandItem>) {
+  return (
+    <CommandItem
+      className={cn("h-auto min-h-auto rounded-none pl-4", className)}
+      variant="primary"
+      {...props}>
+      {children}
+    </CommandItem>
+  );
+}
 
 export default function Settings() {
   const cmdInputRef = useRef<HTMLInputElement>(null);
   const [page, setPage] = useState<Page>("Tags");
 
-  const contentRef = useRef<HTMLDivElement>(null);
-
   return (
     <Command loop value={page} onValueChange={(p) => setPage(p as Page)} className="min-h-[450px]">
-      <div className="grid h-full grid-cols-[150px_auto] grid-rows-[1fr_30px] gap-4">
-        <div>
-          <div className="mb-4 flex items-center">
-            <CommandInput placeholder="Search settings..." ref={cmdInputRef} autoFocus />
+      <div className="grid h-full grid-cols-[180px_auto] grid-rows-[1fr_40px]">
+        <div className="">
+          <div className="mb-2 flex items-center">
+            <CommandInput
+              placeholder="Search settings..."
+              ref={cmdInputRef}
+              autoFocus
+              className="border-border max-h-[60px] border-b py-5 pl-5 text-sm"
+            />
           </div>
           <CommandList className="max-h-[400px]">
-            <CommandGroup>
-              <CommandItem>
+            <CommandGroup className="px-0">
+              <SettingsCommandItem>
                 <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                 Tags
-              </CommandItem>
-              <CommandItem>
+              </SettingsCommandItem>
+              <SettingsCommandItem>
                 <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                 Appearance
-              </CommandItem>
-              {/* <CommandItem>
+              </SettingsCommandItem>
+              {/* <SettingsCommandItem>
                 <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                 AI
-              </CommandItem> */}
-              <CommandItem>
+              </SettingsCommandItem> */}
+              <SettingsCommandItem>
                 <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                 Curate
-              </CommandItem>
-              <CommandItem>
+              </SettingsCommandItem>
+              <SettingsCommandItem>
                 <MixerHorizontalIcon className="text-muted-foreground mr-2" />
                 Misc
-              </CommandItem>
-              <CommandItem>
-                <DownloadIcon className="text-muted-foreground mr-2" />
-                Import
-              </CommandItem>
-              <CommandItem>
+              </SettingsCommandItem>
+              <SettingsCommandItem>
+                <DatabaseIcon className="text-muted-foreground mr-2" />
+                Data
+              </SettingsCommandItem>
+              {/* <SettingsCommandItem>
                 <UploadIcon className="text-muted-foreground mr-2" />
                 Export
-              </CommandItem>
-              <CommandItem>
+              </SettingsCommandItem> */}
+              <SettingsCommandItem>
                 <BukaIcon className="text-muted-foreground mr-2" />
                 Feedback
-              </CommandItem>
-              <CommandItem value="Delete" className="text-destructive">
-                <ExclamationTriangleIcon className="mr-2" />
-                Delete Data
-              </CommandItem>
+              </SettingsCommandItem>
             </CommandGroup>
             <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
           </CommandList>
         </div>
 
-        <div className="text-muted-foreground col-start-1 row-start-2 mt-auto font-mono">
+        <div className="text-muted-foreground col-start-1 row-start-2 mt-auto p-3 font-mono">
           {versionLabel}
         </div>
-        <div
-          className="content scrollbar-gray col-start-2 row-[1/3] h-full max-h-[450px] flex-1 overflow-auto border-l pt-2 pr-2 pl-4"
-          ref={contentRef}>
-          <div className="mb-5 text-lg font-semibold">{page}</div>
-          {page === "Tags" && <TagsPage />}
-          {/* {page === "AI" && <AIPage />} */}
-          {page === "Appearance" && <AppearancePage />}
-          {page === "Misc" && <MiscPage />}
-          {page === "Import" && <ImportPage />}
-          {page === "Export" && <ExportPage />}
-          {page === "Feedback" && <FeedbackPage />}
-          {page === "Delete" && <DeletePage />}
-          {page === "Curate" && <CuratePage />}
-        </div>
+
+        {page === "Tags" && <TagsPage />}
+        {page === "Appearance" && <AppearancePage />}
+        {page === "Misc" && <MiscPage />}
+        {page === "Data" && <DataPage />}
+        {page === "Feedback" && <FeedbackPage />}
+        {page === "Curate" && <CuratePage />}
       </div>
     </Command>
   );

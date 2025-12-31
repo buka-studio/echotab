@@ -6,6 +6,7 @@ import { ComponentProps, useState } from "react";
 
 import { Settings, TimeUnit, timeUnits, useCurateStore } from "../Curate/CurateStore";
 import { pluralize } from "../util";
+import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 
 function BlurInput({
   onChange,
@@ -21,7 +22,15 @@ function BlurInput({
   };
 
   return (
-    <Input value={value} onChange={(e) => setValue(e.target.value)} onBlur={onBlur} {...props} />
+    <Input
+      value={value}
+      onChange={(e) => {
+        e.stopPropagation();
+        setValue(e.target.value);
+      }}
+      onBlur={onBlur}
+      {...props}
+    />
   );
 }
 
@@ -53,11 +62,16 @@ export default function CuratePage() {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <div className="text-muted-foreground text-sm">Link inclusion</div>
+    <SettingsPage>
+      <SettingsTitle>Curate</SettingsTitle>
+      <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="old-link-threshold-value">Links older than</Label>
+          <div>
+            <Label htmlFor="old-link-threshold-value">Link age threshold</Label>
+            <div className="text-muted-foreground text-sm">
+              Set the threshold for old links to be curated.
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <BlurInput
               min={0}
@@ -71,7 +85,7 @@ export default function CuratePage() {
             <Select
               value={curateStore.settings.oldLinkThreshold.unit}
               onValueChange={(value) => handleOldLinkUpdate(value as TimeUnit, "unit")}>
-              <SelectTrigger className="w-[8.125rem]">
+              <SelectTrigger>
                 <SelectValue placeholder="Select a unit" />
               </SelectTrigger>
               <SelectContent>
@@ -84,12 +98,14 @@ export default function CuratePage() {
             </Select>
           </div>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="text-muted-foreground text-sm">Reminder</div>
         <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="reminder-enabled">Enabled</Label>
+          <div>
+            <Label htmlFor="reminder-enabled">Reminder enabled</Label>
+            <div className="text-muted-foreground text-sm">
+              Enable the reminder to curate your links.
+            </div>
+          </div>
           <Switch
             id="reminder-enabled"
             checked={curateStore.settings.reminder.enabled}
@@ -99,7 +115,10 @@ export default function CuratePage() {
           />
         </div>
         <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="reminder-interval-value">Remind me after</Label>
+          <div>
+            <Label htmlFor="reminder-interval-value">Reminder interval</Label>
+            <div className="text-muted-foreground text-sm">Set the interval for the reminder.</div>
+          </div>
           <div className="flex items-center gap-1">
             <BlurInput
               min={0}
@@ -113,20 +132,20 @@ export default function CuratePage() {
             <Select
               value={curateStore.settings.reminder.unit}
               onValueChange={(value) => handleReminderUpdate(value as TimeUnit, "unit")}>
-              <SelectTrigger className="w-[8.125rem]">
+              <SelectTrigger>
                 <SelectValue placeholder="Select a unit" />
               </SelectTrigger>
               <SelectContent>
                 {Object.values(timeUnits).map((unit) => (
                   <SelectItem key={unit} value={unit}>
-                    {pluralize(curateStore.settings.reminder.value, unit)}
+                    {pluralize(curateStore.settings.reminder.value, unit, undefined, false)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
         </div>
-      </div>
-    </div>
+      </SettingsContent>
+    </SettingsPage>
   );
 }
