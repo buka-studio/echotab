@@ -35,6 +35,7 @@ export interface Settings {
   showOnboarding: boolean;
   orientation: Orientation;
   cardSize: CardSize;
+  hideFavicons: boolean;
   hideBookmarkFavicons: boolean;
   hideTabsFavicons: boolean;
   clipboardFormat: ClipboardFormat;
@@ -69,6 +70,7 @@ const Store = proxy({
     cardSize: CardSize.Large,
     hideBookmarkFavicons: false,
     hideTabsFavicons: false,
+    hideFavicons: false,
     orientation: Orientation.Vertical,
     clipboardFormat: ClipboardFormat.Text,
     clipboardIncludeTags: true,

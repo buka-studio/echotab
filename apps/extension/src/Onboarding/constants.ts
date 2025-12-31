@@ -22,11 +22,13 @@ export const tagSuggestions = [
   "lifestyle",
   "photography",
   "games",
-  "diy",
+  "DIY",
   "politics",
   "recipes",
   "fitness",
-].map((t) => ({
-  name: t,
-  color: pickRandomTagColor(),
-}));
+]
+  .map((t) => ({
+    name: t,
+    color: pickRandomTagColor(),
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));

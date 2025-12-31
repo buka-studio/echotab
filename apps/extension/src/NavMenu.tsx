@@ -49,7 +49,7 @@ export default function NavMenu({ children }: { children: ReactNode }) {
             <GearIcon className="h-4 w-4" />
           </ButtonWithTooltip>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[57rem]">
+        <DialogContent className="p-0 sm:max-w-[57rem]" close={false}>
           <DialogTitle className="sr-only">Settings</DialogTitle>
           <DialogDescription className="sr-only">Change your extension settings.</DialogDescription>
           <Settings />

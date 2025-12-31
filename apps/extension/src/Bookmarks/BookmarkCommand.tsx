@@ -14,9 +14,7 @@ import { Button } from "@echotab/ui/Button";
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
   CommandSeparator,
 } from "@echotab/ui/Command";
@@ -45,6 +43,8 @@ import {
   OnClose,
   TabCommandDialog,
   TabCommandDialogRef,
+  TabCommandGroup,
+  TabCommandItem,
   useTabCommand,
 } from "../components/TabCommand";
 import TagChip from "../components/tag/TagChip";
@@ -273,7 +273,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     { preventDefault: true },
   );
 
-  const enterToSearch = uiStore.settings.enterToSearch;
+  const enterToSearch = false; //uiStore.settings.enterToSearch;
 
   const handleLooseMatch = () => {
     bookmarkStore.updateFilter({
@@ -370,11 +370,11 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
           </div>
           <CommandList
             className={cn(
-              "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-full block w-full overscroll-contain rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg backdrop-blur-lg",
+              "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-full block w-full overscroll-contain rounded-lg rounded-t-none border border-t-0 p-2 px-0 shadow-lg backdrop-blur-lg",
             )}>
             {activePage === "/" && (
               <>
-                <CommandGroup
+                <TabCommandGroup
                   heading={
                     <span>
                       Selection{" "}
@@ -388,70 +388,70 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                     </span>
                   }>
                   {selectedCount === 0 ? (
-                    <CommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
+                    <TabCommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
                       <CheckCircledIcon className="text-muted-foreground mr-2" />
                       Select All
-                    </CommandItem>
+                    </TabCommandItem>
                   ) : (
-                    <CommandItem onSelect={withClear(selectionStore.deselectAllTabs)}>
+                    <TabCommandItem onSelect={withClear(selectionStore.deselectAllTabs)}>
                       <MinusCircledIcon className="text-muted-foreground mr-2" /> Deselect All
-                    </CommandItem>
+                    </TabCommandItem>
                   )}
                   {Boolean(selectedCount) && (
                     <>
-                      <CommandItem onSelect={() => pushPage("tag")}>
+                      <TabCommandItem onSelect={() => pushPage("tag")}>
                         <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                         Tag
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handleCreateListFromSelected)}>
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(handleCreateListFromSelected)}>
                         <FilePlusIcon className="text-muted-foreground mr-2" /> Create a list
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handlePinSelected)}>
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(handlePinSelected)}>
                         <DrawingPinIcon className="text-muted-foreground mr-2" />
                         Pin
-                      </CommandItem>
+                      </TabCommandItem>
 
-                      <CommandItem onSelect={withClear(handleOpenSelected)}>
+                      <TabCommandItem onSelect={withClear(handleOpenSelected)}>
                         <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in this
                         window
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(() => handleOpenSelected(true))}>
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(() => handleOpenSelected(true))}>
                         <OpenInNewWindowIcon className="text-muted-foreground mr-2" /> Open in new
                         window
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handleCopyToClipboard)}>
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
                         <ClipboardIcon className="text-muted-foreground mr-2" />
                         Copy to clipboard
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
                         <OpenAiLogoIcon className="text-muted-foreground mr-2" />
                         Open in ChatGPT
-                      </CommandItem>
-                      <CommandItem onSelect={() => setDeleteDialogOpen(true)}>
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={() => setDeleteDialogOpen(true)}>
                         <TrashIcon className="text-muted-foreground mr-2" /> Delete
-                      </CommandItem>
+                      </TabCommandItem>
                     </>
                   )}
-                </CommandGroup>
+                </TabCommandGroup>
                 <CommandSeparator />
-                <CommandGroup heading="Bookmarks">
-                  <CommandItem onSelect={() => pushPage("find")}>
+                <TabCommandGroup heading="Bookmarks">
+                  <TabCommandItem onSelect={() => pushPage("find")}>
                     <MagnifyingGlassIcon className="text-muted-foreground mr-2" /> Find
-                  </CommandItem>
-                </CommandGroup>
+                  </TabCommandItem>
+                </TabCommandGroup>
                 <CommandSeparator />
-                <CommandGroup heading="Other">
+                <TabCommandGroup heading="Other">
                   {onCurate && (
-                    <CommandItem onSelect={withClear(onCurate)}>
+                    <TabCommandItem onSelect={withClear(onCurate)}>
                       <BroomIcon className="text-muted-foreground mr-2" />
                       Curate
-                    </CommandItem>
+                    </TabCommandItem>
                   )}
-                  <CommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
+                  <TabCommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
                     <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                     Go to Tabs
-                  </CommandItem>
-                </CommandGroup>
+                  </TabCommandItem>
+                </TabCommandGroup>
                 <CommandEmpty>No Results</CommandEmpty>
               </>
             )}
@@ -475,13 +475,13 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                     />
                   </div>
                 )}
-                <CommandGroup>
+                <TabCommandGroup>
                   {Array.from(tagStore.tags.values())
                     .filter(
                       (t) => !bookmarkStore.assignedTagIds.has(t.id) && t.id !== unassignedTag.id,
                     )
                     .map((t) => (
-                      <CommandItem
+                      <TabCommandItem
                         key={t.id}
                         value={t.name}
                         onSelect={() => {
@@ -495,9 +495,9 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                             style={{ background: t.color }}
                           />
                         </div>
-                      </CommandItem>
+                      </TabCommandItem>
                     ))}
-                </CommandGroup>
+                </TabCommandGroup>
                 <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
                   {search ? (
                     <span className="inline-flex gap-2">
@@ -523,11 +523,11 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                 </div>
                 {Boolean(hashtag) && (
                   <div className="">
-                    <CommandGroup>
+                    <TabCommandGroup>
                       {Array.from(tagStore.tags.values())
                         .filter((t) => !bookmarkStore.view.filter.tags.includes(t.id))
                         .map((t) => (
-                          <CommandItem
+                          <TabCommandItem
                             value={"#" + t.name}
                             key={t.id}
                             onSelect={() => {
@@ -540,9 +540,9 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                                 style={{ background: t.color }}
                               />
                             </div>
-                          </CommandItem>
+                          </TabCommandItem>
                         ))}
-                    </CommandGroup>
+                    </TabCommandGroup>
                   </div>
                 )}
                 <CommandEmpty className="flex items-center justify-center gap-2">
@@ -584,7 +584,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
           </CommandList>
         </Command>
       </TabCommandDialog>
-      {/* todo: figure out how to wrap CommandItem in Dialog and make it work that way */}
+      {/* todo: figure out how to wrap TabCommandItem in Dialog and make it work that way */}
       <ListFormDialog
         open={listDialog.open}
         defaultLinks={listDialog.defaultLinks}

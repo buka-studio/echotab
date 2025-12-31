@@ -1,3 +1,4 @@
+import { CommandGroup, CommandItem } from "@echotab/ui/Command";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@echotab/ui/Dialog";
 import GlowOutline from "@echotab/ui/GlowOutline";
 import { cn } from "@echotab/ui/util";
@@ -82,6 +83,33 @@ export function useTabCommand<T extends string>() {
   };
 }
 
+export function TabCommandItem({
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof CommandItem>) {
+  return (
+    <CommandItem
+      variant="primary"
+      className={cn("min-h-10 rounded-none pl-5", "", className)}
+      {...props}>
+      {children}
+    </CommandItem>
+  );
+}
+
+export function TabCommandGroup({
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof CommandGroup>) {
+  return (
+    <CommandGroup className={cn("px-0 py-0 [&_[cmdk-group-heading]]:px-5", className)} {...props}>
+      {children}
+    </CommandGroup>
+  );
+}
+
 export function CommandPagination<T extends string>({
   className,
   pages,
@@ -163,7 +191,7 @@ export function TabCommandDialog({
     <div ref={setCommandContainer} className={cn("relative flex w-full")}>
       <button
         className={cn(
-          "focus-ring bg-card/40 hover:bg-card/20 flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
+          "focus-ring dark:bg-card/50 hover:bg-card-active bg-card flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
           {
             "opacity-0": open,
           },
@@ -185,7 +213,7 @@ export function TabCommandDialog({
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px translate-y-0 overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none sm:max-w-[57rem] transform-gpu">
+          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none sm:max-w-[57rem]">
           <DialogStateContext.Provider value={{ open, setOpen }}>
             {children}
           </DialogStateContext.Provider>

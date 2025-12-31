@@ -3,10 +3,9 @@ import { Button } from "@echotab/ui/Button";
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@echotab/ui/Command";
 import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
@@ -38,6 +37,8 @@ import {
   OnClose,
   TabCommandDialog,
   TabCommandDialogRef,
+  TabCommandGroup,
+  TabCommandItem,
   useTabCommand,
 } from "../components/TabCommand";
 import TagChip from "../components/tag/TagChip";
@@ -149,7 +150,7 @@ export default function ActiveCommand() {
   const llmMutation = useLLMTagMutation();
 
   const aiDisabled = !uiStore.settings.aiApiProvider;
-  const enterToSearch = uiStore.settings.enterToSearch;
+  const enterToSearch = false; //uiStore.settings.enterToSearch;
 
   const handleAITag = async () => {
     if (aiDisabled) {
@@ -460,11 +461,12 @@ export default function ActiveCommand() {
         </div>
         <CommandList
           className={cn(
-            "scrollbar-gray bg-popover text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg",
+            "scrollbar-gray bg-popover text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 shadow-lg",
           )}>
           {activePage === "/" && (
             <>
-              <CommandGroup
+              <TabCommandGroup
+                className="px-0"
                 heading={
                   <span>
                     Selection{" "}
@@ -478,30 +480,30 @@ export default function ActiveCommand() {
                   </span>
                 }>
                 {selectedCount === 0 ? (
-                  <CommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
+                  <TabCommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
                     <CheckCircledIcon className="text-muted-foreground mr-2" />
                     Select All
-                  </CommandItem>
+                  </TabCommandItem>
                 ) : (
-                  <CommandItem onSelect={withClear(selectionStore.deselectAllTabs)}>
+                  <TabCommandItem onSelect={withClear(selectionStore.deselectAllTabs)}>
                     <MinusCircledIcon className="text-muted-foreground mr-2" />
                     Deselect All
-                  </CommandItem>
+                  </TabCommandItem>
                 )}
                 {Boolean(selectedCount) && (
                   <>
-                    <CommandItem onSelect={() => pushPage("tag")}>
+                    <TabCommandItem onSelect={() => pushPage("tag")}>
                       <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                       Tag
-                    </CommandItem>
+                    </TabCommandItem>
 
-                    <CommandItem onSelect={withClear(handleQuickSave)}>
+                    <TabCommandItem onSelect={withClear(handleQuickSave)}>
                       <LightningBoltIcon className="text-muted-foreground mr-2" />
                       Quick Save
                       <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
-                    </CommandItem>
+                    </TabCommandItem>
 
-                    {/* <CommandItem
+                    {/* <TabCommandItem
                       onSelect={withClear(handleAITag)}
                       value="AI Tag"
                       className="group"
@@ -516,60 +518,62 @@ export default function ActiveCommand() {
                           </Badge>
                         </>
                       )}
-                    </CommandItem> */}
+                    </TabCommandItem> */}
 
-                    <CommandItem onSelect={withClear(handleCopyToClipboard)}>
+                    <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
                       <ClipboardIcon className="text-muted-foreground mr-2" />
                       Copy to clipboard
-                    </CommandItem>
-                    <CommandItem onSelect={withClear(handleMoveToNewWindow)}>
+                    </TabCommandItem>
+                    <TabCommandItem onSelect={withClear(handleMoveToNewWindow)}>
                       <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
                       Move to new window
-                    </CommandItem>
-                    <CommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                    </TabCommandItem>
+                    <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
                       <OpenAiLogoIcon className="text-muted-foreground mr-2" />
                       Open in ChatGPT
-                    </CommandItem>
-                    <CommandItem onSelect={withClear(handleCloseSelected)}>
+                    </TabCommandItem>
+                    <TabCommandItem onSelect={withClear(handleCloseSelected)}>
                       <Cross2Icon className="text-muted-foreground mr-2" /> Close
-                    </CommandItem>
+                    </TabCommandItem>
                   </>
                 )}
-              </CommandGroup>
-              <CommandGroup heading="All Tabs">
+              </TabCommandGroup>
+              <CommandSeparator />
+              <TabCommandGroup heading="All Tabs">
                 {selectedCount === 0 && (
-                  <CommandItem onSelect={withClear(handleQuickSave)}>
+                  <TabCommandItem onSelect={withClear(handleQuickSave)}>
                     <LightningBoltIcon className="text-muted-foreground mr-2" />
                     Save Session{" "}
                     <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
-                  </CommandItem>
+                  </TabCommandItem>
                 )}
-                <CommandItem onSelect={() => pushPage("find")} value="Find Search">
+                <TabCommandItem onSelect={() => pushPage("find")} value="Find Search">
                   <MagnifyingGlassIcon className="text-muted-foreground mr-2" />
                   Find
-                </CommandItem>
+                </TabCommandItem>
                 {tabStore.viewDuplicateTabIds.size > 0 && (
-                  <CommandItem onSelect={withClear(ActiveStore.removeDuplicateTabs)}>
+                  <TabCommandItem onSelect={withClear(ActiveStore.removeDuplicateTabs)}>
                     <CopyIcon className="text-muted-foreground mr-2" />
                     Close {pluralize(tabStore.viewDuplicateTabIds.size, "Duplicate")}
-                  </CommandItem>
+                  </TabCommandItem>
                 )}
                 {tabStore.viewStaleTabIds.size > 0 && (
-                  <CommandItem onSelect={withClear(ActiveStore.removeStaleTabs)}>
+                  <TabCommandItem onSelect={withClear(ActiveStore.removeStaleTabs)}>
                     <ClockIcon className="text-muted-foreground mr-2" />
                     Close {tabStore.viewStaleTabIds.size} Stale Tabs{" "}
                     <span className="text-muted-foreground/50 ml-2 text-xs">
                       &gt; {staleThresholdDaysInMs / (1000 * 60 * 60 * 24)} days old
                     </span>
-                  </CommandItem>
+                  </TabCommandItem>
                 )}
-              </CommandGroup>
-              <CommandGroup heading="Other">
-                <CommandItem onSelect={() => UIStore.activatePanel(Panel.Bookmarks)}>
+              </TabCommandGroup>
+              <CommandSeparator />
+              <TabCommandGroup heading="Other">
+                <TabCommandItem onSelect={() => UIStore.activatePanel(Panel.Bookmarks)}>
                   <BookmarkIcon className="text-muted-foreground mr-2" />
                   Go to Bookmarks
-                </CommandItem>
-              </CommandGroup>
+                </TabCommandItem>
+              </TabCommandGroup>
               <CommandEmpty>No Results</CommandEmpty>
             </>
           )}
@@ -591,11 +595,11 @@ export default function ActiveCommand() {
                   />
                 </div>
               )}
-              <CommandGroup>
+              <TabCommandGroup>
                 {Array.from(tagStore.tags.values())
                   .filter((t) => !tabStore.assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
                   .map((t) => (
-                    <CommandItem
+                    <TabCommandItem
                       key={t.id}
                       value={t.name}
                       onSelect={withClear(() => {
@@ -608,9 +612,9 @@ export default function ActiveCommand() {
                           style={{ background: t.color }}
                         />
                       </div>
-                    </CommandItem>
+                    </TabCommandItem>
                   ))}
-              </CommandGroup>
+              </TabCommandGroup>
               <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
                 {search ? (
                   <span className="inline-flex gap-2">

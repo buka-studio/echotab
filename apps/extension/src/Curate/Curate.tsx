@@ -193,7 +193,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
           "flex h-full max-h-screen flex-col overflow-hidden border-none bg-transparent p-0 sm:max-w-[100vw]",
         )}
         overlay={
-          <DialogOverlay className="bg-background dark:bg-background-base dark:brightness-90" />
+          <DialogOverlay className="bg-background-base dark:bg-background-base dark:brightness-90" />
         }>
         <Ruler value={deleted.length} side="left">
           <AnimatedNumberBadge value={deleted.length} />
@@ -287,7 +287,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                       onClick={() => swipeableRef.current?.swipe("left")}
                       tooltipText="Delete">
                       <XIcon
-                        className="h-6 w-6 text-[#F05B5D] shadow-current filter-[drop-shadow(0_0_4px_#D9282B)]"
+                        className="h-6 w-6 text-[#F05B5D] shadow-current dark:filter-[drop-shadow(0_0_4px_#D9282B)]"
                         weight="bold"
                       />
                     </DockAction>
@@ -318,7 +318,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                       onClick={() => swipeableRef.current?.swipe("right")}
                       tooltipText="Keep">
                       <HeartIcon
-                        className="h-6 w-6 text-[#F05BF0] shadow-current filter-[drop-shadow(0_0_4px_#D328D9)]"
+                        className="h-6 w-6 text-[#F05BF0] shadow-current dark:filter-[drop-shadow(0_0_4px_#D328D9)]"
                         weight="bold"
                       />
                     </DockAction>

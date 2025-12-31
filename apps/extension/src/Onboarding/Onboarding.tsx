@@ -44,7 +44,11 @@ export default function OnboardingDialog() {
   }
 
   const handleConfirmTags = () => {
-    TagStore.createTags(Array.from(selectedTagIndices).map((i) => tagSuggestions[i]));
+    TagStore.createTags(
+      Array.from(selectedTagIndices)
+        .map((i) => tagSuggestions[i]!)
+        .filter(Boolean),
+    );
     UIStore.updateSettings({ showOnboarding: false });
   };
 
@@ -125,9 +129,7 @@ export default function OnboardingDialog() {
             </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button onClick={handleConfirmTags} variant="outline">
-              Get Started
-            </Button>
+            <Button onClick={handleConfirmTags}>Get Started</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
