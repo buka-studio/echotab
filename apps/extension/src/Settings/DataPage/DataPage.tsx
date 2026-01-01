@@ -19,20 +19,16 @@ import { cn } from "@echotab/ui/util";
 import { DownloadSimpleIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { InfoCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
-import { z } from "zod";
 
 import { CurateStore } from "~/Curate";
 import { downloadJSON } from "~/util";
-import { getUtcISO } from "~/util/date";
-import { getBookmarks } from "~/util/import";
 import SnapshotStore from "~/util/SnapshotStore";
-import { normalizedComparator } from "~/util/string";
 
 import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
-import { Tag } from "../../models";
 import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
-import { intersection } from "../../util/set";
 import { SettingsContent, SettingsPage, SettingsTitle } from "../SettingsLayout";
+import { BookmarksImporter } from "./BookmarksImporter";
+import { EchotabImporter, EchotabImportError } from "./EchotabImporter";
 
 const importHint = `\
 Tag {
@@ -73,153 +69,30 @@ Import {
 }
 `;
 
-const schema = z.object({
-  tags: z.array(
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      color: z.string(),
-      favorite: z.boolean().default(false),
-      isQuick: z.boolean().default(false),
-      isAI: z.boolean().default(false),
-    }),
-  ),
-  tabs: z.array(
-    z.object({
-      id: z.string().uuid(),
-      title: z.string(),
-      url: z.string(),
-      tagIds: z.array(z.number()),
-      faviconUrl: z.string().optional(),
-      pinned: z.boolean().optional(),
-      savedAt: z.string().optional(),
-      visitedAt: z.string().optional(),
-      lastCuratedAt: z.string().optional(),
-      note: z.string().optional(),
-    }),
-  ),
-  lists: z
-    .array(
-      z.object({
-        id: z.string().uuid(),
-        title: z.string(),
-        content: z.string(),
-        tabIds: z.array(z.string().uuid()),
-        savedAt: z.string().optional(),
-        updatedAt: z.string().optional(),
-      }),
-    )
-    .optional(),
-});
-
 export default function DataPage() {
   const tagStore = useTagStore();
   const bookmarkStore = useBookmarkStore();
 
   const [error, setError] = useState<string | null>(null);
 
-  // todo: add tests for this
   const handleImport = async (file: File) => {
     try {
-      const imported = JSON.parse(await file.text());
-      const validated = schema.parse(imported);
-
-      function remapTagIds(remappedIds: Map<number, number>) {
-        if (!remappedIds.size) {
-          return;
-        }
-        for (const t of validated.tabs) {
-          if (intersection(remappedIds.keys(), t.tagIds).size) {
-            t.tagIds = t.tagIds.map((id) => remappedIds.get(id) || id);
-          }
-        }
-
-        for (const t of validated.tags) {
-          if (remappedIds.has(t.id)) {
-            t.id = remappedIds.get(t.id)!;
-          }
-        }
-      }
-
-      const tagsByNormalizedName = new Map<string, Tag>(
-        validated.tags.map((t) => [t.name.trim().toLowerCase(), t]),
-      );
-      const duplicateNames = intersection(
-        Array.from(TagStore.tagsByNormalizedName.keys()),
-        Array.from(tagsByNormalizedName.keys()),
-      );
-      if (duplicateNames.size) {
-        const remappedIds = new Map(
-          Array.from(duplicateNames).flatMap((n) => {
-            const from = tagsByNormalizedName.get(n)!.id;
-            const to = TagStore.tagsByNormalizedName.get(n)!.id;
-            if (from === to) {
-              return [];
-            }
-            return [[from, to]];
-          }),
-        );
-
-        remapTagIds(remappedIds);
-      }
-
-      const tagsById = new Map(validated.tags.map((t) => [Number(t.id), t]));
-      const duplicateIds = intersection(TagStore.tags.keys(), tagsById.keys());
-      duplicateIds.delete(unassignedTag.id);
-      if (duplicateIds.size) {
-        const startId = TagStore.getNextTagId();
-        let i = 1;
-
-        const remappedIds = new Map<number, number>(
-          Array.from(duplicateIds).flatMap((id) => {
-            const a = TagStore.tags.get(id)?.name;
-            const b = tagsById.get(id)?.name;
-            if (normalizedComparator(a, b) === 0) {
-              return [];
-            }
-
-            return [[id, startId + i++]];
-          }),
-        );
-
-        remapTagIds(remappedIds);
-      }
-
-      tagStore.import({
-        tags: new Map(validated.tags.map((t) => [Number(t.id), t])),
-      });
-
-      bookmarkStore.import({
-        tabs: validated.tabs.map((t) => ({ ...t, savedAt: getUtcISO() })),
-      });
-
+      const importer = new EchotabImporter();
+      await importer.importFromFile(file);
       toast.success("Imported tabs & tags successfully!");
     } catch (e) {
-      toast.error("There was an error parsing the file");
+      if (e instanceof EchotabImportError) {
+        toast.error(e.message);
+      } else {
+        toast.error("There was an error parsing the file");
+      }
       console.error(e);
     }
   };
 
   const handleImportBookmarks = async () => {
-    const { bookmarks, folders } = await getBookmarks();
-
-    const tagsByName: Map<string, Tag> = new Map(
-      Array.from(folders).map((f) => {
-        if (!tagStore.tagsByNormalizedName.has(f)) {
-          return [f, tagStore.createTag({ name: f })];
-        }
-        return [f, tagStore.tagsByNormalizedName.get(f)!];
-      }),
-    );
-
-    const tabs = bookmarks.map((b) => ({
-      title: b.title,
-      url: b.url,
-      tagIds: b.folders.map((f) => tagsByName.get(f)!.id),
-    }));
-
-    bookmarkStore.saveTabs(tabs);
-
+    const importer = new BookmarksImporter();
+    await importer.import();
     toast.success("Imported bookmarks successfully!");
   };
 

@@ -67,9 +67,9 @@ export default function CuratePage() {
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between space-x-2">
           <div>
-            <Label htmlFor="old-link-threshold-value">Link age threshold</Label>
+            <Label htmlFor="old-link-threshold-value">Link expiration</Label>
             <div className="text-muted-foreground text-sm">
-              Set the threshold for old links to be curated.
+              How old a link needs to be before it's flagged for curation.
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -101,9 +101,9 @@ export default function CuratePage() {
 
         <div className="flex items-center justify-between space-x-2">
           <div>
-            <Label htmlFor="reminder-enabled">Reminder enabled</Label>
+            <Label htmlFor="reminder-enabled">Reminders enabled</Label>
             <div className="text-muted-foreground text-sm">
-              Enable the reminder to curate your links.
+              Toggle curation reminders on or off.
             </div>
           </div>
           <Switch
@@ -116,8 +116,10 @@ export default function CuratePage() {
         </div>
         <div className="flex items-center justify-between space-x-2">
           <div>
-            <Label htmlFor="reminder-interval-value">Reminder interval</Label>
-            <div className="text-muted-foreground text-sm">Set the interval for the reminder.</div>
+            <Label htmlFor="reminder-interval-value">Reminders frequency</Label>
+            <div className="text-muted-foreground text-sm">
+              How often you want to be reminded to curate your links.
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <BlurInput
