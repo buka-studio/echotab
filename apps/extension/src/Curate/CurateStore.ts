@@ -4,13 +4,12 @@ import dayjs from "dayjs";
 import { derive } from "derive-valtio";
 import { proxy, subscribe, useSnapshot } from "valtio";
 
-import ChromeLocalStorage from "~/util/ChromeLocalStorage";
-
 import { BookmarkStore } from "../Bookmarks";
 import { version } from "../constants";
 import { Serializable, Tag } from "../models";
 import TagStore, { unassignedTag } from "../TagStore";
 import { getUtcISO } from "../util/date";
+import { StoragePersistence } from "../util/StoragePersistence";
 
 export const timeUnits = ["month", "week", "day"] as const;
 
@@ -60,6 +59,7 @@ export interface Session {
 }
 
 const storageKey = `cmdtab-curate-store-${version}`;
+const persistence = new StoragePersistence({ key: storageKey });
 
 export interface CurateStore extends Serializable<PersistedCurateStore> {
   lastRemindedAt: string;
@@ -117,11 +117,20 @@ const Store = proxy({
     }
   },
   initStore: async () => {
-    const stored = await ChromeLocalStorage.getItem(storageKey);
+    const stored = await persistence.load();
     if (stored) {
-      const deserialized = Store.deserialize(stored as string);
-      Object.assign(Store, deserialized);
+      const deserialized = Store.deserialize(stored);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
+      }
     }
+
+    persistence.subscribe((data) => {
+      const deserialized = Store.deserialize(data);
+      if (deserialized) {
+        Object.assign(Store, deserialized);
+      }
+    });
 
     Store.initialized = true;
   },
@@ -247,8 +256,7 @@ derive(
 
 subscribe(Store, () => {
   if (Store.initialized) {
-    const serialized = Store.serialize();
-    ChromeLocalStorage.setItem(storageKey, serialized);
+    persistence.save(Store.serialize());
   }
 });
 
