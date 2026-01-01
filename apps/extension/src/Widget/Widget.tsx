@@ -12,6 +12,7 @@ import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "
 import { useActiveTabStore } from "../ActiveTabs/ActiveStore";
 import { useLLMTagMutation } from "../AI/queries";
 import TagChip from "../components/tag/TagChip";
+import { MessageBus } from "../messaging";
 import { ActiveTab } from "../models";
 import PulseLogo from "../PulseLogo";
 import TagStore, { unassignedTag, useTagStore } from "../TagStore";
@@ -65,7 +66,7 @@ function Widget({ onClose }: Props) {
   const [assignedTagIds, setAssignedTagIds] = useState<number[]>([]);
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ action: "tab-info" }).then(({ tab }) => {
+    MessageBus.send("tab:info").then(({ tab }) => {
       setTab(tab);
     });
   }, []);
@@ -85,11 +86,7 @@ function Widget({ onClose }: Props) {
     setTimeout(() => {
       onClose();
       if (closeAfterSave) {
-        chrome.runtime.sendMessage({
-          action: "tab-close",
-          tabId: result.tabId,
-          saveId: result.saveId,
-        });
+        MessageBus.send("tab:close", { tabId: result.tabId, saveId: result.saveId });
       }
     }, 1500);
   };

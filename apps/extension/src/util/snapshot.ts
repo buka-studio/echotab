@@ -1,4 +1,4 @@
-import { Message } from "../models";
+import { MessageBus } from "../messaging";
 import SnapshotStore from "./SnapshotStore";
 
 interface ResizeOptions {
@@ -44,58 +44,13 @@ interface SnapshotOptions {
 }
 
 async function captureViaContentScript(tabId: number, timeoutMs = 2000): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let hasResolved = false;
+  const response = await MessageBus.sendToTab(tabId, "snapshot:capture", { timeout: timeoutMs });
 
-    const timer = setTimeout(() => {
-      if (!hasResolved) {
-        hasResolved = true;
-        reject(new Error(`SnapDOM capture timeout after ${timeoutMs}ms`));
-      }
-    }, timeoutMs);
+  if (!response.success) {
+    throw new Error(response.error || "Snapshot capture failed");
+  }
 
-    try {
-      chrome.tabs.sendMessage(tabId, { type: "snapdom_snapshot" }, (response) => {
-        clearTimeout(timer);
-
-        if (hasResolved) {
-          return;
-        }
-
-        if (chrome.runtime.lastError) {
-          hasResolved = true;
-          const errorMsg = chrome.runtime.lastError.message || "Unknown error";
-          if (
-            errorMsg.includes("Receiving end does not exist") ||
-            errorMsg.includes("message channel closed")
-          ) {
-            reject(new Error("Content script not available"));
-          } else {
-            reject(new Error(`SnapDOM capture failed: ${errorMsg}`));
-          }
-          return;
-        }
-
-        if (!response || !response.success) {
-          hasResolved = true;
-          const errorMsg = response?.error || "No response from content script";
-          reject(new Error(`SnapDOM capture failed: ${errorMsg}`));
-          return;
-        }
-
-        hasResolved = true;
-        resolve(response.dataUrl);
-      });
-    } catch (err) {
-      clearTimeout(timer);
-      if (!hasResolved) {
-        hasResolved = true;
-        reject(
-          new Error(`SnapDOM capture failed: ${err instanceof Error ? err.message : String(err)}`),
-        );
-      }
-    }
-  });
+  return response.dataUrl!;
 }
 
 export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotOptions = {}) {
@@ -165,7 +120,7 @@ export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotO
     });
 
     if (notify) {
-      chrome.runtime.sendMessage({ type: "snapshot_tmp", tabId, url } as Message);
+      MessageBus.send("snapshot:ready", { tabId, url });
     }
   } catch (resizeErr) {
     console.error("Snapshot failed: resize or save error", resizeErr);

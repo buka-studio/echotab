@@ -1,5 +1,6 @@
 import { uuidv7 } from "uuidv7";
 
+import { MessageBus } from "~/messaging";
 import { createLogger } from "~/util/Logger";
 
 import { getPublicList } from "../../Bookmarks/Lists/api";
@@ -34,11 +35,9 @@ export default defineBackground({
             url.protocol !== "chrome:" && url.protocol !== "chrome-extension:";
 
           if (canHaveContentScript) {
-            chrome.tabs.sendMessage(tab.id, { type: "open-popup" }).catch(() => {
-              // Content script might not be loaded yet, ignore error
-            });
+            MessageBus.sendToTab(tab.id, "widget:toggle").catch(() => {});
           }
-        } catch (error) {
+        } catch {
           // Invalid URL or other error, ignore
         }
       }
@@ -94,44 +93,39 @@ export default defineBackground({
       await chrome.storage.local.set({ [importStorageKey]: queue });
     }
 
-    chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-      if (message.action === "version") {
-        sendResponse({ version: chrome.runtime.getManifest().version });
-      }
-      if (message.action === "import-list") {
-        const listId = message.data.listId;
+    const listener = MessageBus.createListener({
+      "version:get": () => ({ version: chrome.runtime.getManifest().version }),
 
+      "list:import": async ({ listId }) => {
         if (!listId) {
-          sendResponse({ success: false });
-        } else {
-          handleImportList(listId)
-            .then(() => {
-              sendResponse({ success: true });
-            })
-            .catch((e) => {
-              console.error(e);
-              sendResponse({ success: false });
-            });
+          return { success: false };
         }
-      }
-      if (message.action === "tab-info") {
+        try {
+          await handleImportList(listId);
+          return { success: true };
+        } catch (e) {
+          console.error(e);
+          return { success: false };
+        }
+      },
+
+      "tab:info": (_, sender) => {
         if (isValidActiveTab(sender.tab)) {
-          sendResponse({ tab: sender.tab });
+          return { tab: sender.tab! };
         }
-      }
-      if (message.action === "tab-close") {
-        if (message.saveId && message.tabId) {
+        throw new Error("Invalid tab");
+      },
+
+      "tab:close": async ({ tabId, saveId }) => {
+        if (saveId) {
           const snapshotStore = await SnapshotStore.init();
-          await snapshotStore.commitSnapshot(message.tabId, message.saveId);
+          await snapshotStore.commitSnapshot(tabId, saveId);
         }
-
-        if (message.tabId) {
-          chrome.tabs.remove(message.tabId);
-        }
-      }
-
-      return true;
+        await chrome.tabs.remove(tabId);
+      },
     });
+
+    chrome.runtime.onMessage.addListener(listener);
 
     chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
       const tab = await chrome.tabs.get(tabId);

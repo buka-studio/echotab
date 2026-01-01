@@ -8,6 +8,7 @@ import ReactDOM from "react-dom/client";
 
 import ActiveStore from "../../ActiveTabs/ActiveStore";
 import BookmarkStore from "../../Bookmarks/BookmarkStore";
+import { MessageBus } from "../../messaging";
 import TagStore from "../../TagStore";
 import UIStore from "../../UIStore";
 import Widget from "../../Widget";
@@ -29,26 +30,23 @@ export default defineContentScript({
       }
     }
 
-    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      if (message.type === "snapdom_snapshot") {
-        snapdom
-          .toPng(document.body, {
+    const listener = MessageBus.createListener({
+      "snapshot:capture": async () => {
+        try {
+          const img = await snapdom.toPng(document.body, {
             scale: 1,
             quality: 0.8,
             cache: "soft",
             exclude: [".echotab-root"],
-          })
-          .then((img) => {
-            sendResponse({ success: true, dataUrl: img.src });
-          })
-          .catch((error: any) => {
-            console.warn("EchoTab Snapshot failed:", error);
-            sendResponse({ success: false, error: error.message });
           });
-        return true;
-      }
+          return { success: true, dataUrl: img.src };
+        } catch (error: unknown) {
+          console.warn("EchoTab Snapshot failed:", error);
+          return { success: false, error: error instanceof Error ? error.message : String(error) };
+        }
+      },
 
-      if (message.action === "open-popup" || message.type === "open-popup") {
+      "widget:toggle": () => {
         if (ui) {
           if (isMounted) {
             ui.remove();
@@ -57,11 +55,10 @@ export default defineContentScript({
             ui.mount();
           }
         }
-        return false;
-      }
-
-      return false;
+      },
     });
+
+    chrome.runtime.onMessage.addListener(listener);
 
     const queryClient = new QueryClient();
 

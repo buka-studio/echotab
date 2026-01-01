@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 import usePatternBackground from "~/hooks/usePatternBackground";
 
-import { Message } from "../models";
+import type { Message } from "../messaging";
 import SnapshotStore from "../util/SnapshotStore";
 
 const isSavedTab = (id: string | number): id is string => typeof id === "string";
@@ -67,21 +67,22 @@ export default function SnapshotPreview({ tab, className, onVisit }: Props) {
   const queryClient = useQueryClient();
 
   const handleVisit = () => {
-    chrome.tabs.create({ url: tab.url, active: true }).then(async (newTab) => {
-      chrome.runtime.onMessage.addListener(async (message: Message, sender) => {
-        if (message.type === "snapshot_tmp" && tab.url === message.url) {
+    chrome.tabs.create({ url: tab.url, active: true }).then(async () => {
+      const handler = async (message: Message) => {
+        if (message.type === "snapshot:ready" && tab.url === message.url) {
           const snapshotStore = await SnapshotStore.init();
           try {
             if (isSavedTab(tab.id)) {
               await snapshotStore.commitSnapshot(message.tabId, tab.id, tab.url);
             }
           } catch (e) {
-            // ehh, we tried
             console.error(e);
           }
           queryClient.refetchQueries({ queryKey: ["snapshots", tab.id] });
+          chrome.runtime.onMessage.removeListener(handler);
         }
-      });
+      };
+      chrome.runtime.onMessage.addListener(handler);
     });
   };
 
