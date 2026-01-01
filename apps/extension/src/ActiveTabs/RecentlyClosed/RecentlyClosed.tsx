@@ -66,10 +66,13 @@ export default function RecentlyClosed() {
               />
             </ItemListPlaceholder>
           )}
-          <ItemGrid items={recentlyClosedTabs.map((t) => t.id!)}>
+          <ItemGrid items={recentlyClosedTabs.map((t) => t.id!)} className="dark:shadow-sm">
             {({ index }) => {
               const tab = recentlyClosedTabs[index];
-              if (!tab) return null;
+              if (!tab) {
+                return null;
+              }
+
               return <RecentlyClosedTabItem tab={tab} />;
             }}
           </ItemGrid>

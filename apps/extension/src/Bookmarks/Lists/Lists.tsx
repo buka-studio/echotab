@@ -62,9 +62,13 @@ export default function Lists() {
               />
             </ItemListPlaceholder>
           )}
-          <ItemGrid items={bookmarkStore.lists.map((l) => l.id)}>
+          <ItemGrid items={bookmarkStore.lists.map((l) => l.id)} className="dark:shadow-sm">
             {({ index }) => {
               const list = bookmarkStore.lists[index];
+
+              if (!list) {
+                return null;
+              }
 
               return <ListItem list={list} publicList={publicListsById[list.id]} />;
             }}
