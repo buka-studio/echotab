@@ -1,6 +1,6 @@
 import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { cn } from "@echotab/ui/util";
-import { Tag as TagIcon, Trash as TrashIcon } from "@phosphor-icons/react";
+import { TagIcon, TrashIcon } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { CSSProperties } from "react";
 

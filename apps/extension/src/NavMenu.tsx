@@ -15,12 +15,32 @@ import "@echotab/ui/globals.css";
 import "./app.css";
 
 import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
-import { ReactNode } from "react";
+import { BroomIcon } from "@phosphor-icons/react";
 
-export default function NavMenu({ children }: { children: ReactNode }) {
+import { NumberNotificationBadge } from "./components/NumberNotificationBadge";
+import { Curate, CurateTrigger, useCurateStore } from "./Curate";
+
+export default function NavMenu() {
+  const curateStore = useCurateStore();
+
   return (
     <div className="flex gap-2">
-      {children}
+      <Curate key={String(curateStore.open)}>
+        <NumberNotificationBadge
+          value={curateStore.queue.length}
+          variant="secondary"
+          show={curateStore.queue.length > 0}>
+          <CurateTrigger>
+            <ButtonWithTooltip
+              tooltipText="Curate"
+              variant="outline"
+              size="icon"
+              className="rounded-full">
+              <BroomIcon className="h-4 w-4" />
+            </ButtonWithTooltip>
+          </CurateTrigger>
+        </NumberNotificationBadge>
+      </Curate>
       <Dialog>
         <DialogTrigger asChild>
           <ButtonWithTooltip

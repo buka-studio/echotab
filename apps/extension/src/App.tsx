@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import { toast, Toaster } from "@echotab/ui/Toast";
 import { TooltipProvider } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
-import { BroomIcon, BrowserIcon } from "@phosphor-icons/react";
+import { BrowserIcon } from "@phosphor-icons/react";
 import { BookmarkFilledIcon, BookmarkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 
@@ -21,7 +21,6 @@ import UIStore, { subscribeUIStore, useUIStore } from "./UIStore";
 import "@echotab/ui/globals.css";
 import "./app.css";
 
-import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { ComponentProps, useEffect } from "react";
@@ -30,8 +29,6 @@ import { ErrorBoundary } from "react-error-boundary";
 import AppError from "./AppError";
 import ColorTweakpane from "./ColorTweakpane";
 import MobileBottomBar from "./components/MobileBottomBar";
-import { NumberNotificationBadge } from "./components/NumberNotificationBadge";
-import { Curate, CurateTrigger } from "./Curate";
 import CurateStore, { useCurateStore } from "./Curate/CurateStore";
 import NavMenu from "./NavMenu";
 import Onboarding from "./Onboarding";
@@ -146,56 +143,41 @@ export default function App() {
           <Layout>
             <Tabs value={activePanel} className="flex w-full flex-1 flex-col gap-0">
               <div className="contained outlined-side flex items-center justify-between gap-2 p-3 pt-5 pb-10">
-                <TabsList className="flex h-auto gap-2 rounded-full bg-transparent p-0">
-                  <PulseLogo />
-                  <div className="bg-surface-2 flex rounded-full">
-                    <PanelTrigger
-                      value={Panel.Tabs}
-                      onClick={() => UIStore.activatePanel(Panel.Tabs)}>
-                      {activePanel === Panel.Tabs && <Highlight />}
-                      <span className="relative z-1 flex items-center gap-1">
-                        {activePanel === Panel.Tabs ? (
-                          <BrowserIcon weight="fill" className="h-4 w-4" />
-                        ) : (
-                          <BrowserIcon className="h-4 w-4" />
-                        )}
-                        Tabs
-                      </span>
-                    </PanelTrigger>
-                    <PanelTrigger
-                      value={Panel.Bookmarks}
-                      onClick={() => UIStore.activatePanel(Panel.Bookmarks)}>
-                      {activePanel === Panel.Bookmarks && <Highlight />}
-                      <span className="relative z-1 flex items-center gap-1">
-                        {activePanel === Panel.Bookmarks ? (
-                          <BookmarkFilledIcon className="h-4 w-4" />
-                        ) : (
-                          <BookmarkIcon className="h-4 w-4" />
-                        )}
-                        Bookmarks
-                      </span>
-                    </PanelTrigger>
-                  </div>
-                </TabsList>
                 <div className="flex items-center gap-2">
-                  <NavMenu>
-                    <Curate key={String(curateStore.open)}>
-                      <NumberNotificationBadge
-                        value={curateStore.queue.length}
-                        variant="secondary"
-                        show={curateStore.queue.length > 0}>
-                        <CurateTrigger>
-                          <ButtonWithTooltip
-                            tooltipText="Curate"
-                            variant="outline"
-                            size="icon"
-                            className="rounded-full">
-                            <BroomIcon className="h-4 w-4" />
-                          </ButtonWithTooltip>
-                        </CurateTrigger>
-                      </NumberNotificationBadge>
-                    </Curate>
-                  </NavMenu>
+                  <PulseLogo />
+                  <TabsList className="flex h-auto gap-2 rounded-full border bg-transparent p-0 dark:shadow-sm">
+                    <div className="bg-surface-2 flex rounded-full">
+                      <PanelTrigger
+                        value={Panel.Tabs}
+                        onClick={() => UIStore.activatePanel(Panel.Tabs)}>
+                        {activePanel === Panel.Tabs && <Highlight />}
+                        <span className="relative z-1 flex items-center gap-1">
+                          {activePanel === Panel.Tabs ? (
+                            <BrowserIcon weight="fill" className="h-4 w-4" />
+                          ) : (
+                            <BrowserIcon className="h-4 w-4" />
+                          )}
+                          Tabs
+                        </span>
+                      </PanelTrigger>
+                      <PanelTrigger
+                        value={Panel.Bookmarks}
+                        onClick={() => UIStore.activatePanel(Panel.Bookmarks)}>
+                        {activePanel === Panel.Bookmarks && <Highlight />}
+                        <span className="relative z-1 flex items-center gap-1">
+                          {activePanel === Panel.Bookmarks ? (
+                            <BookmarkFilledIcon className="h-4 w-4" />
+                          ) : (
+                            <BookmarkIcon className="h-4 w-4" />
+                          )}
+                          Bookmarks
+                        </span>
+                      </PanelTrigger>
+                    </div>
+                  </TabsList>
+                </div>
+                <div className="flex items-center gap-2">
+                  <NavMenu />
                 </div>
               </div>
               <TabsContent value={Panel.Tabs} className="flex flex-1 flex-col focus-visible:ring-0">

@@ -1,5 +1,5 @@
 export function getWidgetRoot() {
   return document
-    .querySelector("plasmo-csui")
+    .querySelector("echotab-widget")
     ?.shadowRoot?.querySelector(".echotab-root") as HTMLElement;
 }

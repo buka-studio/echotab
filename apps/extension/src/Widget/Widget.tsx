@@ -2,9 +2,8 @@ import { Button } from "@echotab/ui/Button";
 import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { Checkbox } from "@echotab/ui/Checkbox";
 import { Label } from "@echotab/ui/Label";
-import { Spinner } from "@echotab/ui/Spinner";
 import { cn } from "@echotab/ui/util";
-import { GlobeSimpleIcon, SparkleIcon, XIcon } from "@phosphor-icons/react";
+import { GlobeSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { LightningBoltIcon } from "@radix-ui/react-icons";
 import { Command as CommandPrimitive } from "cmdk";
 import { AnimatePresence, motion } from "framer-motion";
@@ -100,7 +99,9 @@ function Widget({ onClose }: Props) {
 
     activeStore.saveTabsSeq([{ ...tab, tagIds: assignedTagIds }], false, false).then((results) => {
       const result = results.success[0];
-      handleCloseAfterSave(result);
+      if (result) {
+        handleCloseAfterSave(result);
+      }
     });
   };
 
@@ -139,7 +140,9 @@ function Widget({ onClose }: Props) {
 
     activeStore.saveTabsSeq([{ ...tab, tagIds: [quickTag.id] }], false, false).then((results) => {
       const result = results.success[0];
-      handleCloseAfterSave(result);
+      if (result) {
+        handleCloseAfterSave(result);
+      }
     });
   };
 
@@ -213,29 +216,6 @@ function Widget({ onClose }: Props) {
                   onClick={handleQuickSave}>
                   <LightningBoltIcon className="text-muted-foreground" />
                 </ButtonWithTooltip>
-                {false && (
-                  <ButtonWithTooltip
-                    tooltipText={aiEnabled ? "AI tag" : "AI tagging disabled"}
-                    tooltipContainer={getWidgetRoot()}
-                    size="icon-sm"
-                    onClick={handleAITag}>
-                    <Spinner
-                      className={cn(
-                        "pointer-events-none absolute h-auto w-auto transition-opacity duration-150 [&>svg]:h-4 [&>svg]:w-4",
-                        {
-                          "opacity-0": !llmMutation.isPending,
-                        },
-                      )}
-                    />
-
-                    <SparkleIcon
-                      className={cn("text-muted-foreground transition-opacity duration-150", {
-                        "opacity-50": !aiEnabled,
-                        "opacity-0": llmMutation.isPending,
-                      })}
-                    />
-                  </ButtonWithTooltip>
-                )}
               </div>
             </div>
             <CommandPrimitive.List className="scrollbar-gray flex overflow-auto *:flex *:max-w-full *:gap-2 *:pb-3 focus-visible:outline-none [&>*:focus-visible]:outline-none">
