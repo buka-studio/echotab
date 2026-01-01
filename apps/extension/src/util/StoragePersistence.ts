@@ -69,7 +69,7 @@ export class StoragePersistence {
         this.lastKnownData = data;
         onChange(data);
       } catch (e) {
-        console.error(e);
+        logger.error("Failed to parse storage change", e);
       }
     });
   }

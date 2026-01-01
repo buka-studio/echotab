@@ -22,6 +22,7 @@ import { useState } from "react";
 
 import { CurateStore } from "~/Curate";
 import { downloadJSON } from "~/util";
+import { createLogger } from "~/util/Logger";
 import SnapshotStore from "~/util/SnapshotStore";
 
 import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
@@ -29,6 +30,8 @@ import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
 import { SettingsContent, SettingsPage, SettingsTitle } from "../SettingsLayout";
 import { BookmarksImporter } from "./BookmarksImporter";
 import { EchotabImporter, EchotabImportError } from "./EchotabImporter";
+
+const logger = createLogger("DataPage");
 
 const importHint = `\
 Tag {
@@ -86,7 +89,7 @@ export default function DataPage() {
       } else {
         toast.error("There was an error parsing the file");
       }
-      console.error(e);
+      logger.error("Failed to import file", e);
     }
   };
 

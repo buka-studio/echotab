@@ -5,9 +5,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
 import usePatternBackground from "~/hooks/usePatternBackground";
+import { createLogger } from "~/util/Logger";
 
 import type { Message } from "../messaging";
 import SnapshotStore from "../util/SnapshotStore";
+
+const logger = createLogger("SnapshotPreview");
 
 const isSavedTab = (id: string | number): id is string => typeof id === "string";
 
@@ -76,7 +79,7 @@ export default function SnapshotPreview({ tab, className, onVisit }: Props) {
               await snapshotStore.commitSnapshot(message.tabId, tab.id, tab.url);
             }
           } catch (e) {
-            console.error(e);
+            logger.error("Failed to commit snapshot", e);
           }
           queryClient.refetchQueries({ queryKey: ["snapshots", tab.id] });
           chrome.runtime.onMessage.removeListener(handler);

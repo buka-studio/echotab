@@ -9,7 +9,10 @@ import { version } from "../constants";
 import { Serializable, Tag } from "../models";
 import TagStore, { unassignedTag } from "../TagStore";
 import { getUtcISO } from "../util/date";
+import { createLogger } from "../util/Logger";
 import { StoragePersistence } from "../util/StoragePersistence";
+
+const logger = createLogger("CurateStore");
 
 export const timeUnits = ["month", "week", "day"] as const;
 
@@ -151,7 +154,7 @@ const Store = proxy({
       };
     } catch (e) {
       toast.error("Failed to load stored curate settings");
-      console.error(e);
+      logger.error("Failed to deserialize curate settings", e);
     }
   },
 }) as unknown as CurateStore;

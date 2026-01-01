@@ -10,6 +10,7 @@ import { version } from "../constants";
 import { ActiveTab, Serializable } from "../models";
 import { pluralize, sortRecord } from "../util";
 import { zip } from "../util/array";
+import { createLogger } from "../util/Logger";
 import { toggle } from "../util/set";
 import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
@@ -17,6 +18,8 @@ import { StoragePersistence } from "../util/StoragePersistence";
 import { isValidActiveTab } from "../util/tab";
 import { canonicalizeURL, getDomain } from "../util/url";
 import RecentlyClosedStore from "./RecentlyClosed/RecentlyClosedStore";
+
+const logger = createLogger("ActiveStore");
 
 export interface Filter {
   keywords: string[];
@@ -270,7 +273,7 @@ const Store = proxy({
         tabId,
       };
     } catch (e) {
-      console.error(e);
+      logger.error("Failed to remove tab", tabId, e);
       return {
         status: "error",
         tabId,
@@ -338,7 +341,7 @@ const Store = proxy({
       });
     } catch (e) {
       toast.error(`Failed to close ${pluralize(tabIds.length, "tab")}. Please try again.`);
-      console.error(e);
+      logger.error("Failed to close tabs", e);
     }
   },
   removeAllInWindow: async (windowId: number) => {
@@ -432,7 +435,7 @@ const Store = proxy({
       await Store.removeTabs(tabIds).catch(() => {
         const msg = `Failed to remove tabs: ${tabIds}`;
         toast.error(msg);
-        console.error(msg);
+        logger.error(msg);
       });
     }
 
@@ -456,7 +459,7 @@ const Store = proxy({
       const failed = snapshotResults.filter((r) => r.status === "rejected");
       if (failed.length) {
         toast.error(`Failed to save ${pluralize(failed.length, "snapshot")}.`);
-        console.error(failed);
+        logger.error("Failed to save snapshots", failed);
       }
     }
   },
@@ -496,7 +499,7 @@ const Store = proxy({
         });
       }),
     ).catch((e) => {
-      console.error(e);
+      logger.error("Failed to sync tab order", e);
     });
   },
   removeDuplicateTabs: async () => {
@@ -540,7 +543,7 @@ const Store = proxy({
       };
     } catch (e) {
       toast.error("Failed to load stored active tabs view");
-      console.error(e);
+      logger.error("Failed to deserialize active tabs view", e);
     }
   },
 }) as unknown as ActiveStore;

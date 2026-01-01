@@ -20,7 +20,7 @@ export default defineBackground({
       },
       () => {
         if (chrome.runtime.lastError) {
-          console.error("Error creating context menu:", chrome.runtime.lastError.message);
+          logger.error("Error creating context menu:", chrome.runtime.lastError.message);
         } else {
           logger.info("Context menu created");
         }
@@ -104,7 +104,7 @@ export default defineBackground({
           await handleImportList(listId);
           return { success: true };
         } catch (e) {
-          console.error(e);
+          logger.error("Failed to import list", e);
           return { success: false };
         }
       },
@@ -134,7 +134,7 @@ export default defineBackground({
       try {
         await snapshotActiveTab(tab);
       } catch (e) {
-        console.error(e);
+        logger.error("Snapshot failed on tab activated", e);
       }
     });
 
@@ -153,7 +153,7 @@ export default defineBackground({
         try {
           await snapshotActiveTab(tab);
         } catch (e) {
-          console.error(e);
+          logger.error("Snapshot failed on tab updated", e);
         }
       }
     });

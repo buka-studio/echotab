@@ -5,8 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { List } from "../../models";
 import { useUIStore } from "../../UIStore";
 import { replaceBy } from "../../util";
+import { createLogger } from "../../util/Logger";
 import BookmarkStore, { useBookmarkStore } from "../BookmarkStore";
 import { getLists, publishList, unpublishLists, updateList } from "./api";
+
+const logger = createLogger("lists:queries");
 
 function getListPayload(list: List) {
   return {
@@ -52,8 +55,7 @@ export function usePublishListMutation() {
   return useMutation({
     mutationFn: (list: List) => publishList(getListPayload(list)),
     onError: (e) => {
-      console.error(e);
-      // handle 403 - too many published lists
+      logger.error("Failed to publish list", e);
       toast.error("Failed to publish list. Please try again.");
     },
     onSuccess: (newList) => {
@@ -70,7 +72,7 @@ export function useUpdateListMutation() {
   return useMutation({
     mutationFn: (list: List) => updateList(list.id, getListPayload(list)),
     onError: (e) => {
-      console.error(e);
+      logger.error("Failed to update list", e);
       toast.error("Failed to update list. Please try again.");
     },
     onSuccess: (updatedList) => {
@@ -103,7 +105,7 @@ export function useUnpublishMutation() {
   return useMutation({
     mutationFn: (listId: string) => updateList(listId, { published: false }),
     onError: (e) => {
-      console.error(e);
+      logger.error("Failed to unpublish list", e);
       toast.error("Failed to unpublish list. Please try again.");
     },
     onSuccess: (updatedList) => {

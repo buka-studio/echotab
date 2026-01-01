@@ -11,7 +11,10 @@ import BookmarkStore from "../../Bookmarks/BookmarkStore";
 import { MessageBus } from "../../messaging";
 import TagStore from "../../TagStore";
 import UIStore from "../../UIStore";
+import { createLogger } from "../../util/Logger";
 import Widget from "../../Widget";
+
+const logger = createLogger("content");
 
 export default defineContentScript({
   matches: ["<all_urls>"],
@@ -26,7 +29,7 @@ export default defineContentScript({
         await Promise.all([UIStore.initStore(), TagStore.initStore()]);
         await Promise.all([BookmarkStore.initStore(), ActiveStore.initStore()]);
       } catch (e) {
-        console.error(e);
+        logger.error("Failed to initialize stores", e);
       }
     }
 
@@ -41,7 +44,7 @@ export default defineContentScript({
           });
           return { success: true, dataUrl: img.src };
         } catch (error: unknown) {
-          console.warn("EchoTab Snapshot failed:", error);
+          logger.warn("Snapshot failed:", error);
           return { success: false, error: error instanceof Error ? error.message : String(error) };
         }
       },

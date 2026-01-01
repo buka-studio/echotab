@@ -6,8 +6,11 @@ import { proxyMap } from "valtio/utils";
 
 import { tagColors, version } from "./constants";
 import { Serializable, Tag } from "./models";
+import { createLogger } from "./util/Logger";
 import { intersection } from "./util/set";
 import { StoragePersistence } from "./util/StoragePersistence";
+
+const logger = createLogger("TagStore");
 
 export function pickRandomTagColor() {
   return tagColors[Math.floor(Math.random() * tagColors.length)] || defaultTagColor;
@@ -163,8 +166,7 @@ const Store = proxy({
   import: (imported: Partial<ImportedTagStore>) => {
     const conflicts = intersection(imported.tags?.keys() || [], Store.tags.keys());
     if (conflicts.size) {
-      // shouldn't happen
-      console.warn(conflicts);
+      logger.warn("Tag import conflicts", conflicts);
     }
 
     for (const [k, v] of imported.tags || []) {
@@ -203,7 +205,7 @@ const Store = proxy({
       return { tags: proxyMap<number, Tag>(new Map(defaultTags.concat(storedTags))) };
     } catch (e) {
       toast.error("Failed to load stored tags");
-      console.error(e);
+      logger.error("Failed to deserialize tags", e);
     }
   },
 }) as unknown as TagStore;

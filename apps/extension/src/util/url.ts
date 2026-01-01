@@ -1,3 +1,7 @@
+import { createLogger } from "./Logger";
+
+const logger = createLogger("url");
+
 const UTMParams = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
 const FacebookParams = ["fbclid"];
 const miscTrackingParams = [
@@ -23,7 +27,7 @@ export function stripTrackingParams(url: string): string {
 
     return u.toString();
   } catch (e) {
-    console.log(url, e);
+    logger.debug("Failed to strip tracking params", url, e);
     return url;
   }
 }

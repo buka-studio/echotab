@@ -6,6 +6,9 @@ import { z } from "zod";
 
 import { ActiveTab, SavedTab, Tag } from "../models";
 import { useUIStore } from "../UIStore";
+import { createLogger } from "../util/Logger";
+
+const logger = createLogger("AI");
 
 const tagSystemPrompt = `Tag saved browser tabs by analyzing their titles, URLs and optional metadata to select the most relevant tags from a provided list. Create new tags only if none apply.
 
@@ -58,7 +61,7 @@ export function useLLMTagMutation() {
       return res.choices[0].message.parsed?.tags || [];
     },
     onError: (e) => {
-      console.error(e);
+      logger.error("Failed to suggest tags", e);
       toast.error("Failed to suggest tags. Please try again.");
     },
   });
@@ -99,7 +102,7 @@ export function useTestLLMMutation() {
       });
     },
     onError: (e) => {
-      console.error(e);
+      logger.error("Failed to test connection", e);
       toast.error("Failed to test connection. Please try again.");
     },
     onSuccess: (response) => {

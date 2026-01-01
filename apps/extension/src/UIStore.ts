@@ -4,7 +4,10 @@ import { proxy, subscribe, useSnapshot } from "valtio";
 import { version } from "./constants";
 import { Panel, Serializable } from "./models";
 import { getRootElement } from "./util/dom";
+import { createLogger } from "./util/Logger";
 import { StoragePersistence } from "./util/StoragePersistence";
+
+const logger = createLogger("UIStore");
 
 export enum Orientation {
   Vertical = "Vertical",
@@ -127,7 +130,7 @@ const Store = proxy({
       };
     } catch (e) {
       toast.error("Failed to load stored settings");
-      console.error(e);
+      logger.error("Failed to deserialize settings", e);
     }
   },
 });

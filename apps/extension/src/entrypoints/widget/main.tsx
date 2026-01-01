@@ -8,7 +8,10 @@ import ActiveStore from "../../ActiveTabs/ActiveStore";
 import BookmarkStore from "../../Bookmarks/BookmarkStore";
 import TagStore from "../../TagStore";
 import UIStore from "../../UIStore";
+import { createLogger } from "../../util/Logger";
 import Widget from "../../Widget";
+
+const logger = createLogger("widget");
 
 const queryClient = new QueryClient();
 
@@ -17,7 +20,7 @@ async function initStores() {
     await Promise.all([UIStore.initStore(), TagStore.initStore()]);
     await Promise.all([BookmarkStore.initStore(), ActiveStore.initStore()]);
   } catch (e) {
-    console.error(e);
+    logger.error("Failed to initialize stores", e);
   }
 }
 

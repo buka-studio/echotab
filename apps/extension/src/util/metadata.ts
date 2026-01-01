@@ -1,4 +1,7 @@
 import { ActiveTab } from "../models";
+import { createLogger } from "./Logger";
+
+const logger = createLogger("metadata");
 
 export async function getMetadata(
   tabs: ActiveTab[],
@@ -30,7 +33,7 @@ export async function getMetadata(
           });
         })
         .catch((e) => {
-          console.error(e);
+          logger.error("Failed to get metadata for tab", e);
           return [
             {
               tabId: tab.id,

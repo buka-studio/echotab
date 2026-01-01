@@ -1,4 +1,8 @@
+import { createLogger } from "~/util/Logger";
+
 import type { HandlerMap, Message, MessagePayload, MessageResponse, MessageType } from "./types";
+
+const logger = createLogger("MessageBus");
 
 type SendOptions = {
   timeout?: number;
@@ -119,7 +123,7 @@ export class MessageBus {
 
       if (result instanceof Promise) {
         result.then(sendResponse).catch((error) => {
-          console.error(`Error handling ${message.type}:`, error);
+          logger.error(`Error handling ${message.type}:`, error);
           sendResponse({ error: error.message });
         });
         return true;

@@ -394,7 +394,7 @@ const Store = proxy({
       };
     } catch (e) {
       toast.error("Failed to load stored bookmarks");
-      console.error(e);
+      logger.error("Failed to deserialize bookmarks", e);
     }
   },
 }) as unknown as BookmarkStore;

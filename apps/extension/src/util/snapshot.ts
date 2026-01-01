@@ -1,5 +1,8 @@
 import { MessageBus } from "../messaging";
+import { createLogger } from "./Logger";
 import SnapshotStore from "./SnapshotStore";
+
+const logger = createLogger("snapshot");
 
 interface ResizeOptions {
   width?: number;
@@ -60,7 +63,7 @@ export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotO
   const { windowId, id: tabId, url } = tab;
 
   if (!tabId || !url) {
-    console.error("Snapshot failed: missing tabId or url");
+    logger.error("Snapshot failed: missing tabId or url");
     return;
   }
 
@@ -73,7 +76,7 @@ export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotO
       return;
     }
   } catch (err) {
-    console.error("Snapshot failed: tab no longer exists", err);
+    logger.error("Snapshot failed: tab no longer exists", err);
     return;
   }
 
@@ -82,7 +85,7 @@ export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotO
     rawBlob = await fetch(dataUrl).then((r) => r.blob());
     source = "snapdom";
   } catch (err) {
-    console.error("SnapDOM capture failed:", err);
+    logger.warn("SnapDOM capture failed:", err);
   }
 
   if (!rawBlob) {
@@ -98,13 +101,13 @@ export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotO
       });
       rawBlob = await fetch(dataUrl).then((r) => r.blob());
     } catch (nativeErr) {
-      console.error("Native capture failed:", nativeErr);
+      logger.error("Native capture failed:", nativeErr);
       return;
     }
   }
 
   if (!rawBlob) {
-    console.error("Snapshot failed: both capture methods failed");
+    logger.error("Snapshot failed: both capture methods failed");
     return;
   }
 
@@ -123,6 +126,6 @@ export async function snapshotActiveTab(tab: chrome.tabs.Tab, options: SnapshotO
       MessageBus.send("snapshot:ready", { tabId, url });
     }
   } catch (resizeErr) {
-    console.error("Snapshot failed: resize or save error", resizeErr);
+    logger.error("Snapshot failed: resize or save error", resizeErr);
   }
 }
