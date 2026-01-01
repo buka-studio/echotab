@@ -353,9 +353,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                             {reason === "hasAITags" && <span>This tab has AI tags</span>}
                             {reason === "hasQuickTags" && <span>This tab has quick tags</span>}
                             {reason === "olderThanThreshold" && (
-                              <span>
-                                This bookmark is older than {threshold} {pluralize(threshold, unit)}
-                              </span>
+                              <span>This bookmark is older than {pluralize(threshold, unit)}</span>
                             )}
                           </TooltipContent>
                         </Tooltip>

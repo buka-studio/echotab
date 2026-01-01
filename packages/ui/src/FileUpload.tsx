@@ -150,11 +150,10 @@ const FileUpload = ({
   const onFileRemove = useCallback(
     (file: File) => {
       const next = value.filter((f) => f !== file);
-      if (isControlled) {
-        onChange?.(next);
-      } else {
+      if (!isControlled) {
         setInternalValue(next);
       }
+      onChange?.(next);
     },
     [value, onChange, isControlled],
   );
@@ -249,11 +248,10 @@ const FileUpload = ({
     e.preventDefault();
 
     if (acceptedFiles.length) {
-      if (isControlled) {
-        onChange?.([...value, ...acceptedFiles]);
-      } else {
+      if (!isControlled) {
         setInternalValue([...value, ...acceptedFiles]);
       }
+      onChange?.([...value, ...acceptedFiles]);
     }
 
     if (rejectedFiles.length) {

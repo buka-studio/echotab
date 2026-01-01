@@ -166,6 +166,7 @@ export default function DataPage() {
           </div>
 
           <FileUpload
+            value={[]}
             onChange={(files) => {
               setError(null);
               handleImport(files[0]!);

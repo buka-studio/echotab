@@ -8,6 +8,17 @@ import { normalizedComparator } from "~/util/string";
 import BookmarkStore from "../../Bookmarks/BookmarkStore";
 import TagStore, { unassignedTag } from "../../TagStore";
 
+const dateField = z
+  .union([z.string(), z.number()])
+  .optional()
+  .transform((val) => {
+    if (val === undefined) return undefined;
+    if (typeof val === "number") {
+      return new Date(val).toISOString();
+    }
+    return val;
+  });
+
 export const echotabImportSchema = z.object({
   tags: z.array(
     z.object({
@@ -27,9 +38,9 @@ export const echotabImportSchema = z.object({
       tagIds: z.array(z.number()),
       faviconUrl: z.string().optional(),
       pinned: z.boolean().optional(),
-      savedAt: z.string().optional(),
-      visitedAt: z.string().optional(),
-      lastCuratedAt: z.string().optional(),
+      savedAt: dateField,
+      visitedAt: dateField,
+      lastCuratedAt: dateField,
       note: z.string().optional(),
     }),
   ),

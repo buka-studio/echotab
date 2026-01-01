@@ -1,34 +1,11 @@
 import { cn } from "@echotab/ui/util";
-import { Sparkle as SparkleIcon } from "@phosphor-icons/react";
+import { SparkleIcon } from "@phosphor-icons/react";
 import { LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { Tag } from "../models";
 import { useTagStore } from "../TagStore";
 import { useBookmarkStore } from "./BookmarkStore";
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.025,
-    },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 10, filter: "blur(5px)" },
-  show: (active: boolean) => ({
-    opacity: 1,
-    filter: "blur(0px)",
-    y: 0,
-    x: active ? -6 : 0,
-    transition: {
-      duration: 0.2,
-    },
-  }),
-};
 
 interface Props {
   visibleTagIds: Set<number>;
@@ -43,22 +20,23 @@ export default function TagNavigationLinks({ visibleTagIds, onTagClick, classNam
 
   return (
     // todo: implement skip navigation for keyboard users
-    <motion.ul
-      className={cn("flex flex-col gap-2 py-1 pb-3 pl-2", className)}
-      variants={container}
-      initial="hidden"
-      animate="show">
+    <motion.ul className={cn("flex flex-col gap-2 py-1 pb-3 pl-2", className)}>
       <AnimatePresence mode="popLayout">
         {tags.map((tag, i) => {
+          const active = visibleTagIds.has(tag.id);
           return (
             <motion.li
-              variants={item}
-              custom={visibleTagIds.has(tag.id)}
               layout="position"
-              exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                x: active ? -6 : 0,
+                transition: { x: { duration: 0.1 }, opacity: { duration: 0.1, delay: 0.01 * i } },
+              }}
+              exit={{ opacity: 0 }}
               key={tag.id}
               className={cn(
-                "text-foreground/50 text-sm leading-4 [.favorite_+_&:not(.favorite)]:mt-5",
+                "text-foreground/50 text-sm leading-4 [.favorite+&:not(.favorite)]:mt-5",
                 {
                   "text-foreground": visibleTagIds.has(tag.id),
                   favorite: tag.favorite,
@@ -67,12 +45,12 @@ export default function TagNavigationLinks({ visibleTagIds, onTagClick, classNam
                 },
               )}>
               <button
-                className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none"
+                className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none"
                 onClick={() => onTagClick({ tag, index: i })}>
                 {tag.isQuick && (
-                  <LightningBoltIcon className="text-muted-foreground mr-1 flex-shrink-0" />
+                  <LightningBoltIcon className="text-muted-foreground mr-1 shrink-0" />
                 )}{" "}
-                {tag.isAI && <SparkleIcon className="text-muted-foreground mr-1 flex-shrink-0" />}{" "}
+                {tag.isAI && <SparkleIcon className="text-muted-foreground mr-1 shrink-0" />}{" "}
                 {tag?.name}
               </button>
             </motion.li>

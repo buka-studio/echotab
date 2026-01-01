@@ -28,11 +28,11 @@ function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagI
 type Props = ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId?: number };
 type Ref = ComponentRef<typeof TabItem>;
 
-function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref: Ref }) {
+function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref?: Ref }) {
   const { assignedTagIds } = useBookmarkStore();
   const { tags } = useTagStore();
   const {
-    settings: { hideBookmarkFavicons },
+    settings: { hideFavicons },
   } = useUIStore();
 
   const selected = useIsTabSelected(tab.id);
@@ -57,7 +57,7 @@ function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref: R
       className={cn({
         "border-border-active bg-card-active": selected,
       })}
-      hideFavicon={hideBookmarkFavicons}
+      hideFavicon={hideFavicons}
       linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} />}
       icon={
         <Favicon

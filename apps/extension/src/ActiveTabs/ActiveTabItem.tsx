@@ -124,7 +124,7 @@ const ActiveTabItem = forwardRef<
   const { assignedTagIds } = useActiveTabStore();
   const { tags } = useTagStore();
   const {
-    settings: { hideTabsFavicons },
+    settings: { hideFavicons },
   } = useUIStore();
 
   const { selected, duplicate, stale } = useTabInfo(tab.id);
@@ -160,7 +160,7 @@ const ActiveTabItem = forwardRef<
         // todo: clean up
         tab.pinned ? (
           <button className={cn("focus-ring group relative rounded")} onClick={handleUnpinTab}>
-            {!hideTabsFavicons && (
+            {!hideFavicons && (
               <Favicon
                 src={tab.url}
                 className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
@@ -170,8 +170,7 @@ const ActiveTabItem = forwardRef<
               className={cn(
                 "absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
                 {
-                  "text-muted-foreground hover:text-foreground relative opacity-100":
-                    hideTabsFavicons,
+                  "text-muted-foreground hover:text-foreground relative opacity-100": hideFavicons,
                 },
               )}
             />
@@ -179,7 +178,7 @@ const ActiveTabItem = forwardRef<
         ) : (
           <SortableHandle asChild>
             <button className={cn("handle focus-ring group relative cursor-grab rounded")}>
-              {!hideTabsFavicons && (
+              {!hideFavicons && (
                 <Favicon
                   src={tab.url}
                   className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
@@ -190,7 +189,7 @@ const ActiveTabItem = forwardRef<
                   "absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
                   {
                     "text-muted-foreground hover:text-foreground relative opacity-100":
-                      hideTabsFavicons,
+                      hideFavicons,
                   },
                 )}
               />

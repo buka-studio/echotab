@@ -352,8 +352,14 @@ export default function Bookmarks() {
                       items={items}
                       ref={(e) => e?.virtualizer && virtualizerRefs.current.add(e?.virtualizer)}>
                       {(item) => {
-                        const tabId = items[item.index];
+                        const tabId = items?.[item.index];
+                        if (!tabId) {
+                          return null;
+                        }
                         const tab = bookmarkStore.viewTabsById[tabId];
+                        if (!tab) {
+                          return null;
+                        }
                         return <SavedTabItem tab={tab} currentGroupTagId={tag?.id} />;
                       }}
                     </SelectableVirtualList>

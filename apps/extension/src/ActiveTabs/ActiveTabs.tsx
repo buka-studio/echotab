@@ -32,7 +32,7 @@ import WindowHeader from "./WindowHeader";
 export default function ActiveTabs() {
   const tabStore = useActiveTabStore();
   const {
-    settings: { hideTabsFavicons },
+    settings: { hideFavicons },
   } = useUIStore();
 
   const [tabIdsByWindowId, setTabIdsByWindowId] = useState(tabStore.viewTabIdsByWindowId);
@@ -344,7 +344,7 @@ export default function ActiveTabs() {
                 <TabItem
                   tab={activeTab}
                   icon={
-                    hideTabsFavicons ? (
+                    hideFavicons ? (
                       <DragHandleDots2Icon className="text-foreground h-5 w-5" />
                     ) : (
                       <Favicon src={activeTab.url} />
