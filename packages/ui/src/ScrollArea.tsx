@@ -21,6 +21,7 @@ const updateScrollOffsets = (viewport: HTMLElement | null, root: HTMLElement | n
 
 function ScrollArea({
   className,
+  viewportClassName,
   children,
   fade,
   maskOffset = 20,
@@ -28,6 +29,7 @@ function ScrollArea({
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
   fade?: "mask" | "shadow";
   maskOffset?: number;
+  viewportClassName?: string;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -73,6 +75,7 @@ function ScrollArea({
             "mask-[linear-gradient(to_bottom,transparent,black_min(var(--offset-y-top)*1px,var(--mask-offset)),black_calc(100%-min(var(--offset-y-bottom)*1px,var(--mask-offset))),transparent)]":
               fade === "mask",
           },
+          viewportClassName,
         )}>
         {children}
       </ScrollAreaPrimitive.Viewport>

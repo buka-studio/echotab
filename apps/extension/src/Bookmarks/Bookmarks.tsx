@@ -253,9 +253,12 @@ export default function Bookmarks() {
                   </DrawerTrigger>
                 </MobileBottomBarPortal>
                 <DrawerContent>
-                  <div className="scrollbar-gray mx-auto flex max-h-[40vh] w-full flex-col overflow-auto overscroll-contain p-4 px-5">
+                  <ScrollArea
+                    fade="mask"
+                    maskOffset={10}
+                    viewportClassName="h-[min(50vh,400px)] p-4 px-5">
                     <TagNavigation visibleTagIds={visibleTagItems} onTagClick={handleScrollToTag} />
-                  </div>
+                  </ScrollArea>
                 </DrawerContent>
               </Drawer>
             )}

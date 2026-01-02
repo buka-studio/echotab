@@ -115,7 +115,14 @@ export default function Settings() {
       }}
       className="h-[500px] sm:min-h-[450px]"
       disablePointerSelection>
-      <div className="flex h-full grid-cols-[180px_auto] grid-rows-[1fr_40px] flex-col sm:grid">
+      <div
+        className={cn(
+          "flex h-full grid-cols-[180px_auto] grid-rows-[1fr_40px] flex-col **:data-[slot=settings-content]:transition-all sm:grid",
+          {
+            "**:data-[slot=settings-content]:opacity-50 **:data-[slot=settings-content]:blur-xs":
+              open,
+          },
+        )}>
         <div className="col-1 row-1 hidden sm:block">
           <div className="mb-2 flex items-center">{commandInput}</div>
           {commandList}
@@ -126,7 +133,9 @@ export default function Settings() {
               Settings <span className="mx-2 font-bold opacity-50">/</span> {page}
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
+          <PopoverContent
+            className="w-(--radix-popover-trigger-width) rounded-t-none p-0"
+            sideOffset={2}>
             {commandList}
           </PopoverContent>
         </Popover>
