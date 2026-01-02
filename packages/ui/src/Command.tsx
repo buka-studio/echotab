@@ -99,7 +99,8 @@ function CommandItem({
   return (
     <CommandPrimitive.Item
       className={cn(
-        "aria-selected:bg-accent aria-selected:text-accent-foreground relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&[data-selected=true]_svg]:text-current",
+        "relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&[data-selected=true]_svg]:text-current",
+        "aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground",
         {
           "aria-selected:before:bg-primary aria-selected:before:absolute aria-selected:before:top-0 aria-selected:before:left-0 aria-selected:before:h-full aria-selected:before:w-[2px] aria-selected:before:rounded-sm aria-selected:before:content-['']":
             variant === "primary",

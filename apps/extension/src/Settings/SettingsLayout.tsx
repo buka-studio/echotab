@@ -36,7 +36,7 @@ export function SettingsContent({
   return (
     <ScrollArea fade="mask" className={cn("h-full flex-1 overflow-auto")}>
       <div
-        className={cn("flex flex-col gap-5 px-3 pt-5 pb-5 sm:px-5", className)}
+        className={cn("flex flex-col gap-5 px-3 pt-4 pb-5 sm:px-5", className)}
         data-slot="settings-content">
         {children}
       </div>

@@ -15,7 +15,9 @@ export default function AppError({ resetErrorBoundary }: { resetErrorBoundary: (
         <p className="text-muted-foreground mt-4 text-sm">
           We&apos;re sorry, but an unexpected error has occurred. Please try again later or contact
           us at{" "}
-          <a href="mailto:support@buka.studio?subject=EchoTab Feedback" className="focus-ring">
+          <a
+            href="mailto:support@buka.studio?subject=EchoTab Feedback"
+            className="focus-ring underline">
             support@buka.studio
           </a>{" "}
           if the issue persists.

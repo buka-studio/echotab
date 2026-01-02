@@ -39,6 +39,11 @@ const exactMatchFilter = (value: string, search: string) => {
   return 0;
 };
 
+const getDelay = (index: number, targetIndex: number, baseDelay = 0.1) => {
+  const distance = Math.abs(index - targetIndex);
+  return distance * baseDelay;
+};
+
 export default function TagChipCombobox({
   tags,
   max = 5,
@@ -118,6 +123,8 @@ export default function TagChipCombobox({
 
   const atLeastOneChecked = selectedTagIds.size > 0;
 
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+
   return (
     <div className="flex items-center gap-2 overflow-hidden">
       <Popover
@@ -178,38 +185,47 @@ export default function TagChipCombobox({
             </CommandEmpty>
             <CommandList>
               <CommandGroup>
-                {tagItems.map((tag, i) => (
-                  <CommandItem
-                    value={tag.name}
-                    key={tag.id}
-                    onSelect={() => {
-                      setSelectedTagIds((tagIds) => {
-                        const wipSet = new Set(tagIds);
-                        toggle(wipSet, tag.id);
+                {tagItems.map((tag, i) => {
+                  const checked = editable && atLeastOneChecked;
 
-                        return wipSet;
-                      });
-                    }}
-                    className="min-h-auto aria-selected:before:bg-transparent">
-                    <div className="flex items-center gap-2">
-                      {editable && atLeastOneChecked && (
-                        <CheckIcon
-                          className={cn("", {
-                            "opacity-0": !selectedTagIds.has(tag.id),
-                          })}
-                        />
-                      )}
-                      <motion.div layout transition={{ duration: 0.15, delay: 0.025 * i }}>
-                        <TagChip
-                          color={tag.color}
-                          onRemove={onRemove && (() => onRemove?.(tag))}
-                          className="border-0">
-                          {tag.name}
-                        </TagChip>
-                      </motion.div>
-                    </div>
-                  </CommandItem>
-                ))}
+                  const delay = getDelay(i, lastSelectedIndex ?? 0, 0.015);
+
+                  return (
+                    <CommandItem
+                      value={tag.name}
+                      key={tag.id}
+                      onSelect={() => {
+                        setSelectedTagIds((tagIds) => {
+                          const wipSet = new Set(tagIds);
+                          toggle(wipSet, tag.id);
+
+                          setLastSelectedIndex(i);
+
+                          return wipSet;
+                        });
+                      }}
+                      className="min-h-auto aria-selected:before:bg-transparent">
+                      <div className="flex items-center gap-2">
+                        {checked && (
+                          <CheckIcon
+                            className={cn("h-4 w-4", {
+                              "opacity-0": !selectedTagIds.has(tag.id),
+                            })}
+                          />
+                        )}
+                        <motion.div layout transition={{ duration: 0.125, delay }}>
+                          <TagChip
+                            color={tag.color}
+                            onRemove={onRemove && (() => onRemove?.(tag))}
+                            className="border-0">
+                            {tag.name}
+                          </TagChip>
+                        </motion.div>
+                        {!checked && <div className="w-4" />}
+                      </div>
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             </CommandList>
             {onSetTags && (
@@ -220,7 +236,7 @@ export default function TagChipCombobox({
                   variant="outline"
                   className="relative mt-1 h-6 w-full gap-2">
                   <span>Save</span>
-                  <span className="text-muted-foreground/60 absolute right-1">⌘ + enter</span>
+                  {/* <span className="text-muted-foreground/60 absolute right-1">⌘ + enter</span> */}
                 </Button>
               </CommandNotEmpty>
             )}

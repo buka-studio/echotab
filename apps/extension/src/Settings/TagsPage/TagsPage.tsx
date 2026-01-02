@@ -129,15 +129,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
           <TableCaption className="sr-only">A list of your tags.</TableCaption>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="h-auto text-center">Favorite</TableHead>
-              <TableHead className="h-auto text-center">
-                <SortButton
-                  active={tagSort.col === "tabCount"}
-                  dir={tagSort.dir}
-                  onClick={() => handleSort("tabCount")}>
-                  Tab count
-                </SortButton>
-              </TableHead>
+              <TableHead className="h-auto text-center">Color</TableHead>
               <TableHead className="h-auto">
                 <SortButton
                   active={tagSort.col === "name"}
@@ -146,13 +138,40 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                   Name
                 </SortButton>
               </TableHead>
-              <TableHead className="h-auto text-center">Color</TableHead>
+
+              <TableHead className="h-auto text-center">
+                <SortButton
+                  active={tagSort.col === "tabCount"}
+                  dir={tagSort.dir}
+                  onClick={() => handleSort("tabCount")}>
+                  Tab count
+                </SortButton>
+              </TableHead>
+              <TableHead className="h-auto text-center">Favorite</TableHead>
+
               <TableHead className="h-auto"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tagSettings.map((t) => (
               <TableRow key={t.id} className="hover:bg-transparent">
+                <TableCell className="text-center">
+                  <TagColorPicker
+                    value={t.color}
+                    onChange={(color) => TagStore.updateTag(t.id, { color })}
+                  />
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <TagNameInput
+                      key={t.name}
+                      name={t.name}
+                      onChange={(name) => TagStore.updateTag(t.id, { name })}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">{t.tabCount} </TableCell>
+
                 <TableCell className="text-center">
                   <ButtonWithTooltip
                     side="top"
@@ -167,22 +186,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                     />
                   </ButtonWithTooltip>
                 </TableCell>
-                <TableCell className="text-center">{t.tabCount} </TableCell>
-                <TableCell>
-                  <div>
-                    <TagNameInput
-                      key={t.name}
-                      name={t.name}
-                      onChange={(name) => TagStore.updateTag(t.id, { name })}
-                    />
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">
-                  <TagColorPicker
-                    value={t.color}
-                    onChange={(color) => TagStore.updateTag(t.id, { color })}
-                  />
-                </TableCell>
+
                 <TableCell>
                   <TagDeleteButton
                     tag={t}

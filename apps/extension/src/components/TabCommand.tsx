@@ -194,7 +194,7 @@ export function TabCommandDialog({
     <div ref={setCommandContainer} className={cn("relative flex w-full rounded-lg dark:shadow-sm")}>
       <button
         className={cn(
-          "focus-ring dark:bg-card/50 hover:bg-card-active bg-card flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
+          "focus-ring hover:bg-card-active bg-card flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
           {
             "opacity-0": open,
           },

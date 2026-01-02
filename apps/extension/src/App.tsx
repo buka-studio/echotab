@@ -59,11 +59,11 @@ function Highlight() {
   return (
     <motion.span
       layoutId="highlight"
-      className="bg-surface-3 absolute inset-0 rounded-full border shadow-sm will-change-transform"
+      className="bg-surface-3 absolute -inset-px rounded-full border shadow-sm will-change-transform"
       transition={{
         type: "spring",
         bounce: 0.2,
-        duration: 0.6,
+        duration: 0.5,
       }}
       style={{
         originY: "0px",
@@ -143,8 +143,11 @@ export default function App() {
           <Layout>
             <Tabs value={activePanel} className="flex w-full flex-1 flex-col gap-0">
               <div className="contained outlined-side flex items-center justify-between gap-2 p-3 pt-5 pb-10">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2 text-sm">
                   <PulseLogo />
+                  EchoTab
+                </div>
+                <div className="flex items-center gap-2">
                   <TabsList className="flex h-auto gap-2 rounded-full border bg-transparent p-0 dark:shadow-sm">
                     <div className="bg-surface-2 flex rounded-full">
                       <PanelTrigger
