@@ -116,9 +116,9 @@ export default function ColorTweakpane() {
   useEffect(() => {
     // const pane = initTweakpane();
 
-    // return () => {
-    //   pane.dispose();
-    // };
+    return () => {
+      // pane.dispose();
+    };
   }, []);
 
   return null;

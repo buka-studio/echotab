@@ -21,7 +21,7 @@ export default function SortButton({
     <Button
       variant="ghost"
       size="sm"
-      className={cn({ "text-foreground": active }, className)}
+      className={cn("text-sm", { "text-foreground": active }, className)}
       {...props}>
       {children}
       {!active || dir === SortDir.Asc ? (

@@ -199,7 +199,8 @@ export default function App() {
               <ScrollTopFAB className="absolute right-10 bottom-4" />
               <ShortcutsHint className="absolute bottom-4 left-1/2 z-1 -translate-x-1/2" />
             </MobileBottomBar>
-            {import.meta.env.DEV && <ColorTweakpane />}
+            {/* {import.meta.env.DEV && <ColorTweakpane />} */}
+            <ColorTweakpane />
           </Layout>
         </TooltipProvider>
       </QueryClientProvider>

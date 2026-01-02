@@ -35,7 +35,7 @@ export default function AppearancePage() {
         <div className="flex items-center justify-between space-x-2">
           <div>
             <Label htmlFor="hide-favicons">Hide Favicons</Label>
-            <div className="text-muted-foreground text-sm">Toggle favicons for a cleaner look.</div>
+            <div className="text-muted-foreground text-sm">Hide favicons for a cleaner look.</div>
           </div>
           <Switch
             id="hide-favicons"

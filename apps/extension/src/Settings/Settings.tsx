@@ -8,10 +8,11 @@ import {
 } from "@echotab/ui/Command";
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
-import { BroomIcon, DatabaseIcon, PaletteIcon, TagIcon } from "@phosphor-icons/react";
+import { BroomIcon, DatabaseIcon, PaletteIcon, TagIcon, UserIcon } from "@phosphor-icons/react";
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
+import AccountPage from "./AccountPage";
 import AppearancePage from "./AppearancePage";
 import CuratePage from "./CuratePage";
 import DataPage from "./DataPage";
@@ -32,7 +33,17 @@ const BukaIcon = (props: ComponentProps<"svg">) => (
 
 const versionLabel = `Version: ${chrome.runtime.getManifest().version}`;
 
-const pages = ["Tags", "Appearance", "AI", "Misc", "Data", "Feedback", "Delete", "Curate"] as const;
+const pages = [
+  "Account",
+  "Appearance",
+  "Tags",
+  "AI",
+  "Misc",
+  "Data",
+  "Feedback",
+  "Delete",
+  "Curate",
+] as const;
 
 type Page = (typeof pages)[number];
 
@@ -59,13 +70,17 @@ export default function Settings() {
   const commandList = (
     <CommandList className="max-h-[400px]">
       <CommandGroup className="p-0">
-        <SettingsCommandItem>
-          <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-          Tags
-        </SettingsCommandItem>
+        {/* <SettingsCommandItem>
+          <UserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Account
+        </SettingsCommandItem> */}
         <SettingsCommandItem>
           <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
           Appearance
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Tags
         </SettingsCommandItem>
         {/* <SettingsCommandItem>
       <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
@@ -140,6 +155,7 @@ export default function Settings() {
           </PopoverContent>
         </Popover>
 
+        {/* {page === "Account" && <AccountPage />} */}
         {page === "Tags" && <TagsPage contentClassName="px-1 sm:px-3" />}
         {page === "Appearance" && <AppearancePage />}
         {page === "Misc" && <MiscPage />}
