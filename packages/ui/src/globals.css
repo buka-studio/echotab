@@ -39,6 +39,38 @@
   --surface-3: oklch(97.7% 0 0);
   --surface-4: oklch(96.9% 0 0);
   --ring: oklch(82.5% 0.007 35);
+
+
+
+
+  --background-base: oklch(96.42% 0.0000 0);
+    --background: oklch(100.00% 0.0000 0);
+    --foreground: oklch(23.08% 0.0000 0);
+    --card: oklch(99.40% 0.0000 0);
+    --card-active: oklch(94.91% 0.0000 0);
+    --card-foreground: oklch(23.08% 0.0000 0);
+    --popover: oklch(99.11% 0.0000 0);
+    --popover-foreground: oklch(23.08% 0.0000 0);
+    /* --primary: oklch(65.27% 0.2241 35.89); */
+    --primary-foreground: oklch(97.91% 0.0000 0);
+    --secondary: oklch(90.06% 0.0000 0);
+    --secondary-foreground: oklch(23.08% 0.0000 0);
+    --muted: oklch(94.84% 0.0033 17.75);
+    --muted-foreground: oklch(55.55% 0.0000 0);
+    --accent: oklch(94.91% 0.0000 0);
+    --accent-foreground: oklch(23.08% 0.0000 0);
+    --destructive: oklch(61.97% 0.2499 25.00);
+    --destructive-foreground: oklch(50.72% 0.1464 24.89);
+    --border: oklch(90.37% 0.0000 0);
+    --border-active: oklch(90.37% 0.0000 0);
+    --input: oklch(91.89% 0.0000 0);
+    --ring: oklch(82.97% 0.0000 0);
+    --surface-1: oklch(99.11% 0.0000 0);
+    --surface-2: oklch(98.21% 0.0000 0);
+    --surface-3: oklch(97.61% 0.0000 0);
+    --surface-4: oklch(97.02% 0.0000 0);
+
+
 }
 
 .echotab-root.dark,
@@ -101,6 +133,35 @@
   --surface-2: oklch(23.8% 0 0);
   --surface-3: oklch(26.6% 0 0);
   --surface-4: oklch(28.5% 0 0);
+
+
+
+  --background-base: oklch(24.35% 0.0000 0);
+    --background: oklch(26.45% 0.0000 0);
+    --foreground: oklch(89.14% 0.0000 0);
+    --card: oklch(28.50% 0.0000 0);
+    --card-active: oklch(32.50% 0.0000 0);
+    --card-foreground: oklch(90.06% 0.0000 0);
+    --popover: oklch(23.93% 0.0000 0);
+    --popover-foreground: oklch(90.06% 0.0000 0);
+    /* --primary: oklch(60.09% 0.2085 35.46); */
+    --primary-foreground: oklch(90.06% 0.0000 0);
+    --secondary: oklch(29.31% 0.0000 0);
+    --secondary-foreground: oklch(89.14% 0.0000 0);
+    --muted: oklch(29.72% 0.0000 0);
+    --muted-foreground: oklch(67.64% 0.0000 0);
+    --accent: oklch(28.91% 0.0000 0);
+    --accent-foreground: oklch(90.06% 0.0000 0);
+    --destructive: oklch(55.03% 0.2200 25.04);
+    --destructive-foreground: oklch(73.17% 0.1648 24.98);
+    --border: oklch(31.32% 0.0000 0);
+    --border-active: oklch(39.42% 0.0000 0);
+    --input: oklch(35.23% 0.0000 0);
+    --ring: oklch(47.84% 0.0000 0);
+    --surface-1: oklch(23.93% 0.0000 0);
+    --surface-2: oklch(26.03% 0.0000 0);
+    --surface-3: oklch(28.50% 0.0000 0);
+    --surface-4: oklch(30.52% 0.0000 0);
 }
 
 .echotab-root {
