@@ -6,6 +6,7 @@ import {
   CommandItem,
   CommandList,
 } from "@echotab/ui/Command";
+import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
 import { BroomIcon, DatabaseIcon, PaletteIcon, TagIcon } from "@phosphor-icons/react";
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
@@ -53,68 +54,92 @@ function SettingsCommandItem({
 export default function Settings() {
   const cmdInputRef = useRef<HTMLInputElement>(null);
   const [page, setPage] = useState<Page>("Tags");
+  const [open, setOpen] = useState(false);
+
+  const commandList = (
+    <CommandList className="max-h-[400px]">
+      <CommandGroup className="p-0">
+        <SettingsCommandItem>
+          <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Tags
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Appearance
+        </SettingsCommandItem>
+        {/* <SettingsCommandItem>
+      <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+      AI
+    </SettingsCommandItem> */}
+        <SettingsCommandItem>
+          <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Curate
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <MixerHorizontalIcon className="text-muted-foreground mr-2" />
+          Misc
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <DatabaseIcon className="text-muted-foreground mr-2" />
+          Data
+        </SettingsCommandItem>
+        {/* <SettingsCommandItem>
+      <UploadIcon className="text-muted-foreground mr-2" />
+      Export
+    </SettingsCommandItem> */}
+        <SettingsCommandItem>
+          <BukaIcon className="text-muted-foreground mr-2" />
+          Feedback
+        </SettingsCommandItem>
+      </CommandGroup>
+      <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
+    </CommandList>
+  );
+
+  const commandInput = (
+    <CommandInput
+      placeholder="Search settings..."
+      ref={cmdInputRef}
+      autoFocus
+      className="border-border max-h-[60px] border-b py-5 pl-5 text-sm"
+    />
+  );
 
   return (
-    <Command loop value={page} onValueChange={(p) => setPage(p as Page)} className="min-h-[450px]">
-      <div className="grid h-full grid-cols-[180px_auto] grid-rows-[1fr_40px]">
-        <div className="">
-          <div className="mb-2 flex items-center">
-            <CommandInput
-              placeholder="Search settings..."
-              ref={cmdInputRef}
-              autoFocus
-              className="border-border max-h-[60px] border-b py-5 pl-5 text-sm"
-            />
-          </div>
-          <CommandList className="max-h-[400px]">
-            <CommandGroup className="px-0">
-              <SettingsCommandItem>
-                <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                Tags
-              </SettingsCommandItem>
-              <SettingsCommandItem>
-                <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                Appearance
-              </SettingsCommandItem>
-              {/* <SettingsCommandItem>
-                <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                AI
-              </SettingsCommandItem> */}
-              <SettingsCommandItem>
-                <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                Curate
-              </SettingsCommandItem>
-              <SettingsCommandItem>
-                <MixerHorizontalIcon className="text-muted-foreground mr-2" />
-                Misc
-              </SettingsCommandItem>
-              <SettingsCommandItem>
-                <DatabaseIcon className="text-muted-foreground mr-2" />
-                Data
-              </SettingsCommandItem>
-              {/* <SettingsCommandItem>
-                <UploadIcon className="text-muted-foreground mr-2" />
-                Export
-              </SettingsCommandItem> */}
-              <SettingsCommandItem>
-                <BukaIcon className="text-muted-foreground mr-2" />
-                Feedback
-              </SettingsCommandItem>
-            </CommandGroup>
-            <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
-          </CommandList>
+    <Command
+      loop
+      value={page}
+      onValueChange={(p) => {
+        setPage(p as Page);
+        setOpen(false);
+      }}
+      className="h-[500px] sm:min-h-[450px]"
+      disablePointerSelection>
+      <div className="flex h-full grid-cols-[180px_auto] grid-rows-[1fr_40px] flex-col sm:grid">
+        <div className="col-1 row-1 hidden sm:block">
+          <div className="mb-2 flex items-center">{commandInput}</div>
+          {commandList}
         </div>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button className="text-muted-foreground bg-card hover:bg-card-active border-b p-3 text-left text-sm transition-all sm:hidden">
+              Settings <span className="mx-2 font-bold opacity-50">/</span> {page}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
+            {commandList}
+          </PopoverContent>
+        </Popover>
 
-        <div className="text-muted-foreground col-start-1 row-start-2 mt-auto p-3 font-mono">
-          {versionLabel}
-        </div>
-
-        {page === "Tags" && <TagsPage />}
+        {page === "Tags" && <TagsPage contentClassName="px-1 sm:px-3" />}
         {page === "Appearance" && <AppearancePage />}
         {page === "Misc" && <MiscPage />}
         {page === "Data" && <DataPage />}
         {page === "Feedback" && <FeedbackPage />}
         {page === "Curate" && <CuratePage />}
+        <div className="text-muted-foreground bg-card col-start-1 row-start-2 mt-auto border-t p-3 font-mono sm:bg-transparent">
+          {versionLabel}
+        </div>
       </div>
     </Command>
   );

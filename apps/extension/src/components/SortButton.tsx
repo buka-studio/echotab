@@ -14,18 +14,20 @@ export default function SortButton({
   active,
   dir,
   className,
+  children,
   ...props
 }: Props & ComponentProps<"button">) {
   return (
     <Button
       variant="ghost"
-      size="icon-sm"
+      size="sm"
       className={cn({ "text-foreground": active }, className)}
       {...props}>
+      {children}
       {!active || dir === SortDir.Asc ? (
-        <ArrowUpIcon className="h-4 w-4" />
+        <ArrowUpIcon className="ml-2 h-4 w-4" />
       ) : (
-        <ArrowDownIcon className="h-4 w-4" />
+        <ArrowDownIcon className="ml-2 h-4 w-4" />
       )}
     </Button>
   );

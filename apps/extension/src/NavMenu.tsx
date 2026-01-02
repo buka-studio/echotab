@@ -51,7 +51,7 @@ export default function NavMenu() {
             <BarChartIcon />
           </ButtonWithTooltip>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[57rem]">
+        <DialogContent className="sm:max-w-[min(57rem,95vw)]">
           <DialogHeader>
             <DialogTitle>Statistics</DialogTitle>
             <DialogDescription>View statistics for your bookmarks and tags.</DialogDescription>
@@ -69,7 +69,7 @@ export default function NavMenu() {
             <GearIcon className="h-4 w-4" />
           </ButtonWithTooltip>
         </DialogTrigger>
-        <DialogContent className="p-0 sm:max-w-[57rem]" close={false}>
+        <DialogContent className="overflow-hidden p-0 sm:max-w-[min(57rem,95vw)]" close={false}>
           <DialogTitle className="sr-only">Settings</DialogTitle>
           <DialogDescription className="sr-only">Change your extension settings.</DialogDescription>
           <Settings />

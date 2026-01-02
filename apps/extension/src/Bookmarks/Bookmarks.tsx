@@ -240,9 +240,9 @@ export default function Bookmarks() {
                 <MobileBottomBarPortal>
                   <DrawerTrigger asChild>
                     <ButtonWithTooltip
-                      tooltipText="Toggle tag sidebar"
-                      aria-label="Toggle tag sidebar"
-                      className="absolute right-10 bottom-4"
+                      tooltipText="Toggle tag drawer"
+                      aria-label="Toggle tag drawer"
+                      className="absolute bottom-4 left-10"
                       size="icon"
                       variant="ghost">
                       <HamburgerMenuIcon />

@@ -1,30 +1,34 @@
 import { Button } from "@echotab/ui/Button";
 import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@echotab/ui/Table";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { HeartIcon, PaletteIcon } from "@phosphor-icons/react";
-import React, { useMemo, useRef, useState } from "react";
+import { HeartIcon } from "@phosphor-icons/react";
+import { useMemo, useRef, useState } from "react";
 
 import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
 import SortButton from "../../components/SortButton";
 import { Tag } from "../../models";
-import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
+import TagStore, { useTagStore } from "../../TagStore";
 import { SortDir } from "../../util/sort";
 import { SettingsContent, SettingsPage, SettingsTitle } from "../SettingsLayout";
-import TagControl from "./TagControl";
+import TagColorPicker from "./TagColorPicker";
+import TagDeleteButton from "./TagDeleteButton";
+import { TagNameInput } from "./TagNameInput";
 
 interface TagSetting extends Tag {
   tabCount: number;
 }
 
 const sortableColumns = ["favorite", "tabCount", "name"] as const;
-type Column = (typeof sortableColumns)[number];
-
-const columnLabels: Record<Column, string> = {
-  favorite: "Favorite",
-  tabCount: "# Tabs",
-  name: "Name",
-};
 
 function propComparator<T extends { name: string; tabCount: number; favorite: boolean }>(
   a: T,
@@ -40,7 +44,7 @@ function propComparator<T extends { name: string; tabCount: number; favorite: bo
   return a[prop].localeCompare(b[prop]);
 }
 
-export default function TagsPage() {
+export default function TagsPage({ contentClassName }: { contentClassName?: string }) {
   const bookmarkStore = useBookmarkStore();
   const tagStore = useTagStore();
 
@@ -120,52 +124,76 @@ export default function TagsPage() {
         Tags
       </SettingsTitle>
 
-      <SettingsContent>
-        <div className="grid w-full grid-cols-[20%_20%_auto] content-center items-center gap-3 gap-y-4">
-          {sortableColumns.map((c, i) => (
-            <div className="text-muted-foreground flex items-center gap-2 text-sm" key={c}>
-              {columnLabels[c]}{" "}
-              <SortButton
-                active={tagSort.col === c}
-                dir={tagSort.dir}
-                onClick={() => handleSort(c)}
-              />
-              {i === sortableColumns.length - 1 && (
-                <ButtonWithTooltip
-                  onClick={handleShuffleTagColors}
-                  size="icon-sm"
-                  className="mr-[42px] ml-auto"
-                  variant="ghost"
-                  tooltipText="Shuffle tag colors">
-                  <PaletteIcon size={18} />
-                </ButtonWithTooltip>
-              )}
-            </div>
-          ))}
-          {tagSettings.map((t) => (
-            <React.Fragment key={t.id}>
-              <Button
-                className="mr-auto"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Favorite ${t.name}`}
-                onClick={() => TagStore.toggleTagFavorite(t.id)}>
-                <HeartIcon
-                  className={cn("size-4", { "text-red-500": t.favorite })}
-                  weight={t.favorite ? "fill" : "regular"}
-                />
-              </Button>
-              <span className="">{t.tabCount}</span>
-              <TagControl
-                tag={t}
-                tabCount={t.tabCount}
-                onChange={(update) => TagStore.updateTag(t.id, update)}
-                onDelete={() => handleDeleteTag(t)}
-                disabled={t.id === unassignedTag.id}
-              />
-            </React.Fragment>
-          ))}
-        </div>
+      <SettingsContent className={contentClassName}>
+        <Table>
+          <TableCaption className="sr-only">A list of your tags.</TableCaption>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-auto text-center">Favorite</TableHead>
+              <TableHead className="h-auto text-center">
+                <SortButton
+                  active={tagSort.col === "tabCount"}
+                  dir={tagSort.dir}
+                  onClick={() => handleSort("tabCount")}>
+                  Tab count
+                </SortButton>
+              </TableHead>
+              <TableHead className="h-auto">
+                <SortButton
+                  active={tagSort.col === "name"}
+                  dir={tagSort.dir}
+                  onClick={() => handleSort("name")}>
+                  Name
+                </SortButton>
+              </TableHead>
+              <TableHead className="h-auto text-center">Color</TableHead>
+              <TableHead className="h-auto"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tagSettings.map((t) => (
+              <TableRow key={t.id} className="hover:bg-transparent">
+                <TableCell className="text-center">
+                  <ButtonWithTooltip
+                    side="top"
+                    tooltipText={t.favorite ? "Remove from favorites" : "Add to favorites"}
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Favorite ${t.name}`}
+                    onClick={() => TagStore.toggleTagFavorite(t.id)}>
+                    <HeartIcon
+                      className={cn("size-4", { "text-red-500": t.favorite })}
+                      weight={t.favorite ? "fill" : "regular"}
+                    />
+                  </ButtonWithTooltip>
+                </TableCell>
+                <TableCell className="text-center">{t.tabCount} </TableCell>
+                <TableCell>
+                  <div>
+                    <TagNameInput
+                      key={t.name}
+                      name={t.name}
+                      onChange={(name) => TagStore.updateTag(t.id, { name })}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <TagColorPicker
+                    value={t.color}
+                    onChange={(color) => TagStore.updateTag(t.id, { color })}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TagDeleteButton
+                    tag={t}
+                    onDelete={() => handleDeleteTag(t)}
+                    tabCount={t.tabCount}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </SettingsContent>
     </SettingsPage>
   );

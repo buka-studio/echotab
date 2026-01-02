@@ -190,7 +190,6 @@ export default function DataPage() {
             </FileUploadDropzone>
           </FileUpload>
         </div>
-        <Separator />
 
         <div className="flex items-center justify-between gap-2">
           <div>

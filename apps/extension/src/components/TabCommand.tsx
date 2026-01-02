@@ -117,8 +117,11 @@ export function CommandPagination<T extends string>({
   ...props
 }: ComponentProps<"div"> & { pages: T[]; goToPage: (page: T) => void }) {
   return (
-    <div className={cn("pages flex items-center gap-1 px-1", className)} {...props}>
+    <div className={cn("pages flex items-center empty:hidden", className)} {...props}>
       {pages.flatMap((p, i) => {
+        if (p === "/") {
+          return [];
+        }
         const path = [
           <button
             className={cn("focus-ring rounded-md", {
@@ -130,9 +133,9 @@ export function CommandPagination<T extends string>({
             {capitalize(p)}
           </button>,
         ];
-        if (i < pages.length - 1 && i > 0) {
+        if (i < pages.length) {
           path.push(
-            <span className="" key={p + i}>
+            <span className="ml-2 font-bold opacity-50 not-last:mr-2" key={p + i}>
               /
             </span>,
           );
@@ -213,7 +216,7 @@ export function TabCommandDialog({
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none sm:max-w-[57rem]">
+          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none sm:max-w-[57rem]">
           <DialogStateContext.Provider value={{ open, setOpen }}>
             {children}
           </DialogStateContext.Provider>
