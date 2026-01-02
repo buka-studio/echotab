@@ -10,6 +10,24 @@ interface Props {
   onSelectionChange: (ids: Set<number | string>) => void;
 }
 
+const isAncestorInteractive = (event: MouseEvent) => {
+  const el = event.target
+    ? (event.target as Element).closest("button, input, a, select, textarea, option, label")
+    : null;
+
+  if (!el) {
+    return false;
+  }
+
+  const isSelectable = el.classList.contains("selectable");
+
+  if (isSelectable) {
+    return false;
+  }
+
+  return true;
+};
+
 export function SelectableList({
   onResetSelection,
   getSelected,
@@ -54,6 +72,9 @@ export function SelectableList({
   };
 
   const onBeforeStart = ({ event, ...rest }: SelectionEvent) => {
+    if (event && isAncestorInteractive(event as MouseEvent)) {
+      return false;
+    }
     if (event && "buttons" in event) {
       const allowedButtons = [
         1, // left click
