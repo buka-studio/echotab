@@ -118,6 +118,12 @@
   }
 }
 
+@layer utilities {
+  .overflow-initial {
+    overflow: initial;
+  }
+}
+
 @theme inline {
   --color-background-base: var(--background-base);
   --color-background: var(--background);

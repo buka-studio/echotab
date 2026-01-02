@@ -137,7 +137,7 @@ export default function Settings() {
         {page === "Data" && <DataPage />}
         {page === "Feedback" && <FeedbackPage />}
         {page === "Curate" && <CuratePage />}
-        <div className="text-muted-foreground bg-card col-start-1 row-start-2 mt-auto border-t p-3 font-mono sm:bg-transparent">
+        <div className="text-muted-foreground bg-card col-start-1 row-start-2 mt-auto border-t border-transparent p-3 font-mono sm:bg-transparent">
           {versionLabel}
         </div>
       </div>

@@ -2,6 +2,7 @@ import { Button } from "@echotab/ui/Button";
 import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { Drawer, DrawerContent, DrawerTrigger } from "@echotab/ui/Drawer";
 import { useMatchMedia } from "@echotab/ui/hooks";
+import { ScrollArea } from "@echotab/ui/ScrollArea";
 import { cn } from "@echotab/ui/util";
 import { BookmarkFilledIcon, CaretSortIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Virtualizer } from "@tanstack/react-virtual";
@@ -225,11 +226,13 @@ export default function Bookmarks() {
           <>
             {isXLScreen ? (
               <div className="scrollbar-gray sticky top-5 col-3 row-[1/3] mt-15 hidden h-full w-full justify-self-end overflow-auto p-3 xl:block xl:max-h-[96vh]">
-                <TagNavigation
-                  visibleTagIds={visibleTagItems}
-                  onTagClick={handleScrollToTag}
-                  className="h-full max-h-screen w-full [&_li]:max-w-[200px]"
-                />
+                <ScrollArea fade="mask" maskOffset={5} className="h-full">
+                  <TagNavigation
+                    visibleTagIds={visibleTagItems}
+                    onTagClick={handleScrollToTag}
+                    className="h-full max-h-screen w-full [&_li]:max-w-[200px]"
+                  />
+                </ScrollArea>
               </div>
             ) : (
               <Drawer

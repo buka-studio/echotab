@@ -125,7 +125,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
       </SettingsTitle>
 
       <SettingsContent className={contentClassName}>
-        <Table>
+        <Table containerClassName="overflow-initial">
           <TableCaption className="sr-only">A list of your tags.</TableCaption>
           <TableHeader>
             <TableRow className="hover:bg-transparent">

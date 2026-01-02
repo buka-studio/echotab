@@ -1,7 +1,7 @@
 "use client";
 
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
-import { RefObject, useEffect, useRef } from "react";
+import { CSSProperties, RefObject, useEffect, useRef } from "react";
 import { useResizeObserver } from "usehooks-ts";
 
 import { cn } from "./util";
@@ -23,9 +23,11 @@ function ScrollArea({
   className,
   children,
   fade,
+  maskOffset = 20,
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
   fade?: "mask" | "shadow";
+  maskOffset?: number;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -60,10 +62,15 @@ function ScrollArea({
           updateScrollOffsets(e.currentTarget, rootRef.current);
         }}
         data-slot="scroll-area-viewport"
+        style={
+          {
+            "--mask-offset": `${maskOffset}%`,
+          } as CSSProperties
+        }
         className={cn(
           "focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&>div]:block!",
           {
-            "mask-[linear-gradient(to_bottom,transparent,black_min(var(--offset-y-top)*1px,30%),black_calc(100%-min(var(--offset-y-bottom)*1px,30%)),transparent)]":
+            "mask-[linear-gradient(to_bottom,transparent,black_min(var(--offset-y-top)*1px,var(--mask-offset)),black_calc(100%-min(var(--offset-y-bottom)*1px,var(--mask-offset))),transparent)]":
               fade === "mask",
           },
         )}>
@@ -88,8 +95,8 @@ function ScrollBar({
       className={cn(
         "flex touch-none p-px transition-colors select-none",
         {
-          "h-full w-2 border-l border-l-transparent": orientation === "vertical",
-          "h-2 flex-col border-t border-t-transparent": orientation === "horizontal",
+          "h-full w-2.5 border-l border-l-transparent": orientation === "vertical",
+          "h-2.5 flex-col border-t border-t-transparent": orientation === "horizontal",
         },
         className,
       )}
