@@ -1,6 +1,7 @@
 import { Input } from "@echotab/ui/Input";
 import { Label } from "@echotab/ui/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@echotab/ui/Select";
+import { Separator } from "@echotab/ui/Separator";
 import { Switch } from "@echotab/ui/Switch";
 import { ComponentProps, useState } from "react";
 
@@ -66,7 +67,7 @@ export default function CuratePage() {
       <SettingsTitle>Curate</SettingsTitle>
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between space-x-2">
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="old-link-threshold-value">Link expiration</Label>
             <div className="text-muted-foreground text-sm">
               How old a link needs to be before it's flagged for curation.
@@ -99,8 +100,10 @@ export default function CuratePage() {
           </div>
         </div>
 
+        <Separator />
+
         <div className="flex items-center justify-between space-x-2">
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="reminder-enabled">Reminders enabled</Label>
             <div className="text-muted-foreground text-sm">
               Toggle curation reminders on or off.
@@ -114,8 +117,10 @@ export default function CuratePage() {
             }}
           />
         </div>
+        <Separator />
+
         <div className="flex items-center justify-between space-x-2">
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="reminder-interval-value">Reminders frequency</Label>
             <div className="text-muted-foreground text-sm">
               How often you want to be reminded to curate your links.

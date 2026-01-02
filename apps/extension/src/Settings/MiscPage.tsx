@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@echotab/ui/Select";
+import { Separator } from "@echotab/ui/Separator";
 import { Switch } from "@echotab/ui/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
@@ -39,7 +40,7 @@ export default function MiscPage() {
       <SettingsTitle>Misc</SettingsTitle>
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between gap-2">
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="include-tags">Clipboard tags</Label>
             <div className="text-muted-foreground text-sm">
               Include or exclude tags when copying links to the clipboard
@@ -53,8 +54,9 @@ export default function MiscPage() {
             }}
           />
         </div>
+        <Separator />
         <div className="flex items-center justify-between gap-2">
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="clipboard-format">
               Clipboard Format{" "}
               <Tooltip>

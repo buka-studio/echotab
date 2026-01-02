@@ -19,7 +19,7 @@ export function SettingsTitle({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex max-h-[60px] w-full items-center justify-between gap-2 border-b border-transparent p-5 px-3 sm:px-5">
+    <div className="flex max-h-[60px] w-full items-center justify-between gap-2 border-b p-5 px-3 sm:px-5">
       <h1 className={cn("text-base font-semibold", className)}>{children}</h1>
       {right}
     </div>

@@ -11,7 +11,7 @@ import {
 } from "@echotab/ui/Table";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { HeartIcon } from "@phosphor-icons/react";
+import { HeartIcon, PaintBucketIcon } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
 
 import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
@@ -129,7 +129,11 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
           <TableCaption className="sr-only">A list of your tags.</TableCaption>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="h-auto text-center">Color</TableHead>
+              <TableHead className="h-auto text-center">
+                <div className="flex items-center justify-center">
+                  <PaintBucketIcon className="size-4" />
+                </div>
+              </TableHead>
               <TableHead className="h-auto">
                 <SortButton
                   active={tagSort.col === "name"}
@@ -139,7 +143,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                 </SortButton>
               </TableHead>
 
-              <TableHead className="h-auto text-center">
+              <TableHead className="h-auto text-right">
                 <SortButton
                   active={tagSort.col === "tabCount"}
                   dir={tagSort.dir}
@@ -147,7 +151,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                   Tab count
                 </SortButton>
               </TableHead>
-              <TableHead className="h-auto text-center">Favorite</TableHead>
+              <TableHead className="h-auto text-center"></TableHead>
 
               <TableHead className="h-auto"></TableHead>
             </TableRow>
@@ -170,7 +174,9 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                     />
                   </div>
                 </TableCell>
-                <TableCell className="text-center">{t.tabCount} </TableCell>
+                <TableCell className="text-right">
+                  <div className="pr-4">{t.tabCount}</div>
+                </TableCell>
 
                 <TableCell className="text-center">
                   <ButtonWithTooltip

@@ -1,4 +1,5 @@
 import { Label } from "@echotab/ui/Label";
+import { Separator } from "@echotab/ui/Separator";
 import { Switch } from "@echotab/ui/Switch";
 import { ToggleGroup, ToggleGroupItem } from "@echotab/ui/ToggleGroup";
 import { DesktopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
@@ -33,7 +34,7 @@ export default function AppearancePage() {
       <SettingsTitle>Appearance</SettingsTitle>
       <SettingsContent className="flex flex-col gap-4">
         <div className="flex items-center justify-between space-x-2">
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="hide-favicons">Hide Favicons</Label>
             <div className="text-muted-foreground text-sm">Hide favicons for a cleaner look.</div>
           </div>
@@ -45,8 +46,9 @@ export default function AppearancePage() {
             }}
           />
         </div>
+        <Separator />
         <div className="flex items-center justify-between gap-2 text-sm">
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="theme">Theme</Label>
             <div className="text-muted-foreground text-sm">Change EchoTab's theme.</div>
           </div>
