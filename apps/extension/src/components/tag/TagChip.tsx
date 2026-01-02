@@ -6,6 +6,7 @@ interface Props {
   children: ReactNode;
   onRemove?(): void;
   className?: string;
+  indicatorClassName?: string;
   color?: string;
   icon?: ReactNode;
   variant?: "outline" | "solid";
@@ -15,6 +16,7 @@ export default function TagChip({
   children,
   onRemove,
   className,
+  indicatorClassName,
   color,
   icon,
   variant = "solid",
@@ -27,9 +29,13 @@ export default function TagChip({
         className,
       )}>
       <div
-        className={cn("mr-2 h-4 w-4 shrink-0 rounded-full transition-colors duration-150", {
-          "w-0": !color,
-        })}
+        className={cn(
+          "mr-2 h-4 w-4 shrink-0 rounded-full transition-colors duration-150",
+          {
+            "w-0": !color,
+          },
+          indicatorClassName,
+        )}
         style={
           variant === "solid"
             ? { backgroundColor: color }

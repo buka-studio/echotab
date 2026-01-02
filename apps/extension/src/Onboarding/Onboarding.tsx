@@ -8,7 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@echotab/ui/Dialog";
+import { toast } from "@echotab/ui/Toast";
 import { Toggle } from "@echotab/ui/Toggle";
+import { cn } from "@echotab/ui/util";
 import { useState } from "react";
 
 import { useBookmarkStore } from "~/Bookmarks";
@@ -80,7 +82,7 @@ export default function OnboardingDialog() {
 
     bookmarkStore.saveTabs(tabs);
 
-    // toast.success("Imported bookmarks successfully!");
+    toast.success("Imported bookmarks successfully!");
   };
 
   return (
@@ -107,20 +109,21 @@ export default function OnboardingDialog() {
                 className="h-auto rounded-full p-0 px-0"
                 onPressedChange={() => handleToggleTag(i)}>
                 <button>
-                  <TagChip color={color} variant={selectedTagIndices.has(i) ? "solid" : "outline"}>
+                  <TagChip
+                    className={cn({
+                      "border-dashed": !selectedTagIndices.has(i),
+                    })}
+                    color={color}
+                    indicatorClassName={cn({
+                      "opacity-100": selectedTagIndices.has(i),
+                      "opacity-60": !selectedTagIndices.has(i),
+                    })}>
                     {name}
                   </TagChip>
                 </button>
               </Toggle>
             ))}
           </div>
-          <div>or</div>
-          <p className="text-sm">
-            Import your browser bookmarks and create a tag for every folder.
-          </p>
-          <Button variant="outline" onClick={handleImportBookmarks}>
-            Import bookmarks
-          </Button>
         </div>
         <DialogFooter className="gap-1">
           <DialogClose asChild>
@@ -129,7 +132,9 @@ export default function OnboardingDialog() {
             </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button onClick={handleConfirmTags}>Get Started</Button>
+            <Button onClick={handleConfirmTags} variant="outline">
+              Get Started
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
