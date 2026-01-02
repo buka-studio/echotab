@@ -142,7 +142,7 @@ const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
               )}
             </HoverCardTrigger>
             {publicList?.published && (
-              <ArrowTopRightIcon className="icon h-4 w-4 flex-shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
+              <ArrowTopRightIcon className="icon h-4 w-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
             )}
             <HoverCardContent className="h-[300px] w-[350px] overflow-hidden p-3">
               <RichTextRenderer editorState={list.content} />
@@ -156,7 +156,7 @@ const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
         className,
       )}
       actions={
-        <div className="to-card-active pointer-events-none absolute top-[1px] right-[1px] z-1 h-[calc(100%-1px)] bg-gradient-to-r from-transparent to-50% p-1 pl-8">
+        <div className="to-card-active pointer-events-none absolute top-px right-px z-1 h-[calc(100%-1px)] bg-linear-to-r from-transparent to-50% p-1 pl-8">
           <ListMenu list={list} publicList={publicList} />
         </div>
       }

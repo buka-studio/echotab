@@ -59,7 +59,7 @@ function Highlight() {
   return (
     <motion.span
       layoutId="highlight"
-      className="bg-surface-3 absolute -inset-px rounded-full border shadow-sm will-change-transform"
+      className="bg-surface-3 absolute -inset-px rounded-full border will-change-transform dark:shadow-sm"
       transition={{
         type: "spring",
         bounce: 0.2,
@@ -76,7 +76,7 @@ function PanelTrigger({ className, ...props }: ComponentProps<typeof TabsTrigger
   return (
     <TabsTrigger
       className={cn(
-        "focus-ring text-muted-foreground data-[state=active]:text-foreground relative rounded border-none p-2 px-8 transition-colors duration-200 data-[state=active]:bg-transparent! data-[state=active]:shadow-none data-[state=active]:outline-none",
+        "focus-ring text-muted-foreground data-[state=active]:text-foreground relative rounded-full border-none p-2 px-8 transition-colors duration-200 data-[state=active]:bg-transparent! data-[state=active]:outline-none dark:data-[state=active]:shadow-none",
       )}
       {...props}
     />
@@ -99,7 +99,11 @@ if (import.meta.env.DEV) {
 }
 
 export default function App() {
-  const { activePanel, initialized: UIInitialized } = useUIStore();
+  const {
+    activePanel,
+    initialized: UIInitialized,
+    settings: { theme },
+  } = useUIStore();
   const { initialized: tagInitialized } = useTagStore();
   const { initialized: activeInitialized } = useActiveTabStore();
   const curateStore = useCurateStore();
@@ -193,7 +197,7 @@ export default function App() {
               </TabsContent>
             </Tabs>
             <Onboarding />
-            <Toaster />
+            <Toaster theme={theme} />
             <DynamicViewportVarsSetter />
             <MobileBottomBar>
               <ScrollTopFAB className="absolute right-10 bottom-4" />

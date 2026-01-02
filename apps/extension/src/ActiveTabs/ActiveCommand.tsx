@@ -499,7 +499,7 @@ export default function ActiveCommand() {
 
                     <TabCommandItem onSelect={withClear(handleQuickSave)}>
                       <LightningBoltIcon className="text-muted-foreground mr-2" />
-                      Quick Save
+                      Quick Save Tabs
                       <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
                     </TabCommandItem>
 
@@ -543,7 +543,7 @@ export default function ActiveCommand() {
                 {selectedCount === 0 && (
                   <TabCommandItem onSelect={withClear(handleQuickSave)}>
                     <LightningBoltIcon className="text-muted-foreground mr-2" />
-                    Save Session{" "}
+                    Quick Save All Tabs
                     <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
                   </TabCommandItem>
                 )}

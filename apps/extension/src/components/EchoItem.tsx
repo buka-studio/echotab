@@ -19,7 +19,7 @@ const EchoItem = forwardRef<HTMLDivElement, Props>(function EchoItem(
       data-testid="echo-item"
       ref={ref}
       className={cn(
-        "echo-item group/item border-t-border bg-card text-card-foreground hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active grid min-h-[50px] w-full grid-cols-[auto,1fr] items-center border p-2 shadow-sm transition-colors duration-200 @[250px]:flex @[250px]:gap-5",
+        "echo-item group/item border-t-border bg-card text-card-foreground hover:border-border-active hover:bg-card-active [&:has(:focus-within)]:border-border-active [&:has(:focus-within)]:bg-card-active grid min-h-[50px] w-full grid-cols-[auto,1fr] items-center border p-2 transition-colors duration-200 @[250px]:flex @[250px]:gap-5 dark:shadow-sm",
         className,
       )}
       {...props}>

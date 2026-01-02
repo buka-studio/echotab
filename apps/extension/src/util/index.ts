@@ -17,7 +17,8 @@ export function downloadJSON(obj: Record<string, unknown>, name: string) {
 }
 
 export function capitalize(s: string) {
-  return s[0].toUpperCase() + s.slice(1);
+  if (!s) return "";
+  return s[0]!.toUpperCase() + s.slice(1);
 }
 
 export function pluralize(count: number, singular: string, suffix = "s", includeCount = true) {

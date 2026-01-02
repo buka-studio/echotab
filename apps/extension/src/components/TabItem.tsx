@@ -19,7 +19,7 @@ export function Favicon({ src, className }: { className?: string; src?: string }
   return (
     <div
       className={cn(
-        "outline-muted-foreground/10 flex h-7 w-7 items-center justify-center overflow-hidden rounded shadow outline-1",
+        "outline-muted-foreground/20 flex h-7 w-7 items-center justify-center overflow-hidden rounded outline-1 dark:shadow",
         className,
       )}>
       {src ? (

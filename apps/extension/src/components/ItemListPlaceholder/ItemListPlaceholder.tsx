@@ -47,35 +47,28 @@ export default function ItemListPlaceholder({
       <div
         ref={gridRefCallback}
         className={cn(
-          "items-placeholder pointer-events-none flex flex-col [&]:[mask-image:var(--fade-gradient)]",
+          "items-placeholder pointer-events-none flex flex-col mask-(--fade-gradient)",
           {
             "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))]": layout === "grid",
           },
         )}>
         {Array.from({ length: count }).map((_, i) => (
           <motion.div
-            // animate={{ opacity: 1 }}
-            transition={{
-              // type: "tween",
-              delay: 0.05 * i,
-              duration: 0.25,
-            }}
-            // initial={{ opacity: 0 }}
             key={i}
             style={{ backgroundImage: layout === "grid" ? patternBg : "" }}
             className={cn(
               "group/item border-border-active text-card-foreground dark:border-border-active/50 @container flex min-h-12 w-full items-center gap-5 border p-2 transition-colors duration-200",
               {
                 "[&+&]:border-t-0": layout === "list",
-                "f flex-col items-start [&+&]:border-l-0 [&>*]:opacity-0": layout === "grid",
+                "f flex-col items-start *:opacity-0 [&+&]:border-l-0": layout === "grid",
                 "rounded-tr-lg": i === edgeIndices.topRight,
                 "rounded-tl-lg": i === edgeIndices.topLeft,
                 "rounded-br-lg": i === edgeIndices.bottomRight,
                 "rounded-bl-lg": i === edgeIndices.bottomLeft,
               },
             )}>
-            <div className="flex flex-shrink-0">
-              <Favicon className="[&>*]:from-muted-foreground/5 [&>*]:to-muted-foreground/5 shadow-none outline-0 outline-dashed" />
+            <div className="flex shrink-0">
+              <Favicon className="*:from-muted-foreground/5 *:to-muted-foreground/5 shadow-none outline-0 outline-dashed" />
             </div>
             <span className="bg-muted-foreground/5 h-3 w-full max-w-[30cqw] overflow-hidden rounded text-sm text-ellipsis whitespace-nowrap" />
             <span className="group/link bg-muted-foreground/5 flex h-3 w-full max-w-[25cqw] items-center gap-2 rounded transition-colors duration-200" />

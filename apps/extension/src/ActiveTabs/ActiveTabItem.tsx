@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -35,21 +36,24 @@ import { useUIStore } from "../UIStore";
 import ActiveStore, { SelectionStore, useActiveTabStore, useTabInfo } from "./ActiveStore";
 
 function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
-  const getTabIndex = () =>
-    ActiveStore.viewTabIdsByWindowId[tab.windowId].findIndex((id) => id === tab.id);
+  const { viewTabIdsByWindowId } = useActiveTabStore();
+
+  const windowTabs = viewTabIdsByWindowId[tab.windowId] || [];
+
+  const tabIndex = windowTabs.findIndex((id) => id === tab.id);
 
   const handleCloseBefore = () => {
-    ActiveStore.removeTabs(ActiveStore.viewTabIdsByWindowId[tab.windowId].slice(0, getTabIndex()));
+    if (tabIndex === -1) return;
+    ActiveStore.removeTabs(windowTabs.slice(0, tabIndex));
   };
 
   const handleCloseAfter = () => {
-    ActiveStore.removeTabs(ActiveStore.viewTabIdsByWindowId[tab.windowId].slice(getTabIndex() + 1));
+    if (tabIndex === -1) return;
+    ActiveStore.removeTabs(windowTabs.slice(tabIndex + 1));
   };
 
   const handleCloseOthers = () => {
-    ActiveStore.removeTabs(
-      ActiveStore.viewTabIdsByWindowId[tab.windowId].filter((id) => id !== tab.id),
-    );
+    ActiveStore.removeTabs(windowTabs.filter((id) => id !== tab.id));
   };
 
   const handleTabSelection = () => {
@@ -80,9 +84,12 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <p className="text-muted-foreground p-2 text-xs">
-          Last opened {formatLastAccessed(tab.lastAccessed)} ago.
-        </p>
+        <DropdownMenuLabel>
+          Last opened:{" "}
+          <span className="text-xs tracking-normal [text-transform:initial]">
+            {formatLastAccessed(tab.lastAccessed)} ago.
+          </span>
+        </DropdownMenuLabel>
         <DropdownMenuItem onClick={handlePinTab}>{tab.pinned ? "Unpin" : "Pin"}</DropdownMenuItem>
         <DropdownMenuItem onClick={handleTabSelection}>
           {selected ? "Deselect" : "Select"}
