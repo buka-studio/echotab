@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import { Tag } from "~/models";
 import { getUtcISO } from "~/util/date";
 import { intersection } from "~/util/set";
@@ -7,58 +5,7 @@ import { normalizedComparator } from "~/util/string";
 
 import BookmarkStore from "../../Bookmarks/BookmarkStore";
 import TagStore, { unassignedTag } from "../../TagStore";
-
-const dateField = z
-  .union([z.string(), z.number()])
-  .optional()
-  .transform((val) => {
-    if (val === undefined) return undefined;
-    if (typeof val === "number") {
-      return new Date(val).toISOString();
-    }
-    return val;
-  });
-
-export const echotabImportSchema = z.object({
-  tags: z.array(
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      color: z.string(),
-      favorite: z.boolean().default(false),
-      isQuick: z.boolean().default(false),
-      isAI: z.boolean().default(false),
-    }),
-  ),
-  tabs: z.array(
-    z.object({
-      id: z.string().uuid(),
-      title: z.string(),
-      url: z.string(),
-      tagIds: z.array(z.number()),
-      faviconUrl: z.string().optional(),
-      pinned: z.boolean().optional(),
-      savedAt: dateField,
-      visitedAt: dateField,
-      lastCuratedAt: dateField,
-      note: z.string().optional(),
-    }),
-  ),
-  lists: z
-    .array(
-      z.object({
-        id: z.string().uuid(),
-        title: z.string(),
-        content: z.string(),
-        tabIds: z.array(z.string().uuid()),
-        savedAt: z.string().optional(),
-        updatedAt: z.string().optional(),
-      }),
-    )
-    .optional(),
-});
-
-export type EchotabImportData = z.infer<typeof echotabImportSchema>;
+import { EchotabData, echotabDataSchema } from "./EchotabData";
 
 export interface EchotabImportResult {
   tabsImported: number;
@@ -77,7 +24,7 @@ export class EchotabImportError extends Error {
 }
 
 export class EchotabImporter {
-  private validated: EchotabImportData | null = null;
+  private validated: EchotabData | null = null;
 
   async importFromFile(file: File): Promise<EchotabImportResult> {
     const text = await file.text();
@@ -90,11 +37,12 @@ export class EchotabImporter {
     return this.import(validated);
   }
 
-  import(data: EchotabImportData): EchotabImportResult {
+  import(data: EchotabData): EchotabImportResult {
     this.validated = {
       tags: data.tags.map((t) => ({ ...t })),
       tabs: data.tabs.map((t) => ({ ...t, tagIds: [...t.tagIds] })),
       lists: data.lists?.map((l) => ({ ...l, tabIds: [...l.tabIds] })),
+      curations: data.curations?.map((c) => ({ ...c })),
     };
 
     this.remapDuplicateTagNames();
@@ -117,8 +65,8 @@ export class EchotabImporter {
     }
   }
 
-  private validate(data: unknown): EchotabImportData {
-    const result = echotabImportSchema.safeParse(data);
+  private validate(data: unknown): EchotabData {
+    const result = echotabDataSchema.safeParse(data);
     if (!result.success) {
       throw new EchotabImportError(
         `Invalid import data: ${result.error.issues.map((e) => e.message).join(", ")}`,
@@ -131,7 +79,7 @@ export class EchotabImporter {
   private remapDuplicateTagNames(): void {
     if (!this.validated) return;
 
-    const importedTagsByNormalizedName = new Map<string, EchotabImportData["tags"][number]>(
+    const importedTagsByNormalizedName = new Map<string, EchotabData["tags"][number]>(
       this.validated.tags.map((t) => [t.name.trim().toLowerCase(), t]),
     );
 

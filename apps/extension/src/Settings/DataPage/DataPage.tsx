@@ -21,14 +21,14 @@ import { InfoCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
 import { CurateStore } from "~/Curate";
-import { downloadJSON } from "~/util";
 import { createLogger } from "~/util/Logger";
 import SnapshotStore from "~/util/SnapshotStore";
 
-import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
-import TagStore, { unassignedTag, useTagStore } from "../../TagStore";
+import { BookmarkStore } from "../../Bookmarks";
+import TagStore from "../../TagStore";
 import { SettingsContent, SettingsPage, SettingsTitle } from "../SettingsLayout";
 import { BookmarksImporter } from "./BookmarksImporter";
+import { EchotabExporter } from "./EchotabExporter";
 import { EchotabImporter, EchotabImportError } from "./EchotabImporter";
 
 const logger = createLogger("DataPage");
@@ -73,9 +73,6 @@ Import {
 `;
 
 export default function DataPage() {
-  const tagStore = useTagStore();
-  const bookmarkStore = useBookmarkStore();
-
   const [error, setError] = useState<string | null>(null);
 
   const handleImport = async (file: File) => {
@@ -100,14 +97,9 @@ export default function DataPage() {
   };
 
   const handleExport = () => {
-    downloadJSON(
-      {
-        tabs: bookmarkStore.tabs,
-        tags: Array.from(tagStore.tags.values()).filter((t) => t.id !== unassignedTag.id),
-        lists: bookmarkStore.lists,
-      },
-      `echotab-${Date.now()}.json`,
-    );
+    const exporter = new EchotabExporter();
+    exporter.download();
+    toast.success("Exported data successfully!");
   };
 
   const handleConfirmDelete = async () => {
