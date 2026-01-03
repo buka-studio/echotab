@@ -1,3 +1,5 @@
+import type { TabMetadata, TabMetadataRequest } from "~/TabInfo/models";
+
 export type Message =
   | { type: "tab:info" }
   | { type: "tab:close"; tabId: number; saveId?: string }
@@ -5,7 +7,8 @@ export type Message =
   | { type: "list:import"; listId: string }
   | { type: "snapshot:capture" }
   | { type: "widget:toggle" }
-  | { type: "snapshot:ready"; tabId: number; url: string };
+  | { type: "snapshot:ready"; tabId: number; url: string }
+  | ({ type: "metadata:fetch" } & TabMetadataRequest);
 
 export type MessageType = Message["type"];
 
@@ -21,6 +24,7 @@ export interface ResponseMap {
   "snapshot:capture": { success: boolean; dataUrl?: string; error?: string };
   "widget:toggle": void;
   "snapshot:ready": void;
+  "metadata:fetch": { success: boolean; metadata?: TabMetadata; error?: string };
 }
 
 export type MessageResponse<T extends MessageType> = ResponseMap[T];

@@ -1,6 +1,8 @@
 import { uuidv7 } from "uuidv7";
 
 import { MessageBus } from "~/messaging";
+import { MetadataParser } from "~/TabInfo/MetadataParser";
+import type { TabMetadataRequest } from "~/TabInfo/models";
 import { createLogger } from "~/util/Logger";
 
 import { getPublicList } from "../../Bookmarks/Lists/api";
@@ -93,6 +95,37 @@ export default defineBackground({
       await chrome.storage.local.set({ [importStorageKey]: queue });
     }
 
+    async function handleMetadataFetch({ tabId: _tabId, url }: TabMetadataRequest) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            Accept: "text/html",
+            "User-Agent": "Mozilla/5.0 (compatible; EchoTab/1.0)",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("text/html")) {
+          throw new Error(`Invalid content type: ${contentType}`);
+        }
+
+        const html = await response.text();
+        const metadata = MetadataParser.parseFromHtml(html, url);
+
+        return { success: true, metadata };
+      } catch (error) {
+        logger.error(`Failed to fetch metadata for ${url}:`, error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    }
+
     const listener = MessageBus.createListener({
       "version:get": () => ({ version: chrome.runtime.getManifest().version }),
 
@@ -122,6 +155,10 @@ export default defineBackground({
           await snapshotStore.commitSnapshot(tabId, saveId);
         }
         await chrome.tabs.remove(tabId);
+      },
+
+      "metadata:fetch": async (payload) => {
+        return handleMetadataFetch(payload);
       },
     });
 

@@ -41,7 +41,7 @@ import { SavedTab } from "../models";
 import { pluralize } from "../util";
 import { getUtcISO } from "../util/date";
 import { remap } from "../util/math";
-import CurateCard from "./CurateCard";
+import { CurateCard } from "./CurateCard";
 import CurateDock, { DockAction } from "./CurateDock";
 import { InclusionReason, InclusionResult, useCurateStore } from "./CurateStore";
 import CurateSummary from "./CurateSummary";
@@ -263,7 +263,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                         left > 1 ? ["left", "right", "up", "down"] : ["left", "right", "up", "down"]
                       }
                       onSwiped={(direction) => handleSwipe(tab, direction)}>
-                      <CurateCard tab={tab} visible={i === 0} />
+                      <CurateCard tab={tab} index={i} visible={i === 0} />
                     </SwipeableCard>
                   );
                 })}
