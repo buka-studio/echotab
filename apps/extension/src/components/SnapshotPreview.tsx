@@ -5,10 +5,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
 import usePatternBackground from "~/hooks/usePatternBackground";
+import { SnapshotStore } from "~/snapshot";
 import { createLogger } from "~/util/Logger";
 
 import type { Message } from "../messaging";
-import SnapshotStore from "../util/SnapshotStore";
 
 const logger = createLogger("SnapshotPreview");
 

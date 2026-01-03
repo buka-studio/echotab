@@ -85,6 +85,10 @@ class SnapshotStore {
     await tx.done;
   }
 
+  async saveSnapshot(savedId: string, snapshot: Snapshot) {
+    await this.db.put("snapshots", { ...snapshot, savedId }, savedId);
+  }
+
   async getSnapshot({
     id,
     url,
@@ -95,21 +99,16 @@ class SnapshotStore {
     const isSavedId = typeof id === "string";
 
     if (isSavedId) {
-      // For saved tabs, try by savedId first
       let snap = await this.db.get("snapshots", id);
-      // If not found and URL provided, try by URL
       if (!snap && url) {
         snap = await this.getSnapshotByUrl(url);
       }
       return snap;
     } else {
-      // For active tabs, try tmp first
       let snap = await this.getTmp(id);
-      // Then try by tabId index
       if (!snap) {
         snap = await this.getSnapshotByTabId(id);
       }
-      // If still not found and URL provided, try by URL
       if (!snap && url) {
         snap = await this.getSnapshotByUrl(url);
       }

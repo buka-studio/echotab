@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { proxySet } from "valtio/utils";
 
+import { SnapshotStore } from "~/snapshot";
+
 import BookmarkStore from "../Bookmarks/BookmarkStore";
 import { version } from "../constants";
 import { ActiveTab, Serializable } from "../models";
@@ -12,7 +14,6 @@ import { pluralize, sortRecord } from "../util";
 import { zip } from "../util/array";
 import { createLogger } from "../util/Logger";
 import { toggle } from "../util/set";
-import SnapshotStore from "../util/SnapshotStore";
 import { SortDir } from "../util/sort";
 import { StoragePersistence } from "../util/StoragePersistence";
 import { isValidActiveTab } from "../util/tab";

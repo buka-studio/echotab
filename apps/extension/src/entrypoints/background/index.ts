@@ -1,16 +1,17 @@
 import { uuidv7 } from "uuidv7";
 
 import { MessageBus } from "~/messaging";
+import { SnapshotService, SnapshotStore } from "~/snapshot";
 import { MetadataParser } from "~/TabInfo/MetadataParser";
 import type { TabMetadataRequest } from "~/TabInfo/models";
 import { createLogger } from "~/util/Logger";
 
 import { getPublicList } from "../../Bookmarks/Lists/api";
-import { snapshotActiveTab } from "../../util/snapshot";
-import SnapshotStore from "../../util/SnapshotStore";
 import { isValidActiveTab } from "../../util/tab";
 
 const logger = createLogger("background");
+
+const AUTO_SNAPSHOT_ENABLED = false;
 
 export default defineBackground({
   main() {
@@ -157,6 +158,22 @@ export default defineBackground({
         await chrome.tabs.remove(tabId);
       },
 
+      "snapshot:save": async ({ savedId }, sender) => {
+        if (!sender.tab) {
+          return { success: false, error: "No tab context" };
+        }
+        try {
+          const success = await SnapshotService.captureAndSave(sender.tab, savedId);
+          return { success };
+        } catch (error) {
+          logger.error("Failed to save snapshot:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+          };
+        }
+      },
+
       "metadata:fetch": async (payload) => {
         return handleMetadataFetch(payload);
       },
@@ -164,35 +181,37 @@ export default defineBackground({
 
     chrome.runtime.onMessage.addListener(listener);
 
-    chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
-      const tab = await chrome.tabs.get(tabId);
-      await chrome.storage.session.set({ activeTabId: tabId, activeWindowId: windowId });
+    if (AUTO_SNAPSHOT_ENABLED) {
+      chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
+        const tab = await chrome.tabs.get(tabId);
+        await chrome.storage.session.set({ activeTabId: tabId, activeWindowId: windowId });
 
-      try {
-        await snapshotActiveTab(tab);
-      } catch (e) {
-        logger.error("Snapshot failed on tab activated", e);
-      }
-    });
+        try {
+          await SnapshotService.captureToTmp(tab);
+        } catch (e) {
+          logger.error("Snapshot failed on tab activated", e);
+        }
+      });
+
+      chrome.tabs.onUpdated.addListener(async (tabId, _changeInfo, tab) => {
+        const { activeTabId, activeWindowId } = await chrome.storage.session.get([
+          "activeTabId",
+          "activeWindowId",
+        ]);
+
+        if (tab.id === activeTabId && tab.windowId === activeWindowId) {
+          try {
+            await SnapshotService.captureToTmp(tab);
+          } catch (e) {
+            logger.error("Snapshot failed on tab updated", e);
+          }
+        }
+      });
+    }
 
     chrome.tabs.onRemoved.addListener(async (tabId) => {
       const snapshotStore = await SnapshotStore.init();
       await snapshotStore.discardTmp(tabId);
-    });
-
-    chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-      const { activeTabId, activeWindowId } = await chrome.storage.session.get([
-        "activeTabId",
-        "activeWindowId",
-      ]);
-
-      if (tab.id === activeTabId && tab.windowId === activeWindowId) {
-        try {
-          await snapshotActiveTab(tab);
-        } catch (e) {
-          logger.error("Snapshot failed on tab updated", e);
-        }
-      }
     });
   },
 });

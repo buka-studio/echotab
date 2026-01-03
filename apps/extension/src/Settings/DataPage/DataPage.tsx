@@ -21,8 +21,8 @@ import { InfoCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
 import { CurateStore } from "~/Curate";
+import { SnapshotStore } from "~/snapshot";
 import { createLogger } from "~/util/Logger";
-import SnapshotStore from "~/util/SnapshotStore";
 
 import { BookmarkStore } from "../../Bookmarks";
 import TagStore from "../../TagStore";

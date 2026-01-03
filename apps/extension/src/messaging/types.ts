@@ -6,6 +6,7 @@ export type Message =
   | { type: "version:get" }
   | { type: "list:import"; listId: string }
   | { type: "snapshot:capture" }
+  | { type: "snapshot:save"; savedId: string }
   | { type: "widget:toggle" }
   | { type: "snapshot:ready"; tabId: number; url: string }
   | ({ type: "metadata:fetch" } & TabMetadataRequest);
@@ -22,6 +23,7 @@ export interface ResponseMap {
   "version:get": { version: string };
   "list:import": { success: boolean };
   "snapshot:capture": { success: boolean; dataUrl?: string; error?: string };
+  "snapshot:save": { success: boolean; error?: string };
   "widget:toggle": void;
   "snapshot:ready": void;
   "metadata:fetch": { success: boolean; metadata?: TabMetadata; error?: string };

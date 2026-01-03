@@ -10,10 +10,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { useActiveTabStore } from "../ActiveTabs/ActiveStore";
-import { useLLMTagMutation } from "../AI/queries";
 import TagChip from "../components/tag/TagChip";
 import { MessageBus } from "../messaging";
-import { ActiveTab } from "../models";
 import PulseLogo from "../PulseLogo";
 import TagStore, { unassignedTag, useTagStore } from "../TagStore";
 import { subscribeUIStore, useUIStore } from "../UIStore";
@@ -60,6 +58,7 @@ function Widget({ onClose }: Props) {
   subscribeUIStore();
 
   const [closeAfterSave, setCloseAfterSave] = useState(true);
+  const [takeSnapshot, setTakeSnapshot] = useState(true);
   const [saved, setSaved] = useState(false);
 
   const [search, setSearch] = useState("");
@@ -91,33 +90,20 @@ function Widget({ onClose }: Props) {
     }, 1500);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!tab) return;
 
-    activeStore.saveTabsSeq([{ ...tab, tagIds: assignedTagIds }], false, false).then((results) => {
-      const result = results.success[0];
-      if (result) {
-        handleCloseAfterSave(result);
+    const results = await activeStore.saveTabsSeq(
+      [{ ...tab, tagIds: assignedTagIds }],
+      false,
+      false,
+    );
+    const result = results.success[0];
+    if (result) {
+      if (takeSnapshot) {
+        await MessageBus.send("snapshot:save", { savedId: result.saveId });
       }
-    });
-  };
-
-  const aiEnabled = Boolean(uiStore.settings.aiApiProvider);
-
-  const llmMutation = useLLMTagMutation();
-
-  const handleAITag = async () => {
-    if (!tab || !aiEnabled) return;
-
-    const tags = await llmMutation.mutateAsync({
-      tabs: [tab as ActiveTab],
-      tags: Array.from(tagStore.tags.values()),
-    });
-
-    const created = tagStore.createTags(tags.map((tag) => ({ name: tag, isAI: true })));
-
-    for (const tag of created) {
-      handleToggleTag(tag.id);
+      handleCloseAfterSave(result);
     }
   };
 
@@ -129,18 +115,24 @@ function Widget({ onClose }: Props) {
     setSearch("");
   };
 
-  const handleQuickSave = () => {
+  const handleQuickSave = async () => {
     if (!tab) return;
 
     const tagName = TagStore.getQuickSaveTagName(false);
     const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
 
-    activeStore.saveTabsSeq([{ ...tab, tagIds: [quickTag.id] }], false, false).then((results) => {
-      const result = results.success[0];
-      if (result) {
-        handleCloseAfterSave(result);
+    const results = await activeStore.saveTabsSeq(
+      [{ ...tab, tagIds: [quickTag.id] }],
+      false,
+      false,
+    );
+    const result = results.success[0];
+    if (result) {
+      if (takeSnapshot) {
+        await MessageBus.send("snapshot:save", { savedId: result.saveId });
       }
-    });
+      handleCloseAfterSave(result);
+    }
   };
 
   const commandRef = useRef<HTMLDivElement>(null);
@@ -258,15 +250,27 @@ function Widget({ onClose }: Props) {
         </div>
 
         <div className="mt-4 flex items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="close-after-save"
-              checked={closeAfterSave}
-              onCheckedChange={() => setCloseAfterSave((c) => !c)}
-            />
-            <Label htmlFor="close-after-save" className="text-muted-foreground">
-              Close tab after saving
-            </Label>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="close-after-save"
+                checked={closeAfterSave}
+                onCheckedChange={() => setCloseAfterSave((c) => !c)}
+              />
+              <Label htmlFor="close-after-save" className="text-muted-foreground">
+                Close tab after saving
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="take-snapshot"
+                checked={takeSnapshot}
+                onCheckedChange={() => setTakeSnapshot((s) => !s)}
+              />
+              <Label htmlFor="take-snapshot" className="text-muted-foreground">
+                Take a snapshot
+              </Label>
+            </div>
           </div>
 
           <Button onClick={handleSave}>
