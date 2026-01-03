@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import { cn } from "@echotab/ui/util";
 import { BookmarkSimpleIcon, GlobeSimpleIcon, ImageIcon, InfoIcon } from "@phosphor-icons/react";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { formatDistanceToNow } from "date-fns";
 import { ReactNode } from "react";
 
@@ -42,14 +43,23 @@ const Header = ({
   </div>
 );
 
-const HeaderUrl = ({ children, className }: { children: ReactNode; className?: string }) => (
+const HeaderUrl = ({
+  children,
+  className,
+  right,
+}: {
+  children: ReactNode;
+  className?: string;
+  right?: ReactNode;
+}) => (
   <div
     className={cn(
-      "text-muted-foreground border-border flex items-center gap-2 overflow-hidden rounded-full border px-2 py-1 pl-1 text-xs",
+      "text-muted-foreground border-border flex items-center overflow-hidden rounded-full border px-2 py-1 pl-1 text-xs",
       className,
     )}>
-    <GlobeSimpleIcon className="h-4 w-4 shrink-0" />
+    <GlobeSimpleIcon className="h-4 w-4 shrink-0 mr-2" />
     <span className="line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">{children}</span>
+    {right}
   </div>
 );
 
@@ -88,8 +98,18 @@ export default function CurateCard({
   return (
     <article className="border-border bg-background flex h-[400px] w-[420px] flex-col rounded-xl border">
       <Header className="border-border border-b">
-        <HeaderUrl className={cn("transition-opacity duration-150", { "opacity-0": !visible })}>
-          {tab.url}
+        <HeaderUrl
+          className={cn("group transition-opacity duration-150", { "opacity-0": !visible })}
+          right={
+            <ArrowTopRightIcon className="icon h-4 w-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
+          }>
+          <a
+            href={tab.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline focus-visible:underline focus-visible:outline-none">
+            {tab.url}
+          </a>
         </HeaderUrl>
       </Header>
       <div className="flex flex-1 flex-col gap-3 p-2 pt-3">
