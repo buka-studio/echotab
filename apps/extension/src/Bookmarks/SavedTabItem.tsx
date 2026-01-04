@@ -58,7 +58,7 @@ function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref?: 
         "border-border-active bg-card-active": selected,
       })}
       hideFavicon={hideFavicons}
-      linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} />}
+      linkPreview={<SnapshotPreview url={tab.url} />}
       icon={
         <Favicon
           src={tab.url}

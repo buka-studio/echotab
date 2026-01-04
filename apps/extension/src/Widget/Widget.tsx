@@ -65,7 +65,7 @@ function Widget({ onClose }: Props) {
   const [assignedTagIds, setAssignedTagIds] = useState<number[]>([]);
 
   useEffect(() => {
-    MessageBus.send("tab:info").then(({ tab }) => {
+    MessageBus.send("tab:info", {}).then(({ tab }) => {
       setTab(tab);
     });
   }, []);
@@ -79,19 +79,24 @@ function Widget({ onClose }: Props) {
     });
   };
 
-  const handleCloseAfterSave = (result: { tabId: number; saveId: string }) => {
+  const handleCloseAfterSave = (tabId: number) => {
     setSaved(true);
 
-    setTimeout(() => {
-      onClose();
+    setTimeout(async () => {
       if (closeAfterSave) {
-        MessageBus.send("tab:close", { tabId: result.tabId, saveId: result.saveId });
+        await MessageBus.send("tab:close", { tabId });
+      } else {
+        onClose();
       }
     }, 1500);
   };
 
   const handleSave = async () => {
-    if (!tab) return;
+    if (!tab || !tab.id || !tab.url) return;
+
+    if (takeSnapshot) {
+      await MessageBus.send("snapshot:save", { tabId: tab.id, url: tab.url });
+    }
 
     const results = await activeStore.saveTabsSeq(
       [{ ...tab, tagIds: assignedTagIds }],
@@ -100,10 +105,7 @@ function Widget({ onClose }: Props) {
     );
     const result = results.success[0];
     if (result) {
-      if (takeSnapshot) {
-        await MessageBus.send("snapshot:save", { savedId: result.saveId });
-      }
-      handleCloseAfterSave(result);
+      handleCloseAfterSave(result.tabId);
     }
   };
 
@@ -116,7 +118,11 @@ function Widget({ onClose }: Props) {
   };
 
   const handleQuickSave = async () => {
-    if (!tab) return;
+    if (!tab || !tab.id || !tab.url) return;
+
+    if (takeSnapshot) {
+      await MessageBus.send("snapshot:save", { tabId: tab.id, url: tab.url });
+    }
 
     const tagName = TagStore.getQuickSaveTagName(false);
     const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
@@ -128,10 +134,7 @@ function Widget({ onClose }: Props) {
     );
     const result = results.success[0];
     if (result) {
-      if (takeSnapshot) {
-        await MessageBus.send("snapshot:save", { savedId: result.saveId });
-      }
-      handleCloseAfterSave(result);
+      handleCloseAfterSave(result.tabId);
     }
   };
 

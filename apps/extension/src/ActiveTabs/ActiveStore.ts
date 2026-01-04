@@ -5,13 +5,10 @@ import { useEffect, useState } from "react";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { proxySet } from "valtio/utils";
 
-import { SnapshotStore } from "~/snapshot";
-
 import BookmarkStore from "../Bookmarks/BookmarkStore";
 import { version } from "../constants";
 import { ActiveTab, Serializable } from "../models";
 import { pluralize, sortRecord } from "../util";
-import { zip } from "../util/array";
 import { createLogger } from "../util/Logger";
 import { toggle } from "../util/set";
 import { SortDir } from "../util/sort";
@@ -357,18 +354,14 @@ const Store = proxy({
     Store.tabs = await getActiveTabs();
   },
 
-  saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true, snapshot = true) => {
+  saveTabs: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
     if (!tabs.length) {
       return;
     }
 
-    return Store.saveTabsPar(tabs, remove, snapshot);
+    return Store.saveTabsPar(tabs, remove);
   },
-  saveTabsSeq: async (
-    tabs: (ActiveTab & { tagIds: number[] })[],
-    remove = true,
-    snapshot = true,
-  ) => {
+  saveTabsSeq: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
     if (!tabs.length) {
       return;
     }
@@ -381,18 +374,8 @@ const Store = proxy({
       },
     };
 
-    const snapshotStore = await SnapshotStore.init();
-
     for (const tab of tabs) {
       const saveId = BookmarkStore.generateId();
-
-      if (snapshot) {
-        try {
-          await snapshotStore.commitSnapshot(tab.id, saveId);
-        } catch (e) {
-          results.error.snapshots.push(tab.url);
-        }
-      }
 
       try {
         if (remove) {
@@ -422,11 +405,7 @@ const Store = proxy({
 
     return results;
   },
-  saveTabsPar: async (
-    tabs: (ActiveTab & { tagIds: number[] })[],
-    remove = true,
-    snapshot = true,
-  ) => {
+  saveTabsPar: async (tabs: (ActiveTab & { tagIds: number[] })[], remove = true) => {
     if (!tabs.length) {
       return;
     }
@@ -446,23 +425,7 @@ const Store = proxy({
 
     const saved = BookmarkStore.saveTabs(withoutIds);
 
-    const idPairs = zip(
-      tabs.map(({ id }) => id!),
-      saved.map(({ id }) => id!),
-    ) as [number, string][];
-
-    if (snapshot) {
-      const snapshotStore = await SnapshotStore.init();
-      const snapshotResults = await Promise.allSettled(
-        idPairs.map(([tabId, savedId]) => snapshotStore.commitSnapshot(tabId, savedId)),
-      );
-
-      const failed = snapshotResults.filter((r) => r.status === "rejected");
-      if (failed.length) {
-        toast.error(`Failed to save ${pluralize(failed.length, "snapshot")}.`);
-        logger.error("Failed to save snapshots", failed);
-      }
-    }
+    return saved;
   },
   toggleAssignedTagId: (tagId: number) => {
     toggle(Store.assignedTagIds, tagId);

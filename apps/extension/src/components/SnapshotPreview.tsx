@@ -6,21 +6,14 @@ import { motion } from "framer-motion";
 
 import usePatternBackground from "~/hooks/usePatternBackground";
 import { SnapshotStore } from "~/snapshot";
-import { createLogger } from "~/util/Logger";
 
-import type { Message } from "../messaging";
-
-const logger = createLogger("SnapshotPreview");
-
-const isSavedTab = (id: string | number): id is string => typeof id === "string";
-
-function useSnapshot({ id, url }: { id: string | number; url?: string }) {
+function useSnapshot(url: string) {
   return useQuery({
-    queryKey: ["snapshots", id, url],
+    queryKey: ["snapshots", url],
     staleTime: 0,
     queryFn: async () => {
       const snapshotStore = await SnapshotStore.init();
-      const snap = await snapshotStore.getSnapshot({ id, url });
+      const snap = await snapshotStore.getSnapshot(url);
 
       if (snap?.blob) {
         return URL.createObjectURL(snap.blob);
@@ -57,46 +50,23 @@ const NoSnapshot = ({ onVisit }: { onVisit: () => void }) => {
 };
 
 type Props = {
-  tab: {
-    url: string;
-    id: string | number;
-  };
+  url: string;
   className?: string;
   onVisit?: () => void;
 };
 
-export default function SnapshotPreview({ tab, className, onVisit }: Props) {
-  const { data, isLoading } = useSnapshot({ id: tab.id, url: tab.url });
+export default function SnapshotPreview({ url, className, onVisit }: Props) {
+  const { data } = useSnapshot(url);
   const queryClient = useQueryClient();
 
   const handleVisit = () => {
-    chrome.tabs.create({ url: tab.url, active: true }).then(async () => {
-      const handler = async (message: Message) => {
-        if (message.type === "snapshot:ready" && tab.url === message.url) {
-          const snapshotStore = await SnapshotStore.init();
-          try {
-            if (isSavedTab(tab.id)) {
-              await snapshotStore.commitSnapshot(message.tabId, tab.id, tab.url);
-            }
-          } catch (e) {
-            logger.error("Failed to commit snapshot", e);
-          }
-          queryClient.refetchQueries({ queryKey: ["snapshots", tab.id] });
-          chrome.runtime.onMessage.removeListener(handler);
-        }
-      };
-      chrome.runtime.onMessage.addListener(handler);
-    });
+    chrome.tabs.create({ url, active: true });
   };
 
   const handleClear = async () => {
     const snapshotStore = await SnapshotStore.init();
-    if (isSavedTab(tab.id)) {
-      await snapshotStore.deleteSnapshot(tab.id);
-    } else {
-      await snapshotStore.discardTmp(tab.id);
-    }
-    queryClient.setQueryData(["snapshots", tab.id], null);
+    await snapshotStore.deleteSnapshot(url);
+    queryClient.setQueryData(["snapshots", url], null);
   };
 
   return (

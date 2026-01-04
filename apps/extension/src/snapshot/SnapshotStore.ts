@@ -8,7 +8,6 @@ export interface Snapshot {
   savedAt: string;
   source: SnapshotSource;
   tabId?: number;
-  savedId?: string;
 }
 
 class SnapshotStore {
@@ -59,7 +58,7 @@ class SnapshotStore {
     await this.db.clear("snapshots_tmp");
   }
 
-  async commitSnapshot(tabId: number, savedId: string, url?: string) {
+  async commitSnapshot(tabId: number) {
     const tx = this.db.transaction(["snapshots_tmp", "snapshots"], "readwrite");
 
     const tmp = await tx.objectStore("snapshots_tmp").get(tabId);
@@ -68,63 +67,23 @@ class SnapshotStore {
       throw new Error("Snapshot not found");
     }
 
-    if (url && tmp.url !== url) {
-      tx.abort();
-      throw new Error("Snapshot URL mismatch");
-    }
-
     const snapshot: Snapshot = {
       ...tmp,
       tabId,
-      savedId,
     };
 
-    await tx.objectStore("snapshots").put(snapshot, savedId);
+    await tx.objectStore("snapshots").put(snapshot, tmp.url);
     await tx.objectStore("snapshots_tmp").delete(tabId);
 
     await tx.done;
   }
 
-  async saveSnapshot(savedId: string, snapshot: Snapshot) {
-    await this.db.put("snapshots", { ...snapshot, savedId }, savedId);
+  async saveSnapshot(url: string, snapshot: Snapshot) {
+    await this.db.put("snapshots", snapshot, url);
   }
 
-  async getSnapshot({
-    id,
-    url,
-  }: {
-    id: string | number;
-    url?: string;
-  }): Promise<Snapshot | undefined> {
-    const isSavedId = typeof id === "string";
-
-    if (isSavedId) {
-      let snap = await this.db.get("snapshots", id);
-      if (!snap && url) {
-        snap = await this.getSnapshotByUrl(url);
-      }
-      return snap;
-    } else {
-      let snap = await this.getTmp(id);
-      if (!snap) {
-        snap = await this.getSnapshotByTabId(id);
-      }
-      if (!snap && url) {
-        snap = await this.getSnapshotByUrl(url);
-      }
-      return snap;
-    }
-  }
-
-  async getSnapshotBySavedId(savedId: string): Promise<Snapshot | undefined> {
-    return this.db.get("snapshots", savedId);
-  }
-
-  async getSnapshotByUrl(url: string): Promise<Snapshot | undefined> {
-    const tx = this.db.transaction("snapshots", "readonly");
-    const index = tx.store.index("url");
-    const cursor = await index.openCursor(IDBKeyRange.only(url));
-    return cursor?.value;
+  async getSnapshot(url: string): Promise<Snapshot | undefined> {
+    return this.db.get("snapshots", url);
   }
 
   async getSnapshotByTabId(tabId: number): Promise<Snapshot | undefined> {
@@ -134,8 +93,8 @@ class SnapshotStore {
     return cursor?.value;
   }
 
-  async deleteSnapshot(savedId: string) {
-    await this.db.delete("snapshots", savedId);
+  async deleteSnapshot(url: string) {
+    await this.db.delete("snapshots", url);
   }
 
   async clearSnapshots() {

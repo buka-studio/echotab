@@ -38,7 +38,7 @@ export default defineBackground({
             url.protocol !== "chrome:" && url.protocol !== "chrome-extension:";
 
           if (canHaveContentScript) {
-            MessageBus.sendToTab(tab.id, "widget:toggle").catch(() => {});
+            MessageBus.sendToTab(tab.id, "widget:toggle", {}).catch(() => {});
           }
         } catch {
           // Invalid URL or other error, ignore
@@ -150,21 +150,23 @@ export default defineBackground({
         throw new Error("Invalid tab");
       },
 
-      "tab:close": async ({ tabId, saveId }) => {
-        if (saveId) {
-          const snapshotStore = await SnapshotStore.init();
-          await snapshotStore.commitSnapshot(tabId, saveId);
+      "tab:close": async ({ tabId }) => {
+        if (tabId !== undefined) {
+          await chrome.tabs.remove(tabId);
         }
-        await chrome.tabs.remove(tabId);
       },
 
-      "snapshot:save": async ({ savedId }, sender) => {
-        if (!sender.tab) {
-          return { success: false, error: "No tab context" };
+      "snapshot:save": async ({ tabId, url }) => {
+        if (!tabId || !url) {
+          return { success: false, error: "Missing tabId or url" };
         }
         try {
-          const success = await SnapshotService.captureAndSave(sender.tab, savedId);
-          return { success };
+          const tab = await chrome.tabs.get(tabId);
+          if (!tab || tab.url !== url) {
+            return { success: false, error: "Tab not found or URL mismatch" };
+          }
+          const result = await SnapshotService.captureAndSave(tab);
+          return result;
         } catch (error) {
           logger.error("Failed to save snapshot:", error);
           return {

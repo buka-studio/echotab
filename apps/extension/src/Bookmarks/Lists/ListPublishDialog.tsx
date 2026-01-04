@@ -9,21 +9,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@echotab/ui/Dialog";
-import { Label } from "@echotab/ui/Label";
 import { Spinner } from "@echotab/ui/Spinner";
-import { Switch } from "@echotab/ui/Switch";
 import {
   ArrowTopRightIcon,
   BookmarkIcon,
   EyeOpenIcon,
   InfoCircledIcon,
 } from "@radix-ui/react-icons";
-import { ComponentProps, ReactNode, useRef, useState } from "react";
+import { ComponentProps, ReactNode, useState } from "react";
 
 import { List } from "~/models";
 
 import { formatDate } from "../../util/date";
-import BookmarkStore from "../BookmarkStore";
 import { usePublishListMutation, useUnpublishMutation, useUpdateListMutation } from "./queries";
 import { getPublicListURL } from "./util";
 
@@ -34,8 +31,6 @@ type Props = {
 } & ComponentProps<typeof Dialog>;
 
 export default function ListPublishDialog({ list, children, publicList }: Props) {
-  const formRef = useRef<HTMLFormElement>(null);
-
   const [open, setOpen] = useState(false);
 
   const publishMutation = usePublishListMutation();
@@ -58,13 +53,6 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
 
   const unpublishMutation = useUnpublishMutation();
 
-  const handleFormChange = () => {
-    const formData = new FormData(formRef.current!);
-    const sync = formData.get("sync") === "on";
-
-    BookmarkStore.upsertList({ ...list, sync });
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children}
@@ -79,16 +67,6 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
             available publicly after sharing. We recommend removing any sensitive information and/or
             links you don&apos;t want others to see.
           </div>
-          <form ref={formRef} onChange={handleFormChange}>
-            <div className="mt-3 flex items-center space-x-2">
-              <Switch id="sync" name="sync" defaultChecked={list.sync} />
-              <Label htmlFor="sync">Sync updates</Label>
-            </div>
-            <div className="text-muted-foreground mt-2 text-xs">
-              If checked, the published list will be updated automatically when you make changes.
-            </div>
-          </form>
-
           {publicList && (
             <div className="mt-4 flex items-start justify-between border-t pt-4">
               <div>

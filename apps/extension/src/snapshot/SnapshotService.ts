@@ -12,6 +12,7 @@ interface ResizeOptions {
 
 interface CaptureOptions {
   quality?: number;
+  useNativeCapture?: boolean;
 }
 
 interface CaptureResult {
@@ -21,30 +22,30 @@ interface CaptureResult {
 
 export interface SnapshotAndSaveOptions {
   quality?: number;
+  useNativeCapture?: boolean;
 }
 
 export class SnapshotService {
   static async captureAndSave(
     tab: chrome.tabs.Tab,
-    savedId: string,
     options: SnapshotAndSaveOptions = {},
-  ): Promise<boolean> {
+  ): Promise<{ success: boolean; url?: string }> {
     if (!this.isTabSnapshotable(tab)) {
       logger.warn("Tab is not snapshotable:", tab.url);
-      return false;
+      return { success: false };
     }
 
     const { id: tabId, url } = tab;
     if (!tabId || !url) {
       logger.error("Snapshot failed: missing tabId or url");
-      return false;
+      return { success: false };
     }
 
     try {
       const result = await this.captureTab(tab, options);
       if (!result) {
         logger.error("Snapshot failed: capture returned null");
-        return false;
+        return { success: false };
       }
 
       const snapshotStore = await SnapshotStore.init();
@@ -54,15 +55,14 @@ export class SnapshotService {
         savedAt: new Date().toISOString(),
         source: result.source,
         tabId,
-        savedId,
       };
 
-      await snapshotStore.saveSnapshot(savedId, snapshot);
-      logger.info(`Snapshot saved for ${savedId}`);
-      return true;
+      await snapshotStore.saveSnapshot(url, snapshot);
+      logger.info(`Snapshot saved for ${url}`);
+      return { success: true, url };
     } catch (err) {
       logger.error("Snapshot failed:", err);
-      return false;
+      return { success: false };
     }
   }
 
@@ -117,7 +117,7 @@ export class SnapshotService {
     tab: chrome.tabs.Tab,
     options: CaptureOptions = {},
   ): Promise<CaptureResult | null> {
-    const { quality = 80 } = options;
+    const { quality = 80, useNativeCapture = true } = options;
     const { windowId, id: tabId } = tab;
 
     if (!tabId) {
@@ -127,12 +127,14 @@ export class SnapshotService {
     let rawBlob: Blob | null = null;
     let source: SnapshotSource = "captureVisibleTab";
 
-    try {
-      const dataUrl = await this.captureViaContentScript(tabId);
-      rawBlob = await fetch(dataUrl).then((r) => r.blob());
-      source = "snapdom";
-    } catch (err) {
-      logger.warn("SnapDOM capture failed:", err);
+    if (!useNativeCapture) {
+      try {
+        const dataUrl = await this.captureViaContentScript(tabId);
+        rawBlob = await fetch(dataUrl).then((r) => r.blob());
+        source = "snapdom";
+      } catch (err) {
+        logger.warn("SnapDOM capture failed:", err);
+      }
     }
 
     if (!rawBlob) {
@@ -158,7 +160,12 @@ export class SnapshotService {
   }
 
   private static async captureViaContentScript(tabId: number, timeoutMs = 2000): Promise<string> {
-    const response = await MessageBus.sendToTab(tabId, "snapshot:capture", { timeout: timeoutMs });
+    const response = await MessageBus.sendToTab(
+      tabId,
+      "snapshot:capture",
+      {},
+      { timeout: timeoutMs },
+    );
 
     if (!response.success) {
       throw new Error(response.error || "Snapshot capture failed");

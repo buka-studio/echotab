@@ -11,16 +11,9 @@ type SendOptions = {
 export class MessageBus {
   static send<T extends MessageType>(
     type: T,
-    ...args: keyof MessagePayload<T> extends never
-      ? [options?: SendOptions]
-      : [payload: MessagePayload<T>, options?: SendOptions]
+    payload: MessagePayload<T>,
+    options?: SendOptions,
   ): Promise<MessageResponse<T>> {
-    const [payloadOrOptions, maybeOptions] = args;
-    const payload = (maybeOptions !== undefined ? payloadOrOptions : {}) as MessagePayload<T>;
-    const options = (maybeOptions !== undefined ? maybeOptions : payloadOrOptions) as
-      | SendOptions
-      | undefined;
-
     const message = { type, ...payload } as Message;
 
     const sendPromise = new Promise<MessageResponse<T>>((resolve, reject) => {
@@ -48,16 +41,9 @@ export class MessageBus {
   static sendToTab<T extends MessageType>(
     tabId: number,
     type: T,
-    ...args: keyof MessagePayload<T> extends never
-      ? [options?: SendOptions]
-      : [payload: MessagePayload<T>, options?: SendOptions]
+    payload: MessagePayload<T>,
+    options?: SendOptions,
   ): Promise<MessageResponse<T>> {
-    const [payloadOrOptions, maybeOptions] = args;
-    const payload = (maybeOptions !== undefined ? payloadOrOptions : {}) as MessagePayload<T>;
-    const options = (maybeOptions !== undefined ? maybeOptions : payloadOrOptions) as
-      | SendOptions
-      | undefined;
-
     const message = { type, ...payload } as Message;
 
     const sendPromise = new Promise<MessageResponse<T>>((resolve, reject) => {
@@ -84,10 +70,9 @@ export class MessageBus {
 
   static async broadcast<T extends MessageType>(
     type: T,
-    ...args: keyof MessagePayload<T> extends never ? [] : [payload: MessagePayload<T>]
+    payload: MessagePayload<T>,
   ): Promise<void> {
-    const [payload] = args;
-    const message = { type, ...(payload || {}) } as Message;
+    const message = { type, ...payload } as Message;
 
     const tabs = await chrome.tabs.query({});
     await Promise.allSettled(
