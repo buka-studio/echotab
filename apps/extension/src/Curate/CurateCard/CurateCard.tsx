@@ -9,7 +9,7 @@ import { Favicon } from "~/components/TabItem";
 import { SavedTab } from "~/models";
 
 import { InfoDescription } from "./InfoDescription";
-import { OGImage } from "./OgImage";
+import { OGImage } from "./OGImage";
 
 const Header = ({
   children,
@@ -22,7 +22,7 @@ const Header = ({
 }) => (
   <div
     className={cn(
-      "header relative flex w-full items-center justify-between gap-5 overflow-hidden px-5 py-2",
+      "header bg-surface-1 relative flex w-full items-center justify-between gap-5 overflow-hidden rounded-t-xl px-4 py-2",
       className,
     )}>
     <div className="flex items-center justify-center gap-1">
@@ -54,10 +54,10 @@ const HeaderUrl = ({
 }) => (
   <div
     className={cn(
-      "text-muted-foreground border-border flex items-center overflow-hidden rounded-full border px-2 py-1 pl-1 text-xs",
+      "text-muted-foreground bg-surface-2 border-border flex items-center overflow-hidden rounded-full border px-2 py-1 pl-1 text-xs",
       className,
     )}>
-    <GlobeSimpleIcon className="h-4 w-4 shrink-0 mr-2" />
+    <GlobeSimpleIcon className="mr-2 h-4 w-4 shrink-0" />
     <span className="line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">{children}</span>
     {right}
   </div>
@@ -69,14 +69,13 @@ const formatSavedAt = (savedAt: string) => {
 
 const Jumbo = ({ tab, className }: { tab: SavedTab; className?: string }) => {
   return (
-    <div className={cn("flex items-center gap-4 pr-2", className)}>
-      <Favicon src={tab.url} className="bg-muted h-14 w-14 shrink-0 rounded-lg *:h-10 *:w-10" />
+    <div className={cn("flex items-center gap-3 pr-2", className)}>
+      <Favicon src={tab.url} className="bg-muted h-10 w-10 shrink-0 rounded-lg *:h-8 *:w-8" />
       <div className="flex flex-col text-left">
-        <h1 className="line-clamp-1 text-sm font-bold break-all">{tab.title}</h1>
+        <h1 className="line-clamp-1 text-sm font-semibold break-all">{tab.title}</h1>
         {tab.savedAt && (
           <div className="text-muted-foreground text-sm">
-            <span className="">Saved {formatSavedAt(tab.savedAt)} ago</span> / Visited{" "}
-            {formatSavedAt(tab.visitedAt || tab.savedAt)} ago
+            Last visited {formatSavedAt(tab.visitedAt || tab.savedAt)} ago
           </div>
         )}
       </div>
@@ -112,7 +111,7 @@ export default function CurateCard({
           </a>
         </HeaderUrl>
       </Header>
-      <div className="flex flex-1 flex-col gap-3 p-2 pt-3">
+      <div className="flex flex-1 flex-col gap-3 p-4 pt-3">
         <Jumbo tab={tab} className="" />
         <Tabs defaultValue="image" className="flex flex-1 flex-col overflow-auto" key={tab.id}>
           <div className="flex justify-between">

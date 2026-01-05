@@ -190,7 +190,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
           e.preventDefault();
         }}
         className={cn(
-          "flex h-full max-h-screen flex-col overflow-hidden border-none bg-transparent p-0 sm:max-w-[100vw]",
+          "flex h-full max-h-screen flex-col overflow-hidden border-none bg-transparent p-0 md:max-w-[100vw]",
         )}
         overlay={
           <DialogOverlay className="bg-background-base dark:bg-background-base dark:brightness-90" />
@@ -211,7 +211,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
           )}>
           <DialogTitle className="sr-only">Curate</DialogTitle>
           <DialogDescription className="flex items-center text-sm">
-            <span className="hidden md:block">Swipe left to remove</span>
+            <span className="hidden md:block">Swipe left to delete</span>
             <span
               className={cn("mx-auto flex items-center gap-2", {
                 "opacity-0": left === 0,
@@ -382,7 +382,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                   setForceFinish(true);
                   setConfirmDialogOpen(false);
                 }}
-                variant="destructive">
+                variant="default">
                 Finish
               </AlertDialogAction>
             </AlertDialogFooter>

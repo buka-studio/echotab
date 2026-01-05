@@ -7,8 +7,6 @@ import usePatternBackground from "~/hooks/usePatternBackground";
 
 import { Favicon } from "../TabItem";
 
-import "./ItemListPlaceholder.css";
-
 export function ItemListPlaceholderCopy({
   title,
   subtitle,
@@ -24,16 +22,20 @@ export function ItemListPlaceholderCopy({
   );
 }
 
+type PlaceholderVariant = "default" | "diagonal";
+
 export default function ItemListPlaceholder({
   children,
   className,
   layout = "list",
-  count = 10,
+  variant = "diagonal",
+  count = 6,
 }: {
   children?: ReactNode;
   layout?: "list" | "grid";
   className?: string;
   count?: number;
+  variant?: PlaceholderVariant;
 }) {
   const patternBg = usePatternBackground("diagonal_lines");
   const { gridRefCallback, edgeIndices } = useGridLayoutInfo(count);
@@ -41,7 +43,7 @@ export default function ItemListPlaceholder({
   return (
     <div
       className={cn(
-        "item-list-placeholder relative mx-auto flex w-full max-w-4xl flex-col gap-2 select-none",
+        "item-list-placeholder fade-gradient relative mx-auto flex w-full max-w-4xl flex-col gap-2 select-none",
         className,
       )}>
       <div
@@ -55,23 +57,43 @@ export default function ItemListPlaceholder({
         {Array.from({ length: count }).map((_, i) => (
           <motion.div
             key={i}
-            style={{ backgroundImage: layout === "grid" ? patternBg : "" }}
+            style={{ backgroundImage: variant === "diagonal" ? patternBg : "" }}
             className={cn(
-              "group/item border-border-active text-card-foreground dark:border-border-active/50 @container flex min-h-12 w-full items-center gap-5 border p-2 transition-colors duration-200",
+              "group/item border-border-active text-card-foreground dark:border-border-active/40 @container flex min-h-12 w-full items-center border p-2 transition-colors duration-200",
               {
+                "bg-card/40": variant === "default",
                 "[&+&]:border-t-0": layout === "list",
-                "f flex-col items-start *:opacity-0 [&+&]:border-l-0": layout === "grid",
+                "f flex-col items-start [&+&]:border-l-0": layout === "grid",
+                "*:opacity-0": variant === "diagonal",
                 "rounded-tr-lg": i === edgeIndices.topRight,
                 "rounded-tl-lg": i === edgeIndices.topLeft,
                 "rounded-br-lg": i === edgeIndices.bottomRight,
                 "rounded-bl-lg": i === edgeIndices.bottomLeft,
+                "gap-5": layout === "list",
+                "gap-2": layout === "grid",
               },
             )}>
             <div className="flex shrink-0">
               <Favicon className="*:from-muted-foreground/5 *:to-muted-foreground/5 shadow-none outline-0 outline-dashed" />
             </div>
-            <span className="bg-muted-foreground/5 h-3 w-full max-w-[30cqw] overflow-hidden rounded text-sm text-ellipsis whitespace-nowrap" />
-            <span className="group/link bg-muted-foreground/5 flex h-3 w-full max-w-[25cqw] items-center gap-2 rounded transition-colors duration-200" />
+            <span
+              className={cn(
+                "bg-muted-foreground/5 h-3 w-full overflow-hidden rounded text-sm text-ellipsis whitespace-nowrap",
+                {
+                  "max-w-[30cqw]": layout === "list",
+                  "max-w-[50cqw]": layout === "grid",
+                },
+              )}
+            />
+            <span
+              className={cn(
+                "group/link bg-muted-foreground/5 flex h-3 w-full items-center gap-2 rounded transition-colors duration-200",
+                {
+                  "max-w-[25cqw]": layout === "list",
+                  "max-w-[80cqw]": layout === "grid",
+                },
+              )}
+            />
           </motion.div>
         ))}
       </div>

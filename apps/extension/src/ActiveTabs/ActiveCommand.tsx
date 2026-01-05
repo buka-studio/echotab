@@ -29,7 +29,6 @@ import { motion } from "framer-motion";
 import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { useLLMTagMutation } from "../AI/queries";
 import FilterTagChips from "../components/FilterTagChips";
 import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
 import {
@@ -46,7 +45,7 @@ import TagChipList from "../components/tag/TagChipList";
 import { ActiveTab, Panel } from "../models";
 import TagStore, { unassignedTag, useTagStore } from "../TagStore";
 import UIStore, { useUIStore } from "../UIStore";
-import { formatLinks, pluralize, wait } from "../util";
+import { formatLinks, pluralize } from "../util";
 import { isAlphanumeric } from "../util/string";
 import ActiveStore, {
   SelectionStore,
@@ -102,23 +101,6 @@ const SaveSessionTooltip = ({
   );
 };
 
-const AiTagTooltip = ({ className }: { className?: string }) => {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        className={cn(
-          "text-muted-foreground focus-visible:ring-ring flex rounded-full focus-visible:ring-1 focus-visible:outline-none",
-          className,
-        )}>
-        <InfoCircledIcon />
-      </TooltipTrigger>
-      <TooltipContent className="max-w-[250px] text-pretty">
-        Enable AI Tagging by adding LLM endpoint details in settings.
-      </TooltipContent>
-    </Tooltip>
-  );
-};
-
 // todo: clean this & SavedCommand up
 export default function ActiveCommand() {
   const tabStore = useActiveTabStore();
@@ -147,37 +129,7 @@ export default function ActiveCommand() {
     }
   };
 
-  const llmMutation = useLLMTagMutation();
-
-  const aiDisabled = !uiStore.settings.aiApiProvider;
   const enterToSearch = false; //uiStore.settings.enterToSearch;
-
-  const handleAITag = async () => {
-    if (aiDisabled) {
-      toast.info("AI Tagging is disabled. Add LLM endpoint details in settings to enable.");
-      return;
-    }
-    if (selectionStore.selectedTabIds.size) {
-      const existingTags = Array.from(tagStore.tags.values());
-
-      const res = await llmMutation.mutateAsync({
-        tags: existingTags,
-        tabs: Array.from(selectionStore.selectedTabIds)
-          .map((id) => ActiveStore.viewTabsById[id])
-          .filter(Boolean),
-      });
-
-      const tags = res.map((t) => ({ name: t }));
-
-      const createdTags = tagStore.createTags(tags);
-
-      pushPage("tag");
-      for (const tag of createdTags) {
-        await wait(50);
-        tabStore.toggleAssignedTagId(tag.id);
-      }
-    }
-  };
 
   const handleQuickSave = async () => {
     const tagName = TagStore.getQuickSaveTagName();
@@ -502,23 +454,6 @@ export default function ActiveCommand() {
                       Quick Save Tabs
                       <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
                     </TabCommandItem>
-
-                    {/* <TabCommandItem
-                      onSelect={withClear(handleAITag)}
-                      value="AI Tag"
-                      className="group"
-                      disabled={llmMutation.isPending}>
-                      <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                      AI Tag {llmMutation.isPending && <Spinner className="ml-auto h-4 w-4" />}
-                      {aiDisabled && (
-                        <>
-                          <AiTagTooltip className="ml-2" />
-                          <Badge variant="card" className="ml-8">
-                            Disabled
-                          </Badge>
-                        </>
-                      )}
-                    </TabCommandItem> */}
 
                     <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
                       <ClipboardIcon className="text-muted-foreground mr-2" />

@@ -9,11 +9,6 @@ import { StoragePersistence } from "./util/StoragePersistence";
 
 const logger = createLogger("UIStore");
 
-export enum Orientation {
-  Vertical = "Vertical",
-  Horizontal = "Horizontal",
-}
-
 export enum CardSize {
   Large = "Large",
   Medium = "Medium",
@@ -36,25 +31,14 @@ export enum Theme {
 
 export interface Settings {
   showOnboarding: boolean;
-  orientation: Orientation;
-  cardSize: CardSize;
   hideFavicons: boolean;
-  hideBookmarkFavicons: boolean;
-  hideTabsFavicons: boolean;
+  theme: Theme;
   clipboardFormat: ClipboardFormat;
   clipboardIncludeTags: boolean;
-  theme: Theme;
-  primaryColor?: string;
-  disableListSharing: boolean;
-  aiApiProvider?: "openai" | "custom";
-  aiApiKey?: string;
-  aiApiBaseURL?: string;
-  aiApiModel?: string;
-  enterToSearch: boolean;
 }
 
-const storageKey = `cmdtab-ui-store-${version}`;
-const persistence = new StoragePersistence({ key: storageKey });
+const storeKey = `cmdtab-ui-store-${version}`;
+const persistence = new StoragePersistence({ key: storeKey });
 
 export interface UIStore extends Serializable<PersistedUIStore> {
   settings: Settings;
@@ -70,21 +54,10 @@ type PersistedUIStore = Pick<UIStore, "settings" | "activePanel">;
 const Store = proxy({
   settings: {
     showOnboarding: true,
-    cardSize: CardSize.Large,
-    hideBookmarkFavicons: false,
-    hideTabsFavicons: false,
     hideFavicons: false,
-    orientation: Orientation.Vertical,
-    clipboardFormat: ClipboardFormat.Text,
-    clipboardIncludeTags: true,
     theme: Theme.System,
-    primaryColor: "oklch(65% 0.23 41)",
-    disableListSharing: false,
-    aiApiProvider: undefined,
-    aiApiKey: undefined,
-    aiApiBaseURL: undefined,
-    aiApiModel: undefined,
-    enterToSearch: false,
+    clipboardFormat: ClipboardFormat.Text,
+    clipboardIncludeTags: false,
   } as Settings,
   initialized: false,
   activePanel: Panel.Tabs,

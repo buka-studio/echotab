@@ -8,16 +8,16 @@ import {
 } from "@echotab/ui/Command";
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
-import { BroomIcon, DatabaseIcon, PaletteIcon, TagIcon, UserIcon } from "@phosphor-icons/react";
+import { BroomIcon, DatabaseIcon, KeyboardIcon, PaletteIcon, TagIcon } from "@phosphor-icons/react";
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
-import AccountPage from "./AccountPage";
 import AppearancePage from "./AppearancePage";
 import CuratePage from "./CuratePage";
 import DataPage from "./DataPage";
 import FeedbackPage from "./FeedbackPage";
 import MiscPage from "./MiscPage";
+import ShortcutsPage from "./ShortcutsPage";
 import TagsPage from "./TagsPage";
 
 const BukaIcon = (props: ComponentProps<"svg">) => (
@@ -43,6 +43,7 @@ const pages = [
   "Feedback",
   "Delete",
   "Curate",
+  "Shortcuts",
 ] as const;
 
 type Page = (typeof pages)[number];
@@ -64,11 +65,11 @@ function SettingsCommandItem({
 
 export default function Settings() {
   const cmdInputRef = useRef<HTMLInputElement>(null);
-  const [page, setPage] = useState<Page>("Tags");
+  const [page, setPage] = useState<Page>("Appearance");
   const [open, setOpen] = useState(false);
 
   const commandList = (
-    <CommandList className="max-h-[400px]">
+    <CommandList className="max-h-[400px] flex-1 md:max-h-none">
       <CommandGroup className="p-0">
         {/* <SettingsCommandItem>
           <UserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
@@ -82,26 +83,25 @@ export default function Settings() {
           <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
           Tags
         </SettingsCommandItem>
-        {/* <SettingsCommandItem>
-      <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-      AI
-    </SettingsCommandItem> */}
+
         <SettingsCommandItem>
           <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
           Curate
         </SettingsCommandItem>
         <SettingsCommandItem>
-          <MixerHorizontalIcon className="text-muted-foreground mr-2" />
-          Misc
-        </SettingsCommandItem>
-        <SettingsCommandItem>
           <DatabaseIcon className="text-muted-foreground mr-2" />
           Data
         </SettingsCommandItem>
-        {/* <SettingsCommandItem>
-      <UploadIcon className="text-muted-foreground mr-2" />
-      Export
-    </SettingsCommandItem> */}
+        <SettingsCommandItem>
+          <MixerHorizontalIcon className="text-muted-foreground mr-2" />
+          Misc
+        </SettingsCommandItem>
+      </CommandGroup>
+      <CommandGroup className="mt-auto p-0">
+        <SettingsCommandItem>
+          <KeyboardIcon className="text-muted-foreground mr-2" />
+          Shortcuts
+        </SettingsCommandItem>
         <SettingsCommandItem>
           <BukaIcon className="text-muted-foreground mr-2" />
           Feedback
@@ -138,7 +138,7 @@ export default function Settings() {
               open,
           },
         )}>
-        <div className="col-1 row-1 hidden sm:block">
+        <div className="col-1 row-1 hidden flex-col sm:flex">
           <div className="mb-2 flex items-center">{commandInput}</div>
           {commandList}
         </div>
@@ -161,6 +161,7 @@ export default function Settings() {
         {page === "Misc" && <MiscPage />}
         {page === "Data" && <DataPage />}
         {page === "Feedback" && <FeedbackPage />}
+        {page === "Shortcuts" && <ShortcutsPage />}
         {page === "Curate" && <CuratePage />}
         <div className="text-muted-foreground bg-card col-start-1 row-start-2 mt-auto border-t border-transparent p-3 font-mono sm:bg-transparent">
           {versionLabel}

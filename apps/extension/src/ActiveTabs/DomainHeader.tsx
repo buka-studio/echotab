@@ -42,7 +42,7 @@ export default function DomainHeader({
     <div className={cn("flex justify-between", className)}>
       <div className="inline-flex items-center select-none">
         <span className="mr-2 inline-flex items-center gap-2">
-          {<Favicon src={tabStore.viewTabsById[viewTabIds[0]].url} />}
+          <Favicon src={tabStore.viewTabsById[viewTabIds[0]].url} />
           <span className={cn("text-muted-foreground text-sm transition-colors duration-300")}>
             {domain}
           </span>

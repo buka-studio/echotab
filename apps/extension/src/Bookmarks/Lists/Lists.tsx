@@ -57,8 +57,8 @@ export default function Lists() {
               count={5}
               className="[&_.items-placeholder]:max-h-[120px]">
               <ItemListPlaceholderCopy
-                title="No link lists yet."
-                subtitle='Create a new list by clicking "New List" or by selecting saved links.'
+                title="No bookmark lists yet."
+                subtitle="Group and share bookmarks by creating lists."
               />
             </ItemListPlaceholder>
           )}

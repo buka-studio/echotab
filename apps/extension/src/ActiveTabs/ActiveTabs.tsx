@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import Lists from "../Bookmarks/Lists";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { ConditionalWrapper } from "../components/ConditionalWrapper";
 import FilterTagChips from "../components/FilterTagChips";
@@ -166,9 +165,7 @@ export default function ActiveTabs() {
           </div>
         )}
       </div>
-      <div className="outlined-bottom outlined-side contained p-3 py-5">
-        <Lists />
-      </div>
+
       <div className="outlined-bottom outlined-side contained p-3 py-5">
         <RecentlyClosed />
       </div>
@@ -185,7 +182,7 @@ export default function ActiveTabs() {
           <div className="flex flex-1 items-center gap-2 pl-2 text-sm">
             <div className="flex items-center gap-2 select-none">
               <span className="text-muted-foreground flex items-center gap-2">
-                <BrowserIcon weight="fill" className="h-4 w-4" />
+                <BrowserIcon className="h-4 w-4" />
                 Tabs
               </span>
               <AnimatedNumberBadge value={tabStore.viewTabIds.length} />

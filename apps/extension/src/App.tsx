@@ -33,7 +33,6 @@ import CurateStore, { useCurateStore } from "./Curate/CurateStore";
 import NavMenu from "./NavMenu";
 import Onboarding from "./Onboarding";
 import PulseLogo from "./PulseLogo";
-import { ShortcutsHint } from "./Shortcuts";
 import TagStore from "./TagStore";
 import { getUtcISO } from "./util/date";
 import { createLogger } from "./util/Logger";
@@ -199,9 +198,8 @@ export default function App() {
             <Onboarding />
             <Toaster theme={theme} />
             <DynamicViewportVarsSetter />
-            <MobileBottomBar>
+            <MobileBottomBar className="z-50">
               <ScrollTopFAB className="absolute right-10 bottom-4" />
-              <ShortcutsHint className="absolute bottom-4 left-1/2 z-1 -translate-x-1/2" />
             </MobileBottomBar>
             {/* {import.meta.env.DEV && <ColorTweakpane />} */}
             <ColorTweakpane />

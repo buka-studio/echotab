@@ -15,20 +15,28 @@ const AUTO_SNAPSHOT_ENABLED = false;
 
 export default defineBackground({
   main() {
-    chrome.contextMenus.create(
-      {
-        id: "open",
-        title: "Open EchoTab",
-        contexts: ["action", "page"],
-      },
-      () => {
-        if (chrome.runtime.lastError) {
-          logger.error("Error creating context menu:", chrome.runtime.lastError.message);
-        } else {
-          logger.info("Context menu created");
+    chrome.runtime.onInstalled.addListener(() => {
+      chrome.storage.local.get("userId", ({ userId }) => {
+        if (!userId) {
+          chrome.storage.local.set({ userId: uuidv7() });
         }
-      },
-    );
+      });
+
+      chrome.contextMenus.create(
+        {
+          id: "open",
+          title: "Open EchoTab",
+          contexts: ["action", "page"],
+        },
+        () => {
+          if (chrome.runtime.lastError) {
+            logger.error("Error creating context menu:", chrome.runtime.lastError.message);
+          } else {
+            logger.info("Context menu created");
+          }
+        },
+      );
+    });
 
     chrome.action.onClicked.addListener(async (tab) => {
       if (tab.id && tab.url) {
@@ -44,14 +52,6 @@ export default defineBackground({
           // Invalid URL or other error, ignore
         }
       }
-    });
-
-    chrome.runtime.onInstalled.addListener(() => {
-      chrome.storage.local.get("userId", ({ userId }) => {
-        if (!userId) {
-          chrome.storage.local.set({ userId: uuidv7() });
-        }
-      });
     });
 
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {

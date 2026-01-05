@@ -160,7 +160,7 @@ export default function CuratedStats({ className }: { className?: string }) {
         <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
           <div className="text-lg text-balance">Currently, there are no curate sessions.</div>
           <div className="text-foreground/75 text-sm text-balance">
-            Begin curating by clicking the Curate button, and your stats will be displayed here.
+            Once you finish a curate session, your stats will be displayed here.
           </div>
         </div>
         <div className="pointer-events-none flex h-full w-full items-center opacity-50 blur-sm">

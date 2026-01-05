@@ -4,7 +4,8 @@ import { TagIcon, TrashIcon } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { CSSProperties } from "react";
 
-import PCVisual from "./PCVisual";
+import { PCVisual } from "./PCVisual";
+import { ChristmasTreeIllustration } from "./PCVisual/illustrations";
 
 interface Props {
   deleted: number;
@@ -22,9 +23,21 @@ export default function CurateSummary({ deleted, kept, className, children, empt
         className,
       )}>
       <PCVisual
+        illustration={
+          <g className="translate-x-[145px] translate-y-[80px] scale-85 skew-x-[6deg] skew-y-[-3deg]">
+            <ChristmasTreeIllustration
+              style={
+                {
+                  "--tree": "var(--card-active)",
+                  "--tree-light": "var(--muted-foreground)",
+                } as CSSProperties
+              }
+            />
+          </g>
+        }
         style={
           {
-            "--screen": "var(--card-active)",
+            "--screen": "var(--background-base)",
             "--edges": "color-mix(in srgb, var(--muted-foreground) 30%, transparent)",
             "--case": "var(--card)",
             "--splash": "var(--surface-2)",

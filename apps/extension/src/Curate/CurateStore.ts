@@ -18,12 +18,6 @@ export const timeUnits = ["month", "week", "day"] as const;
 
 export type TimeUnit = (typeof timeUnits)[number];
 
-export enum Theme {
-  System = "system",
-  Dark = "dark",
-  Light = "light",
-}
-
 const inclusion = ["ai_tag", "quick_tag", "unassigned_tag", "older_than_threshold"] as const;
 
 export type Inclusion = (typeof inclusion)[number];

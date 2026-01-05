@@ -216,7 +216,7 @@ export function TabCommandDialog({
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none sm:max-w-[57rem]">
+          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none md:max-w-[57rem]">
           <DialogStateContext.Provider value={{ open, setOpen }}>
             {children}
           </DialogStateContext.Provider>

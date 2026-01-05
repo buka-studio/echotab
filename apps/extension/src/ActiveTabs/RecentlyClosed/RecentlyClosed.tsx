@@ -1,6 +1,7 @@
 import { Badge } from "@echotab/ui/Badge";
 import { Button } from "@echotab/ui/Button";
-import { CaretSortIcon, ClockIcon } from "@radix-ui/react-icons";
+import { BrowsersIcon, XIcon } from "@phosphor-icons/react";
+import { CaretSortIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
 import ItemGrid from "../../Bookmarks/ItemGrid";
@@ -36,10 +37,10 @@ export default function RecentlyClosed() {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center px-2 text-sm select-none">
+      <div className="flex min-h-8 items-center px-2 text-sm select-none">
         <span className="mr-2 inline-flex gap-2">
           <span className="text-muted-foreground flex items-center gap-2">
-            <ClockIcon /> Recently Closed
+            <BrowsersIcon className="h-4 w-4" /> Recently Closed
           </span>
           <Badge variant="card">{recentlyClosedTabs.length}</Badge>
         </span>
@@ -51,6 +52,17 @@ export default function RecentlyClosed() {
           }}>
           <CaretSortIcon className="h-4 w-4" />
         </Button>
+        {recentlyClosedTabs.length > 0 && (
+          <Button
+            variant="ghost"
+            className="ml-auto"
+            onClick={() => {
+              recentlyClosedStore.clear();
+            }}>
+            <XIcon className="mr-2 h-4 w-4" />
+            Clear
+          </Button>
+        )}
       </div>
 
       {expanded && (
@@ -61,8 +73,8 @@ export default function RecentlyClosed() {
               count={5}
               className="[&_.items-placeholder]:max-h-[110px]">
               <ItemListPlaceholderCopy
-                title="No recently closed tabs."
-                subtitle="Closed tabs will appear here."
+                title="No closed tabs yet."
+                subtitle="Recently closed tabs will appear here."
               />
             </ItemListPlaceholder>
           )}

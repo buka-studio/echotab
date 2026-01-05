@@ -182,6 +182,8 @@ export default function Bookmarks() {
     },
   );
 
+  const tagCount = bookmarkStore.viewTagIds.length;
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="header contained outlined-side sticky top-0 z-10 flex p-3 px-2">
@@ -222,7 +224,7 @@ export default function Bookmarks() {
         getSelected={() => SelectionStore.selectedItemIds}
         onSelectionChange={(selection) => SelectionStore.selectItems(selection as Set<string>)}
         className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr] items-start">
-        {isTagView && (
+        {isTagView && tagCount > 0 && (
           <>
             {isXLScreen ? (
               <div className="scrollbar-gray sticky top-5 col-3 row-[1/3] mt-15 hidden h-full w-full justify-self-end overflow-auto p-3 xl:block xl:max-h-[96vh]">
@@ -270,7 +272,7 @@ export default function Bookmarks() {
             <div className="flex flex-1 items-center gap-2 text-sm">
               <div className="flex items-center gap-2 select-none">
                 <span className="text-muted-foreground flex items-center gap-2">
-                  <BookmarkFilledIcon /> Links
+                  <BookmarkFilledIcon /> Bookmarks
                 </span>
                 <AnimatedNumberBadge value={bookmarkStore.viewTabIds.length} />
                 <ViewControl />
@@ -294,9 +296,9 @@ export default function Bookmarks() {
         </div>
         <div className="outlined-side col-2">
           {!hasTabs && (
-            <ItemListPlaceholder className="p-3">
+            <ItemListPlaceholder className="p-3" variant="diagonal">
               <ItemListPlaceholderCopy
-                title="Currently, there are no links."
+                title="No saved bookmarks yet."
                 subtitle="Once you save links by tagging them, they will appear here."
               />
             </ItemListPlaceholder>

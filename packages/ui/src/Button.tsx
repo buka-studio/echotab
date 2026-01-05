@@ -10,7 +10,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary/20 text-foreground dark:shadow hover:bg-foreground/90 border border-primary/20",
+          "bg-foreground text-background dark:shadow hover:bg-foreground/90 border border-primary/20",
         destructive:
           "bg-destructive/20 text-destructive-foreground dark:shadow-sm hover:bg-destructive/30 border border-destructive/20",
         outline:
@@ -28,7 +28,7 @@ export const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "secondary",
+      variant: "default",
       size: "default",
     },
   },

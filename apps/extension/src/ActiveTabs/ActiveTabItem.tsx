@@ -1,5 +1,6 @@
 import { Badge } from "@echotab/ui/Badge";
 import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -216,9 +217,13 @@ const ActiveTabItem = forwardRef<
         <div className="flex items-center gap-2">
           <TagChipCombobox tags={assignedTags} />
           <TabMenu tab={tab} selected={selected} />
-          <Button size="icon-sm" variant="ghost" aria-label="Close Tab" onClick={handleCloseTab}>
+          <ButtonWithTooltip
+            size="icon-sm"
+            variant="ghost"
+            tooltipText="Close Tab"
+            onClick={handleCloseTab}>
             <Cross2Icon className="h-5 w-5" />
-          </Button>
+          </ButtonWithTooltip>
         </div>
       }>
       <div className="flex items-center gap-1">

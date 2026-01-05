@@ -8,17 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@echotab/ui/Dialog";
-import { toast } from "@echotab/ui/Toast";
 import { Toggle } from "@echotab/ui/Toggle";
 import { cn } from "@echotab/ui/util";
 import { useState } from "react";
 
-import { useBookmarkStore } from "~/Bookmarks";
-import { Tag } from "~/models";
-import { getBookmarks } from "~/util/import";
-
 import TagChip from "../components/tag/TagChip";
-import TagStore, { useTagStore } from "../TagStore";
+import TagStore from "../TagStore";
 import UIStore, { useUIStore } from "../UIStore";
 import { toggle } from "../util/set";
 import { tagSuggestions } from "./constants";
@@ -27,8 +22,6 @@ export default function OnboardingDialog() {
   const {
     settings: { showOnboarding },
   } = useUIStore();
-  const tagStore = useTagStore();
-  const bookmarkStore = useBookmarkStore();
 
   const [selectedTagIndices, setSelectedTagIndices] = useState(new Set<number>());
 
@@ -54,35 +47,8 @@ export default function OnboardingDialog() {
     UIStore.updateSettings({ showOnboarding: false });
   };
 
-  const handleClearAll = () => {
-    setSelectedTagIndices(new Set());
-  };
-
   const handleSkip = () => {
     UIStore.updateSettings({ showOnboarding: false });
-  };
-
-  const handleImportBookmarks = async () => {
-    const { bookmarks, folders } = await getBookmarks();
-
-    const tagsByName: Map<string, Tag> = new Map(
-      Array.from(folders).map((f) => {
-        if (!tagStore.tagsByNormalizedName.has(f)) {
-          return [f, tagStore.createTag({ name: f })];
-        }
-        return [f, tagStore.tagsByNormalizedName.get(f)!];
-      }),
-    );
-
-    const tabs = bookmarks.map((b) => ({
-      title: b.title,
-      url: b.url,
-      tagIds: b.folders.map((f) => tagsByName.get(f)!.id),
-    }));
-
-    bookmarkStore.saveTabs(tabs);
-
-    toast.success("Imported bookmarks successfully!");
   };
 
   return (
@@ -132,9 +98,7 @@ export default function OnboardingDialog() {
             </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button onClick={handleConfirmTags} variant="outline">
-              Get Started
-            </Button>
+            <Button onClick={handleConfirmTags}>Get Started</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

@@ -205,6 +205,7 @@ function Widget({ onClose }: Props) {
                   tooltipText="Quick save"
                   tooltipContainer={getWidgetRoot()}
                   size="icon-sm"
+                  variant="outline"
                   onClick={handleQuickSave}>
                   <LightningBoltIcon className="text-muted-foreground" />
                 </ButtonWithTooltip>

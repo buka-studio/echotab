@@ -198,8 +198,9 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
   return (
     <div className="relative">
       <span className="text-muted-foreground absolute top-2 right-2 z-10 flex items-center gap-1">
-        Sort:
-        <SortButton active={Boolean(sort)} dir={sort!} onClick={handleSort} />
+        <SortButton active={Boolean(sort)} dir={sort!} onClick={handleSort}>
+          Sort
+        </SortButton>
       </span>
       <svg width={width} height={height} ref={containerRef} className="relative">
         {gradients.map((g) => (

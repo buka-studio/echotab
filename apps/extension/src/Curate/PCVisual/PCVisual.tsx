@@ -3,7 +3,9 @@ import { ComponentProps } from "react";
 
 import "./PCVisual.css";
 
-export default function Visual(props: ComponentProps<typeof motion.svg>) {
+export default function PCVisual(
+  props: ComponentProps<typeof motion.svg> & { illustration?: React.ReactNode },
+) {
   return (
     <motion.svg
       width="320"
@@ -90,16 +92,7 @@ export default function Visual(props: ComponentProps<typeof motion.svg>) {
         fill="var(--case)"
         stroke="var(--edges)"
       />
-      <path
-        d="M167.211 98.9644L170.471 98.9075L170.983 104.761L188.155 104.461L187.643 98.6078L190.871 98.5514L191.411 104.726L188.506 104.777L188.762 107.704L170.944 108.015L170.688 105.088L167.751 105.139L167.211 98.9644Z"
-        fill="var(--visual)"
-        className="animate-blink"
-      />
-      <path
-        d="M171.255 92.7199L174.515 92.663L174.799 95.9112L171.539 95.9681L171.255 92.7199ZM177 92.6196L180.228 92.5632L180.512 95.8115L177.285 95.8678L177 92.6196Z"
-        fill="var(--visual)"
-        className="animate-blink"
-      />
+      {props.illustration}
     </motion.svg>
   );
 }

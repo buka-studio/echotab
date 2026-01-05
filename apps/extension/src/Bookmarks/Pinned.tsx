@@ -40,8 +40,8 @@ export default function Pinned() {
               count={5}
               className="[&_.items-placeholder]:max-h-[110px]">
               <ItemListPlaceholderCopy
-                title="No pinned links yet."
-                subtitle="Pin a link by clicking the pin icon on a saved link."
+                title="No pinned bookmarks yet."
+                subtitle="Keep your important bookmarks pinned for quick access."
               />
             </ItemListPlaceholder>
           )}
