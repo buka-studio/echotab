@@ -6,21 +6,21 @@ import usePatternBackground from "~/hooks/usePatternBackground";
 import { SavedTab } from "~/models";
 import { useTabInfoQuery } from "~/TabInfo/queries";
 
-function OgImageEmptyState({
+function OGImageFallbackState({
   className,
   children,
-  title = "Info not available",
+  title = "Image not available.",
 }: {
   className?: string;
   children?: ReactNode;
-  title?: string;
+  title?: ReactNode;
 }) {
   const patternBg = usePatternBackground("diagonal_lines");
 
   return (
     <div
       className={cn(
-        "border-border relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg border text-sm",
+        "border-border/50 relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg border text-sm",
         className,
       )}>
       <div
@@ -37,40 +37,45 @@ function OgImageEmptyState({
 
 export function OGImage({ tab, preload }: { tab: SavedTab; preload?: boolean }) {
   const info = useTabInfoQuery({ tabId: tab.id, url: tab.url, enabled: preload !== false });
+  const patternBg = usePatternBackground("diagonal_lines");
 
   if (info.isError) {
     return (
-      <OgImageEmptyState title="Image not available">
+      <OGImageFallbackState title="Image not available.">
         <div className="flex flex-col items-center gap-2">
-          Failed to fetch image.
+          Failed to fetch OG image.
           <Button variant="outline" size="sm" onClick={() => info.refetch()}>
             Retry
           </Button>
         </div>
-      </OgImageEmptyState>
+      </OGImageFallbackState>
     );
   }
 
   if (info.isPending) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <span className="animate-shimmer-text text-sm">Loading...</span>
-      </div>
+      <OGImageFallbackState
+        title={<span className="animate-shimmer-text text-sm">Fetching image...</span>}
+      />
     );
   }
 
   if (!info.data?.image) {
     return (
-      <OgImageEmptyState title="No image available">This page has no OG image.</OgImageEmptyState>
+      <OGImageFallbackState title="No image available.">
+        This page has no OG image.
+      </OGImageFallbackState>
     );
   }
 
   return (
-    <div className="flex h-full items-center justify-center overflow-hidden rounded-lg">
+    <div
+      className="flex h-full items-center justify-center overflow-hidden rounded-lg"
+      style={{ backgroundImage: patternBg }}>
       <img
         src={info.data.image}
         alt={info.data.title || "Preview"}
-        className="h-full w-full object-cover"
+        className="h-full max-h-[245px] w-full object-cover"
         onError={(e) => {
           e.currentTarget.style.display = "none";
         }}

@@ -17,7 +17,7 @@ export default function CurateDock({ className, ...props }: ComponentProps<"div"
   return (
     <div
       className={cn(
-        "border-border bg-background flex items-center gap-10 rounded-full border p-[0.375rem] transition-all duration-200",
+        "border-border bg-background flex items-center gap-8 rounded-full border p-1.5 transition-all duration-200",
         className,
       )}
       {...props}

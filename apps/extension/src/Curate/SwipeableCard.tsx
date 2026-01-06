@@ -97,13 +97,18 @@ export default function SwipeableCard({
       opacity: 1,
       y: ((props.style?.y as number) || 0) + 20,
       scale: i === 0 ? 1 : props.style?.scale || 0.7,
+      filter: props.style?.filter || "blur(0px)",
+      ...(i === 0 && {
+        filter: "blur(0px)",
+        y: 20,
+      }),
       transition: {
-        delay: 0.1 * i,
+        delay: 0.05 * i,
+        duration: 0.75,
         type: "spring",
-        stiffness: 100,
       },
     } as AnimationDefinition);
-  }, [props.style?.y, controls, i]);
+  }, [props.style?.y, controls, i, props.style?.filter]);
 
   const swipeLeft = () => {
     trajectory.current.direction = "left";
@@ -151,11 +156,11 @@ export default function SwipeableCard({
           duration: 0.2,
         },
       })
-      .then(() => controls.set({ zIndex: 0 }))
-      .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }))
       .then(() => {
         onSwiped("up");
-      });
+      })
+      .then(() => controls.set({ zIndex: 0 }))
+      .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }));
   };
 
   const swipeDown = () => {
@@ -164,17 +169,17 @@ export default function SwipeableCard({
       .start({
         opacity: 0,
         filter: "blur(10px)",
-        y: 100,
-        scale: 0.85,
+        y: 75,
+        scale: 0.95,
         transition: {
-          duration: 0.2,
+          duration: 0.225,
         },
       })
-      .then(() => controls.set({ zIndex: 0 }))
-      .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }))
       .then(() => {
         onSwiped("down");
-      });
+      })
+      .then(() => controls.set({ zIndex: 0 }))
+      .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }));
   };
 
   useHotkeys("left", () => swipeLeft(), {
@@ -211,7 +216,7 @@ export default function SwipeableCard({
     <motion.div
       {...props}
       animate={controls}
-      dragConstraints={constrained && { left: 0, right: 0, top: 10, bottom: 10 }}
+      dragConstraints={constrained && { left: 0, right: 0, top: 20, bottom: 20 }}
       dragElastic={0.5}
       ref={containerRef}
       style={{
@@ -219,6 +224,7 @@ export default function SwipeableCard({
         x,
         opacity: 0,
         rotate: rotateSpring,
+        z: 1,
       }}
       onDrag={setTrajectory}
       onDragEnd={() => {
@@ -226,12 +232,6 @@ export default function SwipeableCard({
 
         rotate.set(0);
       }}
-      //   onTouchStart={(e) => {
-      //     (e.currentTarget as HTMLButtonElement)?.focus();
-      //   }}
-      //   onTouchEnd={(e) => {
-      //     (e.currentTarget as HTMLButtonElement)?.blur();
-      //   }}
       drag>
       {children}
     </motion.div>

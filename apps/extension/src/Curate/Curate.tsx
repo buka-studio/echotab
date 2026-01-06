@@ -26,6 +26,7 @@ import {
   ArrowLineUpRightIcon,
   FastForwardIcon,
   HeartIcon,
+  RewindIcon,
   SparkleIcon,
   TagIcon,
   XIcon,
@@ -33,6 +34,7 @@ import {
 import { ClockIcon, LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { CurateStore } from ".";
 import { useBookmarkStore } from "../Bookmarks";
@@ -85,8 +87,21 @@ const useCurateQueue = (maxCards: number) => {
       setDeleted((prev) => [...prev, item]);
       setQueue(wipQueue);
     } else if (choice === "skip") {
-      setQueue([...wipQueue, item]);
+      setQueue([...wipQueue, { ...item, skipped: true, unshifted: false }]);
     }
+  };
+
+  const unshift = () => {
+    if (queue.length < 2) return;
+
+    setQueue((prev) => {
+      const lastItem = prev.at(-1);
+      if (!lastItem || !lastItem.skipped) {
+        return prev;
+      }
+      const rest = prev.slice(0, -1).map((item) => ({ ...item, unshifted: false }));
+      return [{ ...lastItem, unshifted: true }, ...rest];
+    });
   };
 
   const visibleQueue = queue.slice(0, maxCards);
@@ -95,6 +110,7 @@ const useCurateQueue = (maxCards: number) => {
     total: total.current,
     queue: visibleQueue,
     dequeue,
+    unshift,
     left: queue.length,
     kept,
     deleted,
@@ -110,7 +126,8 @@ export default function Curate({ children, maxCards = 5 }: Props) {
   const curateStore = useCurateStore();
   const bookmarkStore = useBookmarkStore();
 
-  const { initialized, total, queue, kept, deleted, left, dequeue } = useCurateQueue(maxCards);
+  const { initialized, total, queue, kept, deleted, left, dequeue, unshift } =
+    useCurateQueue(maxCards);
 
   const curateTabsById = useMemo(() => {
     const curateTabIds = new Set(curateStore.queue.map((result) => result.tabId));
@@ -127,9 +144,15 @@ export default function Curate({ children, maxCards = 5 }: Props) {
       dequeue("delete");
     } else if (direction === "right") {
       dequeue("keep");
-    } else if (direction === "up" || direction === "down") {
+    } else if (direction === "down") {
       dequeue("skip");
       setSkipCount((prev) => ({ ...prev, [tab.id]: (prev[tab.id] || 0) + 1 }));
+    } else if (direction === "up") {
+      setSkipCount((prev) => {
+        const count = prev[tab.id] || 0;
+        return { ...prev, [tab.id]: count - 1 };
+      });
+      unshift();
     }
   };
 
@@ -168,6 +191,10 @@ export default function Curate({ children, maxCards = 5 }: Props) {
   const applicableReasons = Object.entries(queue[0]?.reasons || {})
     .filter(([_, value]) => value)
     .map(([reason]) => reason);
+
+  useHotkeys("up", () => unshift());
+
+  const hasSkipped = Object.values(skipCount).some((count) => count > 0);
 
   return (
     <Dialog
@@ -251,6 +278,13 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                         y: remap(i, 0, maxCards, 0, -200),
                         scale: remap(i, 0, maxCards, 1, 0.6),
                         filter: `blur(${remap(i, 0, maxCards, 0, 5)}px)`,
+                        ...(result.unshifted &&
+                          i === 0 && {
+                            filter: "blur(10px)",
+                            opacity: 0,
+                            y: -50,
+                            scale: 0.9,
+                          }),
                       }}
                       active={i === 0}
                       i={i}
@@ -259,9 +293,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                           swipeableRef.current = e;
                         }
                       }}
-                      directions={
-                        left > 1 ? ["left", "right", "up", "down"] : ["left", "right", "up", "down"]
-                      }
+                      directions={["left", "right", "down"]}
                       onSwiped={(direction) => handleSwipe(tab, direction)}>
                       <CurateCard tab={tab} index={i} visible={i === 0} />
                     </SwipeableCard>
@@ -292,6 +324,17 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                       />
                     </DockAction>
                     <div className="flex items-center gap-2">
+                      <ButtonWithTooltip
+                        variant="outline"
+                        size="icon"
+                        className="bg-card"
+                        tooltipText="Rewind"
+                        disabled={hasSkipped}
+                        onClick={() => {
+                          unshift();
+                        }}>
+                        <RewindIcon className="text-muted-foreground/60 h-5 w-5" />
+                      </ButtonWithTooltip>
                       <ButtonWithTooltip
                         variant="outline"
                         size="icon"

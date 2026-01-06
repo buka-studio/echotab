@@ -31,6 +31,8 @@ export type InclusionReason = {
 
 export interface InclusionResult {
   tabId: string;
+  skipped?: boolean;
+  unshifted?: boolean;
   reasons: InclusionReason;
 }
 

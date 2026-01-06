@@ -59,7 +59,7 @@ export default function ItemListPlaceholder({
             key={i}
             style={{ backgroundImage: variant === "diagonal" ? patternBg : "" }}
             className={cn(
-              "group/item border-border-active text-card-foreground dark:border-border-active/40 @container flex min-h-12 w-full items-center border p-2 transition-colors duration-200",
+              "group/item border-border-active text-card-foreground dark:border-[color-mix(in_oklch,var(--border-active)_40%,var(--card))] @container flex min-h-12 w-full items-center border p-2 transition-colors duration-200",
               {
                 "bg-card/40": variant === "default",
                 "[&+&]:border-t-0": layout === "list",

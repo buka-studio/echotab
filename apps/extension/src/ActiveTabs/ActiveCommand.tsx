@@ -11,7 +11,7 @@ import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
-import { OpenAiLogoIcon, TagIcon } from "@phosphor-icons/react";
+import { OpenAiLogoIcon, TagIcon, XIcon } from "@phosphor-icons/react";
 import {
   BookmarkIcon,
   CheckCircledIcon,
@@ -54,7 +54,7 @@ import ActiveStore, {
   useActiveTabStore,
 } from "./ActiveStore";
 
-const pages = ["/", "tag", "find"] as const;
+const pages = ["/", "tag", "find", "paste"] as const;
 
 type Page = (typeof pages)[number];
 
@@ -75,6 +75,16 @@ const CommandLabel = ({ page }: { page: string }) => {
       </span>
     );
   }
+
+  if (page === "paste") {
+    return (
+      <span className="text-muted-foreground flex items-center gap-2">
+        <ClipboardIcon className="animate-pulse" />
+        Paste links...
+      </span>
+    );
+  }
+
   return null;
 };
 
@@ -101,12 +111,21 @@ const SaveSessionTooltip = ({
   );
 };
 
+const parseLinks = (text: string): string[] => {
+  const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+  const matches = text.match(urlRegex) || [];
+
+  return [...new Set(matches)];
+};
+
 // todo: clean this & SavedCommand up
 export default function ActiveCommand() {
   const tabStore = useActiveTabStore();
   const tagStore = useTagStore();
   const uiStore = useUIStore();
   const selectionStore = useActiveSelectionStore();
+  const [pastedLinks, setPastedLinks] = useState<string[]>([]);
+  const [pastedLinksVisible, setPastedLinksVisible] = useState(3);
 
   const {
     pages,
@@ -290,7 +309,7 @@ export default function ActiveCommand() {
     }
   };
 
-  const customLabel = ["tag", "find"].includes(activePage);
+  const customLabel = ["tag", "find", "paste"].includes(activePage);
 
   const withClear = (fn: () => void) => {
     return () => {
@@ -343,6 +362,31 @@ export default function ActiveCommand() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (activePage !== "paste") return;
+
+    e.preventDefault();
+
+    const text = e.clipboardData.getData("text");
+    const links = parseLinks(text);
+    if (links.length > 0) {
+      setPastedLinks(links);
+    }
+  };
+
+  const handleOpenPastedLinks = () => {
+    pastedLinks.forEach((url) => {
+      chrome.tabs.create({ url, active: false });
+    });
+    setPastedLinks([]);
+    setPages(["/"]);
+    setSearch("");
+  };
+
+  const handleRemovePastedLink = (link: string) => {
+    setPastedLinks(pastedLinks.filter((l) => l !== link));
+  };
+
   return (
     <TabCommandDialog
       label={customLabel ? <CommandLabel page={activePage} /> : undefined}
@@ -360,6 +404,11 @@ export default function ActiveCommand() {
         onKeyDown={(e) => {
           if (e.key === "Backspace" && !search) {
             e.preventDefault();
+
+            if (activePage === "paste") {
+              setPastedLinks([]);
+            }
+
             goToPrevPage();
           }
           if (activePage === "tag") {
@@ -392,6 +441,7 @@ export default function ActiveCommand() {
             className="p-0"
             value={search}
             onValueChange={setSearch}
+            onPaste={handlePaste}
             autoFocus
           />
           <div className="actions">
@@ -504,6 +554,10 @@ export default function ActiveCommand() {
               </TabCommandGroup>
               <CommandSeparator />
               <TabCommandGroup heading="Other">
+                <TabCommandItem onSelect={() => pushPage("paste")} value="Paste to Open">
+                  <ClipboardIcon className="text-muted-foreground mr-2" />
+                  Paste to Open
+                </TabCommandItem>
                 <TabCommandItem onSelect={() => UIStore.activatePanel(Panel.Bookmarks)}>
                   <BookmarkIcon className="text-muted-foreground mr-2" />
                   Go to Bookmarks
@@ -600,6 +654,47 @@ export default function ActiveCommand() {
               <div className="text-muted-foreground absolute right-3 bottom-2 overflow-hidden">
                 Results: <NumberFlow value={tabStore.viewTabIds.length} />
               </div>
+            </div>
+          )}
+
+          {activePage === "paste" && (
+            <div className="flex flex-col gap-2">
+              {pastedLinks.length > 0 ? (
+                <>
+                  <TabCommandGroup heading={`Pasted Links`}>
+                    <TabCommandItem onSelect={handleOpenPastedLinks}>
+                      <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
+                      Open {pluralize(pastedLinks.length, "Tab")}
+                    </TabCommandItem>
+                  </TabCommandGroup>
+                  <CommandSeparator />
+                  <div className="flex flex-col items-start gap-2 px-2">
+                    <ul>
+                      {pastedLinks.slice(0, pastedLinksVisible).map((link, i) => (
+                        <li
+                          key={i}
+                          className="text-muted-foreground flex items-center gap-2 truncate py-1 text-sm">
+                          <span className="truncate">{link}</span>
+                          <button onClick={() => handleRemovePastedLink(link)}>
+                            <XIcon className="text-muted-foreground mr-2" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    {pastedLinks.length > pastedLinksVisible && (
+                      <button onClick={() => setPastedLinksVisible(pastedLinks.length)}>
+                        <span className="truncate">
+                          Show {pastedLinks.length - pastedLinksVisible} more
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <CommandEmpty>
+                  <span className="text-muted-foreground">Paste text containing links (⌘V)</span>
+                </CommandEmpty>
+              )}
             </div>
           )}
         </CommandList>

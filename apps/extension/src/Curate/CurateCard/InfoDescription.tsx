@@ -8,10 +8,10 @@ import usePatternBackground from "~/hooks/usePatternBackground";
 import { SavedTab } from "~/models";
 import { useTabInfoQuery } from "~/TabInfo/queries";
 
-function InfoEmptyState({
+function InfoFallbackState({
   className,
   children,
-  title = "Info not available",
+  title = "Info not available.",
 }: {
   className?: string;
   children?: ReactNode;
@@ -22,11 +22,11 @@ function InfoEmptyState({
   return (
     <div
       className={cn(
-        "border-border relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg border text-sm",
+        "border-border/50 relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg border text-sm",
         className,
       )}>
       <div
-        className="bg-background absolute inset-0 rounded-lg mask-[linear-gradient(180deg,transparent_60%,black)]"
+        className="bg-background absolute inset-0 rounded-lg mask-[linear-gradient(0deg,transparent_60%,black)]"
         style={{ backgroundImage: patternBg }}
       />
       <div className="text-sm">{title}</div>
@@ -50,14 +50,14 @@ export function InfoDescription({
 
   if (info.isError) {
     return (
-      <InfoEmptyState>
+      <InfoFallbackState>
         <div className="flex flex-col items-center gap-2">
           There was an error fetching info for this bookmark.
           <Button variant="outline" size="sm" onClick={() => info.refetch()}>
             Retry
           </Button>
         </div>
-      </InfoEmptyState>
+      </InfoFallbackState>
     );
   }
 
@@ -78,55 +78,43 @@ export function InfoDescription({
   }
 
   if (!info.data) {
-    return <InfoEmptyState>No metadata available for this page.</InfoEmptyState>;
+    return <InfoFallbackState>No metadata available for this page.</InfoFallbackState>;
   }
 
   const metadata = info.data;
   const hasAnyInfo =
     metadata.description ||
-    metadata.siteName ||
     metadata.author ||
-    metadata.type ||
     metadata.publishedTime ||
     (metadata.keywords && metadata.keywords.length > 0);
 
   if (!hasAnyInfo) {
-    return <InfoEmptyState>No metadata available for this page.</InfoEmptyState>;
+    return <InfoFallbackState>No metadata available for this page.</InfoFallbackState>;
   }
 
   return (
-    <div className={cn("flex flex-col gap-3 text-left text-sm", className)}>
+    <div
+      className={cn(
+        "*:not-last:border-border flex flex-col gap-3 text-left text-sm *:not-last:border-b *:not-last:pb-3",
+        className,
+      )}>
       {metadata.description && (
         <div>
-          <span className="text-muted-foreground text-xs font-medium uppercase">Description</span>
+          <span className="text-muted-foreground">Description</span>
           <p className="text-foreground leading-relaxed">{metadata.description}</p>
-        </div>
-      )}
-
-      {metadata.siteName && (
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs font-medium uppercase">Site</span>
-          <span className="text-foreground">{metadata.siteName}</span>
         </div>
       )}
 
       {metadata.author && (
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs font-medium uppercase">Author</span>
+          <span className="text-muted-foreground">Author</span>
           <span className="text-foreground">{metadata.author}</span>
-        </div>
-      )}
-
-      {metadata.type && (
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs font-medium uppercase">Type</span>
-          <span className="text-foreground capitalize">{metadata.type}</span>
         </div>
       )}
 
       {metadata.publishedTime && (
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs font-medium uppercase">Published</span>
+          <span className="text-muted-foreground">Published</span>
           <span className="text-foreground">
             {formatDistanceToNow(new Date(metadata.publishedTime))} ago
           </span>
@@ -135,7 +123,7 @@ export function InfoDescription({
 
       {metadata.keywords && metadata.keywords.length > 0 && (
         <div>
-          <span className="text-muted-foreground text-xs font-medium uppercase">Keywords</span>
+          <span className="text-muted-foreground">Keywords</span>
           <div className="mt-1 flex flex-wrap gap-1">
             {metadata.keywords.slice(0, 5).map((keyword, i) => (
               <span

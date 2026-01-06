@@ -51,13 +51,13 @@ export default function CurateSummary({ deleted, kept, className, children, empt
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}>
         {empty
-          ? "No tabs to curate today, come back tomorrow!"
-          : `You organized ${kept + deleted} links today, nice job!`}
+          ? "No bookmarks to curate today, come back tomorrow!"
+          : `You curated ${kept + deleted} bookmarks today, nice job!`}
       </motion.h1>
       {!empty && (
         <>
           <motion.div
-            className="flex items-center gap-2"
+            className="text-muted-foreground/50 flex items-center gap-3"
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.15 }}>
