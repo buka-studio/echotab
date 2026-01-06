@@ -15,6 +15,8 @@ const AUTO_SNAPSHOT_ENABLED = false;
 
 export default defineBackground({
   main() {
+    const extensionUrl = chrome.runtime.getURL("home.html");
+
     chrome.runtime.onInstalled.addListener(() => {
       chrome.storage.local.get("userId", ({ userId }) => {
         if (!userId) {
@@ -36,6 +38,24 @@ export default defineBackground({
           }
         },
       );
+    });
+
+    chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+      if (changeInfo.url === extensionUrl && !tab.pinned) {
+        const pinnedTabs = await chrome.tabs.query({ pinned: true });
+        const existingPinnedTab = pinnedTabs.find((t) => t.url === extensionUrl);
+
+        if (existingPinnedTab && existingPinnedTab.id) {
+          await chrome.tabs.remove(tabId);
+          await chrome.tabs.update(existingPinnedTab.id, { active: true });
+
+          if (existingPinnedTab.windowId) {
+            await chrome.windows.update(existingPinnedTab.windowId, { focused: true });
+          }
+        } else {
+          await chrome.tabs.update(tabId, { pinned: true });
+        }
+      }
     });
 
     chrome.action.onClicked.addListener(async (tab) => {
