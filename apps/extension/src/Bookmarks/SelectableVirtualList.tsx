@@ -1,7 +1,7 @@
 import { cn } from "@echotab/ui/util";
 import { useWindowVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import { motion } from "framer-motion";
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import { Ref, useCallback, useImperativeHandle, useRef } from "react";
 
 import { SelectableItem } from "../components/SelectableList";
 import { focusSiblingItem } from "../util/dom";
@@ -10,16 +10,10 @@ interface Props {
   children(i: VirtualItem): React.ReactNode;
   className?: string;
   items: string[];
+  ref: Ref<{ virtualizer: Virtualizer<Window, Element> }>;
 }
 
-interface Ref {
-  virtualizer: Virtualizer<Window, Element>;
-}
-
-const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualList(
-  { items, children, className },
-  ref,
-) {
+function SelectableVirtualList({ items, children, className, ref }: Props) {
   const listRef = useRef<HTMLUListElement>(null);
 
   const virtualizer = useWindowVirtualizer({
@@ -44,6 +38,10 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
       }}>
       {virtualizer.getVirtualItems().map((i) => {
         const item = items[i.index];
+
+        if (!item) {
+          return null;
+        }
 
         return (
           <SelectableItem asChild id={item} key={item}>
@@ -72,6 +70,6 @@ const SelectableVirtualList = forwardRef<Ref, Props>(function SelectableVirtualL
       })}
     </ul>
   );
-});
+}
 
 export default SelectableVirtualList;

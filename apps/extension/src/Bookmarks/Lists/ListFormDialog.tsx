@@ -22,7 +22,6 @@ import { ComponentProps, ReactNode, useMemo, useRef, useState } from "react";
 import TabItem, { Favicon } from "~/components/TabItem";
 import TagChipCombobox from "~/components/tag/TagChipCombobox";
 import TagStore from "~/TagStore";
-import { useUIStore } from "~/UIStore";
 
 import { List, SavedTab } from "../../models";
 import { formatDate } from "../../util/date";
@@ -78,10 +77,6 @@ export default function ListFormDialog({
   const editorRef = useRef<RichEditorRef>(null);
   const [open, setOpen] = useState(false);
 
-  const {
-    settings: { disableListSharing },
-  } = useUIStore();
-
   const ItemLookupService = useItemLookupService();
 
   const updateMutation = useUpdateListMutation();
@@ -112,9 +107,9 @@ export default function ListFormDialog({
     setOpen(false);
     onSubmit?.(result);
 
-    toast.success(`List ${list ? "updated" : "created"} succesfully!`);
+    toast.success(`Collection ${list ? "updated" : "created"} succesfully!`);
 
-    if (list && list.sync && !disableListSharing) {
+    if (list && list.sync) {
       updateMutation.mutate(result);
     }
   };
@@ -124,8 +119,10 @@ export default function ListFormDialog({
       {children}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{list ? "Edit" : "New"} List</DialogTitle>
-          <DialogDescription>Add tabs to a list to keep them organized.</DialogDescription>
+          <DialogTitle>{list ? "Edit" : "New"} Collection</DialogTitle>
+          <DialogDescription>
+            Add bookmarks to a collection to keep them organized.
+          </DialogDescription>
         </DialogHeader>
         <div>
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -205,9 +202,9 @@ export default function ListFormDialog({
                     Last updated: {formatDate(list.updatedAt)}
                   </div>
                 )}
-                {list?.sync && !disableListSharing && (
+                {list?.sync && (
                   <div className="text-muted-foreground">
-                    Updates to this list are published automatically.
+                    Updates to this collection are published automatically.
                   </div>
                 )}
               </div>
@@ -218,9 +215,7 @@ export default function ListFormDialog({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button variant="outline" type="submit">
-                Save
-              </Button>
+              <Button type="submit">Save</Button>
             </DialogFooter>
           </form>
         </div>

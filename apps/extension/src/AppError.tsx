@@ -23,9 +23,7 @@ export default function AppError({ resetErrorBoundary }: { resetErrorBoundary: (
           if the issue persists.
         </p>
         <div className="mt-6">
-          <Button onClick={resetErrorBoundary} variant="outline">
-            Try Again
-          </Button>
+          <Button onClick={resetErrorBoundary}>Try Again</Button>
         </div>
       </div>
     </div>

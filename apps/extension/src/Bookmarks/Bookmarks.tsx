@@ -2,12 +2,13 @@ import { Button } from "@echotab/ui/Button";
 import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { Drawer, DrawerContent, DrawerTrigger } from "@echotab/ui/Drawer";
 import { useMatchMedia } from "@echotab/ui/hooks";
-import { ScrollArea } from "@echotab/ui/ScrollArea";
 import { cn } from "@echotab/ui/util";
-import { BookmarkFilledIcon, CaretSortIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
+import { BookmarkFilledIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Virtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import ExpandIcon from "~/components/ExpandIcon";
 
 import { BookmarkStore } from ".";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
@@ -204,10 +205,10 @@ export default function Bookmarks() {
         )}
       </div>
 
-      <div className="outlined-bottom outlined-side contained p-3 py-5">
+      <div className="outlined-bottom outlined-side contained p-3">
         <Lists />
       </div>
-      <div className="outlined-bottom outlined-side contained p-3 py-5">
+      <div className="outlined-bottom outlined-side contained p-3">
         <Pinned />
       </div>
 
@@ -227,14 +228,12 @@ export default function Bookmarks() {
         {isTagView && tagCount > 0 && (
           <>
             {isXLScreen ? (
-              <div className="scrollbar-gray sticky top-5 col-3 row-[1/3] mt-15 hidden h-full w-full justify-self-end overflow-auto p-3 xl:block xl:max-h-[96vh]">
-                <ScrollArea fade="mask" maskOffset={5} className="h-full">
-                  <TagNavigation
-                    visibleTagIds={visibleTagItems}
-                    onTagClick={handleScrollToTag}
-                    className="h-full max-h-screen w-full [&_li]:max-w-[200px]"
-                  />
-                </ScrollArea>
+              <div className="scrollbar-gray scroll-fade sticky top-5 col-3 row-[1/3] mt-15 hidden h-full w-full justify-self-end overflow-auto p-3 xl:block xl:max-h-[96vh]">
+                <TagNavigation
+                  visibleTagIds={visibleTagItems}
+                  onTagClick={handleScrollToTag}
+                  className="h-full max-h-screen w-full [&_li]:max-w-[200px]"
+                />
               </div>
             ) : (
               <Drawer
@@ -255,12 +254,9 @@ export default function Bookmarks() {
                   </DrawerTrigger>
                 </MobileBottomBarPortal>
                 <DrawerContent>
-                  <ScrollArea
-                    fade="mask"
-                    maskOffset={10}
-                    viewportClassName="h-[min(50vh,400px)] p-4 px-5">
+                  <div className="scroll-fade scrollbar-gray h-[min(50vh,400px)] overflow-auto p-4 px-5">
                     <TagNavigation visibleTagIds={visibleTagItems} onTagClick={handleScrollToTag} />
-                  </ScrollArea>
+                  </div>
                 </DrawerContent>
               </Drawer>
             )}
@@ -268,7 +264,7 @@ export default function Bookmarks() {
         )}
 
         <div className="outlined-side col-2 p-3">
-          <div className="flex items-center justify-start gap-2 pl-2">
+          <div className="flex items-center justify-start gap-3 pl-2">
             <div className="flex flex-1 items-center gap-2 text-sm">
               <div className="flex items-center gap-2 select-none">
                 <span className="text-muted-foreground flex items-center gap-2">
@@ -319,6 +315,10 @@ export default function Bookmarks() {
               const isLast = i === itemGroups.length - 1;
               const expanded = tag ? tagsExpanded[tag.id] : true;
 
+              if (!items?.length) {
+                return null;
+              }
+
               return (
                 <div
                   className={cn(
@@ -349,7 +349,7 @@ export default function Bookmarks() {
                           onClick={() => {
                             toggleTagsExpanded(Number(tag?.id));
                           }}>
-                          <CaretSortIcon className="h-4 w-4" />
+                          <ExpandIcon expanded={expanded} />
                         </Button>
                       }
                     />
@@ -358,7 +358,9 @@ export default function Bookmarks() {
                     <SelectableVirtualList
                       className="sortable-list"
                       items={items}
-                      ref={(e) => e?.virtualizer && virtualizerRefs.current.add(e?.virtualizer)}>
+                      ref={(e) => {
+                        e?.virtualizer && virtualizerRefs.current.add(e?.virtualizer);
+                      }}>
                       {(item) => {
                         const tabId = items?.[item.index];
                         if (!tabId) {

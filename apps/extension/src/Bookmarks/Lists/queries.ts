@@ -3,7 +3,6 @@ import { toast } from "@echotab/ui/Toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { List } from "../../models";
-import { useUIStore } from "../../UIStore";
 import { replaceBy } from "../../util";
 import { createLogger } from "../../util/Logger";
 import BookmarkStore, { useBookmarkStore } from "../BookmarkStore";
@@ -30,15 +29,8 @@ function getListPayload(list: List) {
 
 export function useGetPublicLists() {
   const bookmarkStore = useBookmarkStore();
-  const {
-    settings: { disableListSharing },
-  } = useUIStore();
 
-  const enabled = Boolean(
-    import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF &&
-    !disableListSharing &&
-    bookmarkStore.lists.length > 0,
-  );
+  const enabled = Boolean(bookmarkStore.lists.length > 0);
 
   return useQuery({
     queryKey: ["lists"],

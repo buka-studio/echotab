@@ -12,14 +12,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { $createParagraphNode, $getRoot, $nodesOfType, EditorState, LexicalEditor } from "lexical";
-import {
-  ComponentProps,
-  forwardRef,
-  ReactNode,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-} from "react";
+import { ComponentProps, ReactNode, Ref, useEffect, useImperativeHandle, useRef } from "react";
 
 import { cn } from "../util";
 import { defaultNodes } from "./constants";
@@ -30,7 +23,7 @@ import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import theme from "./theme";
 
 function Placeholder({
-  children = "Enter some rich text...\nReference your saved tabs by entering '@' followed by the tab name.",
+  children = "Enter some rich text...\nReference your saved bookmarks by entering '@' followed by the title.",
 }: {
   children?: ReactNode;
 }) {
@@ -50,7 +43,7 @@ const editorConfig: InitialConfigType = {
   nodes: [...defaultNodes],
 };
 
-type Props = Omit<ComponentProps<"div">, "onChange"> & {
+type Props = Omit<ComponentProps<"div">, "onChange" | "ref"> & {
   plugins?: ReactNode;
   config?: Partial<InitialConfigType>;
   placeholder?: ReactNode;
@@ -58,6 +51,7 @@ type Props = Omit<ComponentProps<"div">, "onChange"> & {
   defaultMentions?: { value: string; label: string }[];
   onStateChange?: (value: string) => void;
   onMentionsChange?: (mentions: string[]) => void;
+  ref?: Ref<RichEditorRef>;
 };
 
 export interface RichEditorRef {
@@ -77,20 +71,18 @@ function appendMentions(mentions: { value: string; label: string }[]) {
   }
 }
 
-const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
-  {
-    defaultState,
-    defaultMentions,
-    onStateChange,
-    onMentionsChange,
-    placeholder,
-    className,
-    config,
-    plugins,
-    ...props
-  }: Props,
+function RichEditor({
+  defaultState,
+  defaultMentions,
+  onStateChange,
+  onMentionsChange,
+  placeholder,
+  className,
+  config,
+  plugins,
   ref,
-) {
+  ...props
+}: Props) {
   const editor = useRef<LexicalEditor>(null);
 
   function onChange(editorState: EditorState) {
@@ -174,6 +166,6 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
       </div>
     </LexicalComposer>
   );
-});
+}
 
 export default RichEditor;

@@ -96,21 +96,23 @@ export function SessionNavigation({
       variants={container}
       initial="hidden"
       animate="show">
-      <AnimatePresence mode="popLayout">
-        <motion.li
-          className={cn("text-foreground/50 mb-5 text-sm leading-4", {
-            "text-foreground": !activeSession,
-          })}
-          variants={item}
-          custom={!activeSession}
-          layout
-          exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}>
-          <button
-            className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none"
-            onClick={() => onSessionClick(undefined)}>
-            Total
-          </button>
-        </motion.li>
+      <AnimatePresence mode="popLayout" initial={false}>
+        {curateStore.sessions.length > 1 && (
+          <motion.li
+            className={cn("text-foreground/50 mb-5 text-sm leading-4", {
+              "text-foreground": !activeSession,
+            })}
+            variants={item}
+            custom={!activeSession}
+            layout
+            exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}>
+            <button
+              className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none"
+              onClick={() => onSessionClick(undefined)}>
+              Total
+            </button>
+          </motion.li>
+        )}
         {curateStore.sessions.map((s, i) => {
           const isActive = activeSession?.date === s.date;
           return (

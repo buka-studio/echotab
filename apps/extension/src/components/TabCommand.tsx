@@ -40,7 +40,7 @@ export function OnClose({ callback }: { callback: () => void }) {
 export function useTabCommand<T extends string>() {
   const [pages, setPages] = useState<T[]>(["/"] as T[]);
   const [search, setSearch] = useState("");
-  const activePage = pages[pages.length - 1];
+  const activePage = pages.at(-1)!;
 
   const goToPage = (page: T) => {
     const idx = pages.findIndex((p) => p === page);

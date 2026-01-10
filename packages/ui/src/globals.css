@@ -24,12 +24,6 @@
   --muted-foreground: oklch(55.4% 0.003 252);
   --accent: oklch(95.2% 0.004 85);
   --accent-foreground: oklch(22.5% 0.009 25);
-  --destructive: oklch(62% 0.25 25);
-  --destructive-foreground: oklch(50.8% 0.146 25);
-  --success: oklch(68% 0.23 145);
-  --success-foreground: oklch(98.2% 0.005 85);
-  --warning: oklch(58% 0.19 45);
-  --warning-foreground: oklch(98.2% 0.005 85);
   --border: oklch(90% 0.004 252);
   --border-active: oklch(90% 0.004 252);
   --input: oklch(91.5% 0.008 25);
@@ -56,8 +50,6 @@
   --muted-foreground: oklch(55.55% 0 0);
   --accent: oklch(94.91% 0 0);
   --accent-foreground: oklch(23.08% 0 0);
-  --destructive: oklch(61.97% 0.2499 25);
-  --destructive-foreground: oklch(50.72% 0.1464 24.89);
   --border: oklch(90.37% 0 0);
   --border-active: oklch(90.37% 0 0);
   --input: oklch(91.89% 0 0);
@@ -66,6 +58,35 @@
   --surface-2: oklch(98.21% 0 0);
   --surface-3: oklch(97.61% 0 0);
   --surface-4: oklch(97.02% 0 0);
+
+  --info: oklch(90.37% 0 0);
+  --info-foreground: oklch(90.37% 0 0);
+  --info-separator: oklch(90.37% 0 0);
+
+  --warning: oklch(90.37% 0 0);
+  --warning-foreground: oklch(90.37% 0 0);
+  --warning-separator: oklch(90.37% 0 0);
+
+  /* 500,100,900,400 */
+  --destructive: oklch(84.47% 0.1018 17.71);
+  --destructive-background: oklch(95.41% 0.0299 14.2526);
+  --destructive-foreground: oklch(54.99% 0.232 25.29);
+  --destructive-separator: oklch(91.51% 0.0471 19.8);
+
+  --success: oklch(85.45% 0.1627 146.3);
+  --success-background: oklch(96.92% 0.037 147.15);
+  --success-foreground: oklch(51.75% 0.1453 147.65);
+  --success-separator: oklch(91.49% 0.0976 146.24);
+
+  --info: oklch(82.75% 0.0979 248.48);
+  --info-background: oklch(96.29% 0.0195 250.59);
+  --info-foreground: oklch(53.18% 0.2399 256.99);
+  --info-separator: oklch(91.58% 0.0473 245.116);
+
+  --warning: oklch(86.55% 0.1583 79.63);
+  --warning-background: oklch(96.81% 0.0495 90.2423);
+  --warning-foreground: oklch(52.79% 0.1496 54.65);
+  --warning-separator: oklch(91.02% 0.1322 88.25);
 }
 
 .echotab-root.dark,
@@ -86,17 +107,36 @@
   --muted-foreground: oklch(67.7% 0.007 35);
   --accent: oklch(28.8% 0 0);
   --accent-foreground: oklch(90% 0 0);
-  --destructive: oklch(55% 0.22 25);
-  --destructive-foreground: oklch(75% 0.18 25);
+
   --border: oklch(31.4% 0 0);
   --border-active: oklch(39.4% 0 0);
   --input: oklch(35.2% 0 0);
   --ring: oklch(47.4% 0.007 35);
-  --success: oklch(65% 0.21 150);
   --surface-1: oklch(23.8% 0 0);
   --surface-2: oklch(26.1% 0 0);
   --surface-3: oklch(28.5% 0 0);
   --surface-4: oklch(30.4% 0 0);
+
+  /* 500,100,900,400 */
+  --destructive: oklch(40.68% 0.1479 23.16);
+  --destructive-background: oklch(25.93% 0.0834 19.02);
+  --destructive-foreground: oklch(69.96% 0.2136 22.03);
+  --destructive-separator: oklch(35.27% 0.1273 21.23);
+
+  --success: oklch(44.19% 0.1484 147.2);
+  --success-background: oklch(27.12% 0.0895 150.09);
+  --success-foreground: oklch(73.1% 0.2158 148.29);
+  --success-separator: oklch(34.39% 0.1039 147.78);
+
+  --info: oklch(38.5% 0.1403 254.4);
+  --info-background: oklch(25.45% 0.0811 255.8);
+  --info-foreground: oklch(71.7% 0.1648 250.794);
+  --info-separator: oklch(34.1% 0.121 254.74);
+
+  --warning: oklch(75.04% 0.1737 74.49);
+  --warning-background: oklch(24.95% 0.0642 64.78);
+  --warning-foreground: oklch(77.21% 0.1991 64.28);
+  --warning-separator: oklch(35.53% 0.0903 66.2971);
 }
 
 .echotab-root.dark-contrast,
@@ -117,13 +157,12 @@
   --muted-foreground: oklch(73% 0.007 35);
   --accent: oklch(25.7% 0 0);
   --accent-foreground: oklch(98.6% 0 0);
-  --destructive: oklch(60% 0.24 25);
-  --destructive-foreground: oklch(77.4% 0.19 25);
+
   --border: oklch(30.4% 0 0);
   --border-active: oklch(36.1% 0 0);
   --input: oklch(32.3% 0 0);
   --ring: oklch(52% 0.007 35);
-  --success: oklch(70% 0.22 150);
+
   --surface-1: oklch(21.1% 0 0);
   --surface-2: oklch(23.8% 0 0);
   --surface-3: oklch(26.6% 0 0);
@@ -145,8 +184,7 @@
   --muted-foreground: oklch(67.64% 0 0);
   --accent: oklch(28.91% 0 0);
   --accent-foreground: oklch(90.06% 0 0);
-  --destructive: oklch(55.03% 0.22 25.04);
-  --destructive-foreground: oklch(73.17% 0.1648 24.98);
+
   --border: oklch(31.32% 0 0);
   --border-active: oklch(39.42% 0 0);
   --input: oklch(35.23% 0 0);
@@ -195,12 +233,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
+
   --color-border: var(--border);
   --color-border-active: var(--border-active);
   --color-input: var(--input);
@@ -222,6 +255,26 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --ease-in-expo: cubic-bezier(0.95, 0.05, 0.795, 0.035);
+
+  --color-info: var(--info);
+  --color-info-background: var(--info-background);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-separator: var(--info-separator);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-background: var(--destructive-background);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-separator: var(--destructive-separator);
+
+  --color-success: var(--success);
+  --color-success-background: var(--success-background);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-separator: var(--success-separator);
+
+  --color-warning: var(--warning);
+  --color-warning-background: var(--warning-background);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-separator: var(--warning-separator);
 }
 
 .focus-ring {
@@ -310,4 +363,45 @@
     hsla(0, 0%, 0%, 0.014) 90.4%,
     hsla(0, 0%, 0%, 0) 100%
   );
+}
+
+@property --offset-y-top {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --offset-y-bottom {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 100%;
+}
+
+.scroll-fade {
+  --mask-height: 50px;
+
+  animation: animate-fade-mask;
+  animation-timeline: scroll(self y);
+
+  --mask-offset: 20%;
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black min(var(--offset-y-top), var(--mask-offset)),
+    black calc(100% - min(var(--offset-y-bottom), var(--mask-offset))),
+    transparent
+  );
+}
+
+@keyframes animate-fade-mask {
+  0% {
+    --offset-y-top: 0%;
+    --offset-y-bottom: 100%;
+  }
+
+  100% {
+    --offset-y-top: 100%;
+    --offset-y-bottom: 0%;
+  }
 }

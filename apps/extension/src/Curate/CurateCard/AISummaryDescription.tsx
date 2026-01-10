@@ -6,7 +6,6 @@ import { ReactNode } from "react";
 import { useLLMSummarizeQuery } from "~/AI/queries";
 import usePatternBackground from "~/hooks/usePatternBackground";
 import { SavedTab } from "~/models";
-import { useUIStore } from "~/UIStore";
 
 import { useTypingAnimation } from "./useTypingAnimation";
 
@@ -51,13 +50,7 @@ const AnimatedText = ({ text }: { text: string }) => {
 };
 
 export function AISummaryDescription({ tab, className }: { tab: SavedTab; className?: string }) {
-  const uiStore = useUIStore();
-  const aiEnabled = Boolean(uiStore.settings.aiApiProvider);
   const llmSummary = useLLMSummarizeQuery({ tab });
-
-  if (!aiEnabled) {
-    return <AIEmptyState />;
-  }
 
   if (llmSummary.isError) {
     return (

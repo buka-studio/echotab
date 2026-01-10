@@ -21,7 +21,7 @@ import {
 } from "@echotab/ui/DropdownMenu";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { DotsVerticalIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import { ReactNode } from "react";
 
 import TagChip from "../components/tag/TagChip";
@@ -55,14 +55,16 @@ function UntagConfirmDialog({
               <TagChip color={tag.color} className="inline-flex">
                 {tag.name}
               </TagChip>{" "}
-              from {pluralize(affectedCount, "link")}.
-              <div className="border-border text-muted-foreground mt-5 rounded border border-dashed p-4">
-                <InfoCircledIcon className="mr-1 inline text-balance" /> Note: if there are no other
-                tags left, the {pluralize(affectedCount, "link")} will be tagged as{" "}
-                <TagChip className="inline-flex">Unassigned</TagChip>.
-              </div>
+              from {pluralize(affectedCount, "bookmark")}.
             </div>
           </AlertDialogDescription>
+          <div className="border-border text-muted-foreground mt-5 rounded border-t p-2 text-sm">
+            Note: if there are no other tags left, the {pluralize(affectedCount, "bookmark")} will
+            be tagged as{" "}
+            <TagChip className="inline-flex" color="#000">
+              Unassigned
+            </TagChip>
+          </div>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -91,13 +93,13 @@ function DeleteConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete {pluralize(affectedCount, "link")} in this group.
+            This will permanently delete {pluralize(affectedCount, "bookmark")} in this group.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} variant="destructive">
-            Delete Links
+            Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -126,6 +128,10 @@ export default function TagHeader({
   }
 
   const tabIds = bookmarkStore.filteredTabsByTagId[tag?.id];
+  if (!tabIds) {
+    return null;
+  }
+
   const selectedTabIds = intersection(selection.selectedItemIds, tabIds);
   const affectedTabIds = new Set(selectedTabIds.size ? selectedTabIds : tabIds);
   const affectedLabel =
@@ -147,10 +153,10 @@ export default function TagHeader({
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast(`Copied ${affectedTabIds.size} links to clipboard!`);
+        toast.success(`Copied ${affectedTabIds.size} links to clipboard!`);
       })
       .catch(() => {
-        toast("Failed to copy links to clipboard!");
+        toast.error("Failed to copy links to clipboard!");
       });
   };
 
@@ -211,7 +217,11 @@ export default function TagHeader({
             {tag.id !== unassignedTag.id && (
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  Untag <span className="text-muted-foreground">{tag.name}</span>
+                  {/* Untag <span className="text-muted-foreground">{tag.name}</span> */}
+                  Untag{" "}
+                  <TagChip color={tag.color} className="inline-flex">
+                    {tag.name}
+                  </TagChip>
                 </DropdownMenuItem>
               </AlertDialogTrigger>
             )}

@@ -35,7 +35,10 @@ function CommandInput({
 function CommandList({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.List>) {
   return (
     <CommandPrimitive.List
-      className={cn("scrollbar-gray max-h-[340px] overflow-x-hidden overflow-y-auto", className)}
+      className={cn(
+        "scrollbar-gray max-h-[340px] overflow-x-hidden overflow-y-auto focus-visible:outline-none",
+        className,
+      )}
       {...props}
     />
   );

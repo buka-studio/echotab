@@ -1,5 +1,6 @@
 import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
+import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
 import usePatternBackground from "~/hooks/usePatternBackground";
@@ -72,7 +73,10 @@ export function OGImage({ tab, preload }: { tab: SavedTab; preload?: boolean }) 
     <div
       className="flex h-full items-center justify-center overflow-hidden rounded-lg"
       style={{ backgroundImage: patternBg }}>
-      <img
+      <motion.img
+        initial={{ filter: "blur(6px)" }}
+        animate={{ filter: "blur(0px)" }}
+        transition={{ duration: 0.25 }}
         src={info.data.image}
         alt={info.data.title || "Preview"}
         className="h-full max-h-[245px] w-full object-cover"

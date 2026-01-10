@@ -45,7 +45,9 @@ export default function ListDeleteDialog({ list, children, publicList }: Props) 
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>This will permanently delete the list.</AlertDialogDescription>
+          <AlertDialogDescription>
+            This will permanently delete the collection.
+          </AlertDialogDescription>
           {publicList?.published && (
             <form ref={formRef}>
               <div className="flex items-center space-x-2 pt-4">

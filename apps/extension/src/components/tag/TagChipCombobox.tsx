@@ -183,7 +183,7 @@ export default function TagChipCombobox({
                 "Type to create a tag"
               )}
             </CommandEmpty>
-            <CommandList>
+            <CommandList className="scroll-fade">
               <CommandGroup>
                 {tagItems.map((tag, i) => {
                   const checked = editable && atLeastOneChecked;
@@ -208,12 +208,14 @@ export default function TagChipCombobox({
                       <div className="flex items-center gap-2">
                         {checked && (
                           <CheckIcon
-                            className={cn("h-4 w-4", {
+                            className={cn("absolute h-4 w-4", {
                               "opacity-0": !selectedTagIds.has(tag.id),
                             })}
                           />
                         )}
-                        <motion.div layout transition={{ duration: 0.125, delay }}>
+                        <motion.div
+                          animate={{ x: checked ? 24 : 0 }}
+                          transition={{ duration: 0.125, delay }}>
                           <TagChip
                             color={tag.color}
                             onRemove={onRemove && (() => onRemove?.(tag))}

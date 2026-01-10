@@ -8,11 +8,19 @@ import {
 } from "@echotab/ui/Command";
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
-import { BroomIcon, DatabaseIcon, KeyboardIcon, PaletteIcon, TagIcon } from "@phosphor-icons/react";
+import {
+  BroomIcon,
+  DatabaseIcon,
+  KeyboardIcon,
+  PaletteIcon,
+  SquaresFourIcon,
+  TagIcon,
+} from "@phosphor-icons/react";
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
 import AppearancePage from "./AppearancePage";
+import CollectionsPage from "./Collections";
 import CuratePage from "./CuratePage";
 import DataPage from "./DataPage";
 import FeedbackPage from "./FeedbackPage";
@@ -44,6 +52,7 @@ const pages = [
   "Delete",
   "Curate",
   "Shortcuts",
+  "Collections",
 ] as const;
 
 type Page = (typeof pages)[number];
@@ -71,10 +80,6 @@ export default function Settings() {
   const commandList = (
     <CommandList className="max-h-[400px] flex-1 md:max-h-none">
       <CommandGroup className="p-0">
-        {/* <SettingsCommandItem>
-          <UserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-          Account
-        </SettingsCommandItem> */}
         <SettingsCommandItem>
           <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
           Appearance
@@ -83,7 +88,10 @@ export default function Settings() {
           <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
           Tags
         </SettingsCommandItem>
-
+        <SettingsCommandItem>
+          <SquaresFourIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Collections
+        </SettingsCommandItem>
         <SettingsCommandItem>
           <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
           Curate
@@ -157,6 +165,7 @@ export default function Settings() {
 
         {/* {page === "Account" && <AccountPage />} */}
         {page === "Tags" && <TagsPage contentClassName="px-1 sm:px-3" />}
+        {page === "Collections" && <CollectionsPage />}
         {page === "Appearance" && <AppearancePage />}
         {page === "Misc" && <MiscPage />}
         {page === "Data" && <DataPage />}

@@ -14,51 +14,53 @@ import { RichTextRenderer } from "@echotab/ui/RichEditor";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import { ArrowTopRightIcon, DotsVerticalIcon } from "@radix-ui/react-icons";
-import { ComponentProps, forwardRef } from "react";
+import { ComponentProps } from "react";
 
 import EchoItem from "../../components/EchoItem";
 import { List } from "../../models";
-import { useUIStore } from "../../UIStore";
 import { pluralize } from "../../util";
 import ListDeleteDialog from "./ListDeleteDialog";
 import ListFormDialog from "./ListFormDialog";
 import ListPublishDialog from "./ListPublishDialog";
 import { getPublicListURL } from "./util";
 
-function PublishIndicator({ list, publicList }: { list: List; publicList?: UserList }) {
-  const {
-    settings: { disableListSharing },
-  } = useUIStore();
-
-  if (!import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF) {
-    return null;
-  }
-
-  const isUpToDate = publicList && publicList.published && publicList.content === list.content;
-  const isOutdated = publicList && publicList.published && publicList.content !== list.content;
+function PublishIndicator({
+  list,
+  publicList,
+  className,
+}: {
+  list: List;
+  publicList?: UserList;
+  className?: string;
+}) {
+  const isUpToDate = useMemo(
+    () => publicList && publicList.published && publicList.content === list.content,
+    [publicList, list],
+  );
+  const isOutdated = useMemo(
+    () => publicList && publicList.published && publicList.content !== list.content,
+    [publicList, list],
+  );
   const isUnpublished = !publicList || !publicList.published;
 
-  const publishLabel = disableListSharing
-    ? "List sharing is disabled."
-    : isUnpublished
-      ? "This list is not published."
-      : isOutdated
-        ? "Published list is outdated."
-        : "Published list is up to date.";
+  const publishLabel = isUnpublished
+    ? "This collection is not published."
+    : isOutdated
+      ? "Published collection is outdated."
+      : "Published collection is up to date.";
 
   return (
     <Tooltip>
-      <TooltipTrigger className="focus-ring rounded-full">
+      <TooltipTrigger className={cn("focus-ring rounded-full", className)}>
         <div
           className={cn(
             "text-muted-foreground h-2 w-2 rounded-full bg-current transition-all duration-200",
-            disableListSharing
-              ? undefined
-              : {
-                  "text-muted-foreground": isUnpublished,
-                  "text-warning": isOutdated,
-                  "text-success": isUpToDate,
-                },
+
+            {
+              "text-muted-foreground": isUnpublished,
+              "text-warning": isOutdated,
+              "text-success": isUpToDate,
+            },
           )}
         />
       </TooltipTrigger>
@@ -68,10 +70,6 @@ function PublishIndicator({ list, publicList }: { list: List; publicList?: UserL
 }
 
 function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
-  const {
-    settings: { disableListSharing },
-  } = useUIStore();
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -85,15 +83,11 @@ function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
           </DialogTrigger>
         </ListFormDialog>
-        {import.meta.env.PLASMO_PUBLIC_LIST_SHARING_FF && (
-          <ListPublishDialog list={list} publicList={publicList}>
-            <DialogTrigger asChild>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={disableListSharing}>
-                Publish
-              </DropdownMenuItem>
-            </DialogTrigger>
-          </ListPublishDialog>
-        )}
+        <ListPublishDialog list={list} publicList={publicList}>
+          <DialogTrigger asChild>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Publish</DropdownMenuItem>
+          </DialogTrigger>
+        </ListPublishDialog>
         <DropdownMenuSeparator />
         <ListDeleteDialog list={list}>
           <AlertDialogTrigger asChild>
@@ -110,11 +104,8 @@ type Props = {
   publicList?: UserList;
 } & Partial<ComponentProps<typeof EchoItem>>;
 
-const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
-  { list, publicList, className, ...props },
-  ref,
-) {
-  const label = pluralize(list.tabIds.length, "link");
+function ListItem({ list, publicList, className, ref, ...props }: Props) {
+  const label = pluralize(list.tabIds.length, "bookmark");
 
   return (
     <EchoItem
@@ -127,7 +118,7 @@ const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
       }
       desc={
         <>
-          <PublishIndicator list={list} publicList={publicList} />
+          <PublishIndicator list={list} publicList={publicList} className="mr-1" />
           <HoverCard openDelay={1000}>
             <HoverCardTrigger asChild>
               {publicList?.published ? (
@@ -163,6 +154,6 @@ const ListItem = forwardRef<HTMLDivElement, Props>(function ListItem(
       {...props}
     />
   );
-});
+}
 
 export default ListItem;

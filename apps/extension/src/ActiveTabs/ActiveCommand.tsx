@@ -11,7 +11,7 @@ import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
-import { OpenAiLogoIcon, TagIcon, XIcon } from "@phosphor-icons/react";
+import { BroomIcon, OpenAiLogoIcon, TagIcon, XIcon } from "@phosphor-icons/react";
 import {
   BookmarkIcon,
   CheckCircledIcon,
@@ -19,6 +19,7 @@ import {
   ClockIcon,
   CopyIcon,
   Cross2Icon,
+  GearIcon,
   InfoCircledIcon,
   LightningBoltIcon,
   MagnifyingGlassIcon,
@@ -245,10 +246,10 @@ export default function ActiveCommand() {
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast(`Copied ${selectedLinks.length} links to clipboard!`);
+        toast.success(`Copied ${selectedLinks.length} links to clipboard!`);
       })
       .catch(() => {
-        toast("Failed to copy links to clipboard!");
+        toast.error("Failed to copy links to clipboard!");
       });
   };
 
@@ -562,6 +563,14 @@ export default function ActiveCommand() {
                   <BookmarkIcon className="text-muted-foreground mr-2" />
                   Go to Bookmarks
                 </TabCommandItem>
+                <TabCommandItem onSelect={() => {}}>
+                  <GearIcon className="text-muted-foreground mr-2" />
+                  Open Settings
+                </TabCommandItem>
+                <TabCommandItem onSelect={() => {}}>
+                  <BroomIcon className="text-muted-foreground mr-2" />
+                  Curate
+                </TabCommandItem>
               </TabCommandGroup>
               <CommandEmpty>No Results</CommandEmpty>
             </>
@@ -569,7 +578,7 @@ export default function ActiveCommand() {
           {activePage === "tag" && (
             <div className="flex flex-col gap-4">
               {tabStore.assignedTagIds.size > 0 && (
-                <div className="tags flex items-center gap-2">
+                <div className="tags flex items-center gap-2 pl-2">
                   <button
                     className="focus-ring rounded px-2 text-sm whitespace-nowrap"
                     onClick={ActiveStore.clearAssignedTagIds}>

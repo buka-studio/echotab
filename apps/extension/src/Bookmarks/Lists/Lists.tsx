@@ -2,8 +2,11 @@ import { Badge } from "@echotab/ui/Badge";
 import { Button } from "@echotab/ui/Button";
 import { DialogTrigger } from "@echotab/ui/Dialog";
 import { cn } from "@echotab/ui/util";
-import { CaretSortIcon, FilePlusIcon, FileTextIcon } from "@radix-ui/react-icons";
+import { SquaresFourIcon } from "@phosphor-icons/react";
+import { FilePlusIcon } from "@radix-ui/react-icons";
 import { useMemo, useState } from "react";
+
+import ExpandIcon from "~/components/ExpandIcon";
 
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../../components/ItemListPlaceholder";
 import { useBookmarkStore } from "../BookmarkStore";
@@ -24,11 +27,11 @@ export default function Lists() {
   }, [publicLists.data]);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center px-2 text-sm select-none">
-        <span className="inline-flex gap-2 px-2">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center pl-2 text-sm select-none">
+        <span className="mr-2 inline-flex gap-2">
           <span className="text-muted-foreground flex items-center gap-2">
-            <FileTextIcon /> Lists
+            <SquaresFourIcon /> Collections
           </span>
           <Badge variant="card">{bookmarkStore.lists?.length}</Badge>
         </span>
@@ -38,12 +41,12 @@ export default function Lists() {
           onClick={() => {
             setExpanded(!expanded);
           }}>
-          <CaretSortIcon className="h-4 w-4" />
+          <ExpandIcon expanded={expanded} />
         </Button>
         <ListFormDialog>
           <DialogTrigger asChild>
             <Button variant="ghost" className={cn("flex", "ml-auto")}>
-              <FilePlusIcon className="mr-2 h-4 w-4" /> New List
+              <FilePlusIcon className="mr-2 h-4 w-4" /> New Collection
             </Button>
           </DialogTrigger>
         </ListFormDialog>

@@ -1,4 +1,3 @@
-import { ScrollArea } from "@echotab/ui/ScrollArea";
 import { cn } from "@echotab/ui/util";
 
 export function SettingsPage({ children }: { children: React.ReactNode }) {
@@ -34,12 +33,12 @@ export function SettingsContent({
   className?: string;
 }) {
   return (
-    <ScrollArea fade="mask" className={cn("h-full flex-1 overflow-auto")}>
+    <div className="scroll-fade scrollbar-gray overflow-auto">
       <div
         className={cn("flex flex-col gap-5 px-3 pt-4 pb-5 sm:px-5", className)}
         data-slot="settings-content">
         {children}
       </div>
-    </ScrollArea>
+    </div>
   );
 }

@@ -1,10 +1,12 @@
 import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
-import { Browser as BrowserIcon } from "@phosphor-icons/react";
-import { CaretSortIcon, DragHandleDots2Icon } from "@radix-ui/react-icons";
+import { BrowserIcon } from "@phosphor-icons/react";
+import { DragHandleDots2Icon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import ExpandIcon from "~/components/ExpandIcon";
 
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { ConditionalWrapper } from "../components/ConditionalWrapper";
@@ -166,7 +168,7 @@ export default function ActiveTabs() {
         )}
       </div>
 
-      <div className="outlined-bottom outlined-side contained p-3 py-5">
+      <div className="outlined-bottom outlined-side contained p-3">
         <RecentlyClosed />
       </div>
 
@@ -203,7 +205,7 @@ export default function ActiveTabs() {
             </div>
           </div>
         </div>
-        <div className="outlined-side col-2 not-empty:p-3">
+        <div className="outlined-side col-2 pt-0 not-empty:p-3">
           {!hasTabs && (
             <ItemListPlaceholder>
               <ItemListPlaceholderCopy
@@ -237,7 +239,7 @@ export default function ActiveTabs() {
             return (
               <div
                 className={cn(
-                  "outlined-side col-2 mx-auto w-full border-t [border-top-style:dashed] [border-bottom-style:dashed] p-3 select-none border-t-border! border-b-border!",
+                  "outlined-side border-t-border! border-b-border! col-2 mx-auto w-full border-t [border-top-style:dashed] [border-bottom-style:dashed] p-3 select-none",
                   {
                     "border-b": isLast,
                   },
@@ -256,7 +258,7 @@ export default function ActiveTabs() {
                         onClick={() => {
                           toggleWindowsExpanded(Number(groupId));
                         }}>
-                        <CaretSortIcon className="h-4 w-4" />
+                        <ExpandIcon expanded={expanded} />
                       </Button>
                     }
                   />
@@ -273,7 +275,7 @@ export default function ActiveTabs() {
                         onClick={() => {
                           toggleDomainsExpanded(Number(groupId));
                         }}>
-                        <CaretSortIcon className="h-4 w-4" />
+                        <ExpandIcon expanded={expanded} />
                       </Button>
                     }
                   />

@@ -3,9 +3,9 @@
 import {
   CheckCircleIcon,
   InfoIcon,
-  OctagonIcon,
   SpinnerIcon,
   WarningIcon,
+  WarningOctagonIcon,
 } from "@phosphor-icons/react";
 import { Toaster as Sonner, toast, type ToasterProps } from "sonner";
 
@@ -15,11 +15,13 @@ const Toaster = ({ theme, ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       icons={{
-        success: <CheckCircleIcon className="size-4" />,
-        info: <InfoIcon className="size-4" />,
-        warning: <WarningIcon className="size-4" />,
-        error: <OctagonIcon className="size-4" />,
-        loading: <SpinnerIcon className="size-4 animate-spin" />,
+        success: <CheckCircleIcon className="text-success-foreground size-4.5" weight="fill" />,
+        info: <InfoIcon className="text-info-foreground size-4.5" weight="fill" />,
+        warning: <WarningIcon className="text-warning-foreground size-4.5" weight="fill" />,
+        error: (
+          <WarningOctagonIcon className="text-destructive-foreground size-4.5" weight="fill" />
+        ),
+        loading: <SpinnerIcon className="text-primary size-4.5 animate-spin" />,
       }}
       style={
         {
@@ -34,4 +36,4 @@ const Toaster = ({ theme, ...props }: ToasterProps) => {
   );
 };
 
-export { Toaster, toast };
+export { toast, Toaster };

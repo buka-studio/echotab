@@ -1,8 +1,9 @@
 import { Badge } from "@echotab/ui/Badge";
 import { Button } from "@echotab/ui/Button";
 import { BrowsersIcon, XIcon } from "@phosphor-icons/react";
-import { CaretSortIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
+
+import ExpandIcon from "~/components/ExpandIcon";
 
 import ItemGrid from "../../Bookmarks/ItemGrid";
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../../components/ItemListPlaceholder";
@@ -36,7 +37,7 @@ export default function RecentlyClosed() {
   const recentlyClosedTabs = recentlyClosedStore.tabs.slice(0, 10);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <div className="flex min-h-8 items-center px-2 text-sm select-none">
         <span className="mr-2 inline-flex gap-2">
           <span className="text-muted-foreground flex items-center gap-2">
@@ -50,7 +51,7 @@ export default function RecentlyClosed() {
           onClick={() => {
             setExpanded(!expanded);
           }}>
-          <CaretSortIcon className="h-4 w-4" />
+          <ExpandIcon expanded={expanded} />
         </Button>
         {recentlyClosedTabs.length > 0 && (
           <Button

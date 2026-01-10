@@ -128,10 +128,10 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast(`Copied ${selectedLinks.length} links to clipboard!`);
+        toast.success(`Copied ${selectedLinks.length} links to clipboard!`);
       })
       .catch(() => {
-        toast("Failed to copy links to clipboard!");
+        toast.error("Failed to copy links to clipboard!");
       });
   };
 
@@ -458,7 +458,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
             {activePage === "tag" && (
               <div className="flex flex-col gap-4">
                 {bookmarkStore.assignedTagIds.size > 0 && (
-                  <div className="tags flex items-center gap-2">
+                  <div className="tags flex items-center gap-2 pl-2">
                     <button
                       className="focus-ring rounded px-2 text-sm whitespace-nowrap"
                       onClick={bookmarkStore.clearAssignedTagIds}>

@@ -24,7 +24,7 @@ export default function TagChip({
   return (
     <div
       className={cn(
-        "bg-opacity-30 relative flex max-w-[150px] items-center overflow-hidden rounded-full border py-[2px] pr-2 pl-0.5 text-white grayscale-[0.3] transition-colors duration-150 before:pointer-events-none before:absolute before:inset-0 before:z-[-1] before:bg-(--color) dark:before:opacity-80",
+        "bg-card relative flex max-w-[150px] items-center overflow-hidden rounded-full border py-[2px] pr-2 pl-0.5 text-white grayscale-[0.3] transition-colors duration-150 before:pointer-events-none before:absolute before:inset-0 before:z-[-1] before:bg-(--color) dark:before:opacity-80",
         { "border-border bg-background text-foreground": !color, "pr-3": !onRemove },
         className,
       )}>

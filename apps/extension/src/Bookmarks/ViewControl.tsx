@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@echotab/ui/DropdownMenu";
+import { cn } from "@echotab/ui/util";
 import { ArrowDownIcon, ArrowUpIcon, CheckIcon, MixerVerticalIcon } from "@radix-ui/react-icons";
 
 import { SortDir } from "../util/sort";
@@ -57,7 +58,7 @@ export default function ViewControl() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost">
-          <MixerVerticalIcon className="mr-3 h-4 w-4" /> View
+          <MixerVerticalIcon className="mr-2 h-4 w-4" /> View
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -85,14 +86,18 @@ export default function ViewControl() {
                 key={value}
                 keepOpen
                 onClick={() => handleToggleSort(value)}
-                className="gap-2">
+                className="justify-between gap-2">
                 {label}
-                {active &&
-                  (tabStore.view.sort.dir === SortDir.Asc ? (
+                <div
+                  className={cn({
+                    "opacity-0": !active,
+                  })}>
+                  {tabStore.view.sort.dir === SortDir.Asc ? (
                     <ArrowUpIcon className="ml-auto h-4 w-4" />
                   ) : (
                     <ArrowDownIcon className="ml-auto h-4 w-4" />
-                  ))}
+                  )}
+                </div>
               </DropdownMenuItem>
             );
           })}

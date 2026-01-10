@@ -21,6 +21,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./Accordion": "./src/Accordion.tsx",
+    "./Alert": "./src/Alert.tsx",
     "./AlertDialog": "./src/AlertDialog.tsx",
     "./Badge": "./src/Badge.tsx",
     "./Button": "./src/Button.tsx",

@@ -15,15 +15,23 @@ function makeFaviconUrl(pageUrl: string) {
   return url.toString();
 }
 
-export function Favicon({ src, className }: { className?: string; src?: string }) {
+export function Favicon({
+  src,
+  className,
+  blur = false,
+}: {
+  className?: string;
+  src?: string;
+  blur?: boolean;
+}) {
   return (
     <div
       className={cn(
-        "outline-muted-foreground/20 flex h-7 w-7 items-center justify-center overflow-hidden rounded outline-1 dark:shadow",
+        "outline-muted-foreground/20 relative flex h-7 w-7 items-center justify-center overflow-hidden rounded outline-1 dark:shadow",
         className,
       )}>
       {src ? (
-        <div className="relative h-6 w-6 overflow-hidden rounded-[3px]">
+        <div className="relative z-1 h-6 w-6 overflow-hidden rounded-[3px]">
           <img
             src={makeFaviconUrl(src)}
             className="absolute inset-0 h-full w-full object-cover"
@@ -32,6 +40,13 @@ export function Favicon({ src, className }: { className?: string; src?: string }
         </div>
       ) : (
         <div className="fallback from-foreground/10 to-foreground/5 h-full w-full bg-linear-to-b" />
+      )}
+      {src && blur && (
+        <img
+          src={makeFaviconUrl(src)}
+          className="absolute inset-0 h-full w-full scale-150 object-cover blur-xs"
+          alt=""
+        />
       )}
     </div>
   );

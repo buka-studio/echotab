@@ -9,13 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@echotab/ui/Dialog";
+import { Separator } from "@echotab/ui/Separator";
 import { Spinner } from "@echotab/ui/Spinner";
-import {
-  ArrowTopRightIcon,
-  BookmarkIcon,
-  EyeOpenIcon,
-  InfoCircledIcon,
-} from "@radix-ui/react-icons";
+import { ArrowTopRightIcon, BookmarkIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ReactNode, useState } from "react";
 
 import { List } from "~/models";
@@ -52,45 +48,54 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
   };
 
   const unpublishMutation = useUnpublishMutation();
+  const publicListURL = publicList ? getPublicListURL(publicList.publicId) : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Publish List</DialogTitle>
-          <DialogDescription>Publish this list to share it with others.</DialogDescription>
+          <DialogTitle>Publish Collection</DialogTitle>
+          <DialogDescription>Publish this collection to share it with others.</DialogDescription>
         </DialogHeader>
-        <div>
-          <div className="border-border text-muted-foreground rounded border border-dashed p-4">
-            <InfoCircledIcon className="mr-1 inline text-balance" /> Note: the list will be
-            available publicly after sharing. We recommend removing any sensitive information and/or
-            links you don&apos;t want others to see.
-          </div>
-          {publicList && (
-            <div className="mt-4 flex items-start justify-between border-t pt-4">
+        <Separator />
+        <div className="text-muted-foreground text-sm">
+          {!publicList ? (
+            <>
+              <div className="">The collection will be available publicly after sharing!</div>
+              <div>
+                We recommend removing any sensitive information and/or links you don&apos;t want
+                others to see.
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-5">
+                <div className="text-muted-foreground flex items-center gap-2">
+                  <EyeOpenIcon /> Views: {publicList?.viewCount}
+                </div>
+                <div className="text-muted-foreground flex items-center gap-2">
+                  <BookmarkIcon />
+                  Imports: {publicList?.importCount}
+                </div>
+              </div>
+              <div className="bg-card flex gap-4 rounded-md p-2">
+                <div className="text-foreground text-sm">{publicList.title}</div>
+                <div className="group flex items-center gap-1">
+                  <a
+                    href={publicListURL ?? ""}
+                    target="_blank"
+                    className="hover:underline focus-visible:underline focus-visible:outline-none">
+                    {publicListURL}
+                  </a>{" "}
+                  <ArrowTopRightIcon className="h-4 w-4 opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100" />{" "}
+                </div>
+              </div>
               <div>
                 <div className="text-muted-foreground">
                   Last published: {formatDate(list.updatedAt)}
                 </div>
-                <div className="flex items-center gap-5">
-                  <div className="text-muted-foreground flex items-center gap-2">
-                    <EyeOpenIcon /> Views: {publicList?.viewCount}
-                  </div>
-                  <div className="text-muted-foreground flex items-center gap-2">
-                    <BookmarkIcon />
-                    Imports: {publicList?.importCount}
-                  </div>
-                </div>
               </div>
-              <Button asChild variant="link">
-                <a
-                  className="flex items-center text-base"
-                  target="_blank"
-                  href={getPublicListURL(publicList.publicId)}>
-                  Visit <ArrowTopRightIcon className="ml-2 h-4 w-4" />{" "}
-                </a>
-              </Button>
             </div>
           )}
         </div>
@@ -98,7 +103,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
         <DialogFooter>
           {publicList?.published && (
             <Button
-              variant="ghost"
+              variant="destructive"
               className="mr-auto"
               onClick={() =>
                 unpublishMutation.mutate(list.id, {
@@ -124,7 +129,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
             </Button>
           ) : (
             <Button
-              variant="outline"
+              variant="default"
               onClick={handlePublishList}
               disabled={publishMutation.isPending}>
               {publishMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}Publish

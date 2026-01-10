@@ -1,5 +1,5 @@
 import { cn } from "@echotab/ui/util";
-import { forwardRef, ReactNode } from "react";
+import { ReactNode, Ref } from "react";
 
 interface Props {
   title: ReactNode;
@@ -8,12 +8,10 @@ interface Props {
   icon?: ReactNode;
   desc?: ReactNode;
   children?: ReactNode;
+  ref?: Ref<HTMLDivElement>;
 }
 
-const EchoItem = forwardRef<HTMLDivElement, Props>(function EchoItem(
-  { title, desc, actions, className, icon, children, ...props },
-  ref,
-) {
+function EchoItem({ title, desc, actions, className, icon, children, ref, ...props }: Props) {
   return (
     <div
       data-testid="echo-item"
@@ -24,7 +22,7 @@ const EchoItem = forwardRef<HTMLDivElement, Props>(function EchoItem(
       )}
       {...props}>
       {icon && <div className="echo-item-icon flex shrink-0">{icon}</div>}
-      <span className="echo-item-title group/title col-[1/3] row-2 overflow-hidden text-sm text-ellipsis whitespace-nowrap not-first:mt-2 first:pl-2 @[250px]:max-w-[30cqw] @[250px]:not-first:mt-0">
+      <span className="echo-item-title group/title col-[1/3] row-2 overflow-hidden text-sm text-ellipsis whitespace-nowrap not-first:mt-2 @[250px]:max-w-[30cqw] @[250px]:not-first:mt-0 @[250px]:first:pl-2">
         {title}
       </span>
       <span className="group/desc text-muted-foreground col-[1/3] row-3 flex max-w-[calc(100cqw-16px)] items-center gap-1 transition-colors duration-200 @[250px]:max-w-[25cqw]">
@@ -36,6 +34,6 @@ const EchoItem = forwardRef<HTMLDivElement, Props>(function EchoItem(
       </div>
     </div>
   );
-});
+}
 
 export default EchoItem;
