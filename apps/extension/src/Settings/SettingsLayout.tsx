@@ -33,9 +33,9 @@ export function SettingsContent({
   className?: string;
 }) {
   return (
-    <div className="scroll-fade scrollbar-gray overflow-auto">
+    <div className="scroll-fade scrollbar-gray h-full overflow-auto">
       <div
-        className={cn("flex flex-col gap-5 px-3 pt-4 pb-5 sm:px-5", className)}
+        className={cn("flex h-full flex-col gap-5 px-3 pt-4 pb-5 sm:px-5", className)}
         data-slot="settings-content">
         {children}
       </div>

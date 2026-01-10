@@ -28,6 +28,7 @@ import {
   DrawingPinIcon,
   ExternalLinkIcon,
   FilePlusIcon,
+  GearIcon,
   MagnifyingGlassIcon,
   MinusCircledIcon,
   OpenInNewWindowIcon,
@@ -450,6 +451,14 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                   <TabCommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
                     <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                     Go to Tabs
+                  </TabCommandItem>
+                  <TabCommandItem onSelect={() => {}}>
+                    <GearIcon className="text-muted-foreground mr-2" />
+                    Open Settings
+                  </TabCommandItem>
+                  <TabCommandItem onSelect={() => {}}>
+                    <BroomIcon className="text-muted-foreground mr-2" />
+                    Curate
                   </TabCommandItem>
                 </TabCommandGroup>
                 <CommandEmpty>No Results</CommandEmpty>

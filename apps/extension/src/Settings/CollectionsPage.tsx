@@ -62,28 +62,32 @@ export default function CollectionsPage() {
     });
   };
 
+  const handleProfileLinkUpdate = (value: string) => {
+    curateStore.updateSettings({
+      // profileLink: value,
+    });
+  };
+
   return (
     <SettingsPage>
       <SettingsTitle>Collections</SettingsTitle>
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between space-x-2">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="old-link-threshold-value"></Label>
+            <Label htmlFor="old-link-threshold-value">Profile link</Label>
             <div className="text-muted-foreground text-sm">
-              How old a link needs to be before it's flagged for curation.
+              Link to your website or social media profile.
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <BlurInput
-              min={0}
-              max={12}
-              type="number"
-              id="old-link-threshold-value"
+            <Input
+              
+              id="profile-link"
               defaultValue={curateStore.settings.oldLinkThreshold.value}
-              onChange={(value) => handleOldLinkUpdate(value, "value")}
-              className="no-spinner w-16"
+              onChange={(e) => handleProfileLinkUpdate(e.target.value)}
+              className=""
             />
-            <Select
+            {/* <Select
               value={curateStore.settings.oldLinkThreshold.unit}
               onValueChange={(value) => handleOldLinkUpdate(value as TimeUnit, "unit")}>
               <SelectTrigger>
@@ -96,13 +100,13 @@ export default function CollectionsPage() {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
         </div>
 
         <Separator />
 
-        <div className="flex items-center justify-between space-x-2">
+        {/* <div className="flex items-center justify-between space-x-2">
           <div className="flex flex-col gap-1">
             <Label htmlFor="reminder-enabled">Reminders enabled</Label>
             <div className="text-muted-foreground text-sm">
@@ -116,10 +120,10 @@ export default function CollectionsPage() {
               handleReminderUpdate(v, "enabled");
             }}
           />
-        </div>
-        <Separator />
+        </div> */}
+        {/* <Separator /> */}
 
-        <div className="flex items-center justify-between space-x-2">
+        {/* <div className="flex items-center justify-between space-x-2">
           <div className="flex flex-col gap-1">
             <Label htmlFor="reminder-interval-value">Reminders frequency</Label>
             <div className="text-muted-foreground text-sm">
@@ -151,7 +155,7 @@ export default function CollectionsPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </div> */}
       </SettingsContent>
     </SettingsPage>
   );

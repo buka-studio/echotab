@@ -20,7 +20,7 @@ import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
 import AppearancePage from "./AppearancePage";
-import CollectionsPage from "./Collections";
+import CollectionsPage from "./CollectionsPage";
 import CuratePage from "./CuratePage";
 import DataPage from "./DataPage";
 import FeedbackPage from "./FeedbackPage";
