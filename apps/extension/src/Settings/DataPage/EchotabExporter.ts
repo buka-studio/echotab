@@ -1,13 +1,13 @@
-import { CurateStore } from "~/Curate";
+import { useBookmarkStore } from "~/store/bookmarkStore";
+import { useCurateStore } from "~/store/curateStore";
+import { unassignedTag, useTagStore } from "~/store/tagStore";
 import { downloadJSON } from "~/util";
 
-import BookmarkStore from "../../Bookmarks/BookmarkStore";
-import TagStore, { unassignedTag } from "../../TagStore";
 import { EchotabData } from "./EchotabData";
 
 export class EchotabExporter {
   getData(): EchotabData {
-    const tags = Array.from(TagStore.tags.values())
+    const tags = Array.from(useTagStore.getState().tags.values())
       .filter((t) => t.id !== unassignedTag.id)
       .map((t) => ({
         id: t.id,
@@ -18,7 +18,7 @@ export class EchotabExporter {
         isAI: t.isAI ?? false,
       }));
 
-    const tabs = BookmarkStore.tabs.map((t) => ({
+    const tabs = useBookmarkStore.getState().tabs.map((t) => ({
       id: t.id,
       title: t.title,
       url: t.url,
@@ -31,7 +31,7 @@ export class EchotabExporter {
       note: t.note,
     }));
 
-    const lists = BookmarkStore.lists.map((l) => ({
+    const lists = useBookmarkStore.getState().lists.map((l) => ({
       id: l.id,
       title: l.title,
       content: l.content,
@@ -40,7 +40,7 @@ export class EchotabExporter {
       updatedAt: l.updatedAt,
     }));
 
-    const curations = CurateStore.sessions.map((s) => ({
+    const curations = useCurateStore.getState().sessions.map((s) => ({
       date: s.date,
       kept: s.kept,
       deleted: s.deleted,

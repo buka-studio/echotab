@@ -8,10 +8,11 @@ import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
 import { ComponentProps, useMemo, useState } from "react";
 
+import { unassignedTag, useTagStore } from "~/store/tagStore";
+
 import { useBookmarkStore } from "../Bookmarks";
 import TagChip from "../components/tag/TagChip";
 import { SavedTab, Tag } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
 import { pluralize } from "../util";
 
 function descending(a: number, b: number): number {
@@ -121,8 +122,8 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
   const innerRadius = outerRadius - centerSize + 10;
 
   const bookmarkStore = useBookmarkStore();
-  const tagStore = useTagStore();
-  const tags = Array.from(tagStore.tags.values()).filter((t) => t.id !== unassignedTag.id);
+  const allTags = useTagStore((s) => s.tags);
+  const tags = useMemo(() => allTags.filter((t) => t.id !== unassignedTag.id), [allTags]);
   const [showLoops, toggleShowLoops] = useToggle();
 
   const [hover, setHover] = useState<{ key: string } | null>(null);
@@ -145,6 +146,8 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
   }, [bookmarkStore.tabs, tags, showLoops]);
 
   const noRelationships = tabMatrix.flat().every((n) => n === 0);
+
+  const tabCount = tabMatrix[tooltip.tooltipData!.from]?.[tooltip.tooltipData!.to] ?? 0;
 
   if (noRelationships) {
     return (
@@ -273,19 +276,17 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
           className="border-border bg-popover text-popover-foreground z-[60] rounded-md border px-3 py-2 text-sm shadow-md">
           <div>
             <div className="flex items-center gap-2 p-1 text-sm">
-              <TagChip color={tagsByIndex[tooltip.tooltipData!.from].color}>
-                {tagsByIndex[tooltip.tooltipData!.from].name}
+              <TagChip color={tagsByIndex[tooltip.tooltipData!.from]?.color}>
+                {tagsByIndex[tooltip.tooltipData!.from]?.name}
               </TagChip>{" "}
               +
-              <TagChip color={tagsByIndex[tooltip.tooltipData!.to].color}>
-                {tagsByIndex[tooltip.tooltipData!.to].name}
+              <TagChip color={tagsByIndex[tooltip.tooltipData!.to]?.color}>
+                {tagsByIndex[tooltip.tooltipData!.to]?.name}
               </TagChip>
             </div>
           </div>
 
-          <div className="mt-2 text-center">
-            {pluralize(tabMatrix[tooltip.tooltipData!.from][tooltip.tooltipData!.to], "tab")}
-          </div>
+          <div className="mt-2 text-center">{pluralize(tabCount, "tab")}</div>
         </TooltipInPortal>
       )}
     </motion.svg>

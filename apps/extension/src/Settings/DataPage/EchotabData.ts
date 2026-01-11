@@ -35,8 +35,8 @@ export const echotabTabSchema = z.object({
 
 export const echotabListSchema = z.object({
   id: z.string().uuid(),
-  title: z.string(),
-  content: z.string(),
+  title: z.string().optional(),
+  content: z.string().optional(),
   tabIds: z.array(z.string().uuid()),
   savedAt: z.string().optional(),
   updatedAt: z.string().optional(),

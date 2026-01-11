@@ -20,12 +20,12 @@ import { DownloadSimpleIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { InfoCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
-import { CurateStore } from "~/Curate";
 import { SnapshotStore } from "~/snapshot";
+import { bookmarkStoreActions } from "~/store/bookmarkStore";
+import { curateStoreActions } from "~/store/curateStore";
+import { tagStoreActions } from "~/store/tagStore";
 import { createLogger } from "~/util/Logger";
 
-import { BookmarkStore } from "../../Bookmarks";
-import TagStore from "../../TagStore";
 import { SettingsContent, SettingsPage, SettingsTitle } from "../SettingsLayout";
 import { BookmarksImporter } from "./BookmarksImporter";
 import { EchotabExporter } from "./EchotabExporter";
@@ -103,9 +103,9 @@ export default function DataPage() {
   };
 
   const handleConfirmDelete = async () => {
-    BookmarkStore.removeAllItems();
-    TagStore.deleteAllTags();
-    CurateStore.removeAllItems();
+    bookmarkStoreActions.removeAllItems();
+    tagStoreActions.deleteAllTags();
+    curateStoreActions.removeAllItems();
 
     const snapshotStore = await SnapshotStore.init();
     await snapshotStore.clearSnapshots().catch(() => {

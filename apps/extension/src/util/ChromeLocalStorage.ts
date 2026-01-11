@@ -8,7 +8,7 @@ export class ChromeLocalStorage {
     return (value[name] as string) ?? null;
   }
 
-  async setItem(name: string, value: string): Promise<void> {
+  async setItem<T>(name: string, value: T): Promise<void> {
     try {
       await chrome.storage.local.set({ [name]: value });
     } catch (e) {

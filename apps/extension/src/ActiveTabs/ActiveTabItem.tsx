@@ -24,7 +24,7 @@ import {
 } from "@radix-ui/react-icons";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
-import { ComponentProps, ComponentRef, forwardRef } from "react";
+import { ComponentProps, Ref } from "react";
 
 import SnapshotPreview from "../components/SnapshotPreview";
 import { SortableHandle } from "../components/SortableList";
@@ -32,12 +32,17 @@ import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { Waveform } from "../components/Waveform";
 import { ActiveTab } from "../models";
-import { useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
-import ActiveStore, { SelectionStore, useActiveTabStore, useTabInfo } from "./ActiveStore";
+import { useSettingStore } from "../store/settingStore";
+import {
+  tabStoreActions,
+  useTabInfo,
+  useTabStore,
+  useViewTabIdsByWindowId,
+} from "../store/tabStore";
+import { useTagsById } from "../store/tagStore";
 
 function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
-  const { viewTabIdsByWindowId } = useActiveTabStore();
+  const viewTabIdsByWindowId = useViewTabIdsByWindowId();
 
   const windowTabs = viewTabIdsByWindowId[tab.windowId] || [];
 
@@ -45,34 +50,34 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
 
   const handleCloseBefore = () => {
     if (tabIndex === -1) return;
-    ActiveStore.removeTabs(windowTabs.slice(0, tabIndex));
+    tabStoreActions.removeTabs(windowTabs.slice(0, tabIndex));
   };
 
   const handleCloseAfter = () => {
     if (tabIndex === -1) return;
-    ActiveStore.removeTabs(windowTabs.slice(tabIndex + 1));
+    tabStoreActions.removeTabs(windowTabs.slice(tabIndex + 1));
   };
 
   const handleCloseOthers = () => {
-    ActiveStore.removeTabs(windowTabs.filter((id) => id !== tab.id));
+    tabStoreActions.removeTabs(windowTabs.filter((id) => id !== tab.id));
   };
 
   const handleTabSelection = () => {
-    SelectionStore.toggleSelected(tab.id);
+    tabStoreActions.toggleSelectedTabId(tab.id);
   };
 
   const handlePinTab = () => {
-    ActiveStore.updateTab(tab.id, {
+    tabStoreActions.updateTab(tab.id, {
       pinned: !tab.pinned,
     });
   };
 
   const handleReloadTab = () => {
-    ActiveStore.reloadTab(tab.id);
+    tabStoreActions.reloadTab(tab.id);
   };
 
   const handleMuteTab = () => {
-    ActiveStore.updateTab(tab.id, {
+    tabStoreActions.updateTab(tab.id, {
       muted: !tab.muted,
     });
   };
@@ -125,15 +130,15 @@ function formatLastAccessed(lastAccessed: number | undefined) {
   return formatDistanceToNow(new Date(lastAccessed));
 }
 
-const ActiveTabItem = forwardRef<
-  ComponentRef<typeof TabItem>,
-  ComponentProps<typeof TabItem> & { tab: ActiveTab }
->(function ActiveTabItem({ tab, className, ...rest }, ref) {
-  const { assignedTagIds } = useActiveTabStore();
-  const { tags } = useTagStore();
-  const {
-    settings: { hideFavicons },
-  } = useUIStore();
+function ActiveTabItem({
+  tab,
+  className,
+  ref,
+  ...rest
+}: ComponentProps<typeof TabItem> & { tab: ActiveTab; ref: Ref<HTMLDivElement> }) {
+  const assignedTagIds = useTabStore((s) => s.assignedTagIds);
+  const tags = useTagsById();
+  const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
 
   const { selected, duplicate, stale } = useTabInfo(tab.id);
 
@@ -149,13 +154,13 @@ const ActiveTabItem = forwardRef<
   };
 
   const handleUnpinTab = () => {
-    ActiveStore.updateTab(tab.id, {
+    tabStoreActions.updateTab(tab.id, {
       pinned: !tab.pinned,
     });
   };
 
   const handleCloseTab = () => {
-    ActiveStore.removeTab(tab.id, { notify: true });
+    tabStoreActions.removeTab(tab.id, { notify: true });
   };
 
   return (
@@ -254,6 +259,6 @@ const ActiveTabItem = forwardRef<
       </div>
     </TabItem>
   );
-});
+}
 
 export default ActiveTabItem;

@@ -5,9 +5,12 @@ import { Separator } from "@echotab/ui/Separator";
 import { Switch } from "@echotab/ui/Switch";
 import { ComponentProps, useState } from "react";
 
-import { Settings, TimeUnit, timeUnits, useCurateStore } from "../Curate/CurateStore";
+import { curateStoreActions, Settings, TimeUnit, useCurateStore } from "~/store/curateStore";
+
 import { pluralize } from "../util";
 import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
+
+export const timeUnits = ["month", "week", "day"] as const;
 
 function BlurInput({
   onChange,
@@ -36,15 +39,15 @@ function BlurInput({
 }
 
 export default function CuratePage() {
-  const curateStore = useCurateStore();
+  const settings = useCurateStore((s) => s.settings);
 
   const handleOldLinkUpdate = <T extends keyof Settings["oldLinkThreshold"]>(
     value: Settings["oldLinkThreshold"][T],
     prop: T,
   ) => {
-    curateStore.updateSettings({
+    curateStoreActions.setCurateSettings({
       oldLinkThreshold: {
-        ...curateStore.settings.oldLinkThreshold,
+        ...settings.oldLinkThreshold,
         [prop]: value,
       },
     });
@@ -54,9 +57,9 @@ export default function CuratePage() {
     value: Settings["reminder"][T],
     prop: T,
   ) => {
-    curateStore.updateSettings({
+    curateStoreActions.setCurateSettings({
       reminder: {
-        ...curateStore.settings.reminder,
+        ...settings.reminder,
         [prop]: value,
       },
     });
@@ -79,12 +82,12 @@ export default function CuratePage() {
               max={12}
               type="number"
               id="old-link-threshold-value"
-              defaultValue={curateStore.settings.oldLinkThreshold.value}
+              defaultValue={settings.oldLinkThreshold.value}
               onChange={(value) => handleOldLinkUpdate(value, "value")}
               className="no-spinner w-16"
             />
             <Select
-              value={curateStore.settings.oldLinkThreshold.unit}
+              value={settings.oldLinkThreshold.unit}
               onValueChange={(value) => handleOldLinkUpdate(value as TimeUnit, "unit")}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a unit" />
@@ -92,7 +95,7 @@ export default function CuratePage() {
               <SelectContent>
                 {Object.values(timeUnits).map((unit) => (
                   <SelectItem key={unit} value={unit}>
-                    {pluralize(curateStore.settings.oldLinkThreshold.value, unit, undefined, false)}
+                    {pluralize(settings.oldLinkThreshold.value, unit, undefined, false)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -111,7 +114,7 @@ export default function CuratePage() {
           </div>
           <Switch
             id="reminder-enabled"
-            checked={curateStore.settings.reminder.enabled}
+            checked={settings.reminder.enabled}
             onCheckedChange={(v) => {
               handleReminderUpdate(v, "enabled");
             }}
@@ -132,12 +135,12 @@ export default function CuratePage() {
               max={12}
               type="number"
               id="reminder-interval-value"
-              defaultValue={curateStore.settings.reminder?.value}
+              defaultValue={settings.reminder?.value}
               onChange={(value) => handleReminderUpdate(value, "value")}
               className="no-spinner w-16"
             />
             <Select
-              value={curateStore.settings.reminder.unit}
+              value={settings.reminder.unit}
               onValueChange={(value) => handleReminderUpdate(value as TimeUnit, "unit")}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a unit" />
@@ -145,7 +148,7 @@ export default function CuratePage() {
               <SelectContent>
                 {Object.values(timeUnits).map((unit) => (
                   <SelectItem key={unit} value={unit}>
-                    {pluralize(curateStore.settings.reminder.value, unit, undefined, false)}
+                    {pluralize(settings.reminder.value, unit, undefined, false)}
                   </SelectItem>
                 ))}
               </SelectContent>

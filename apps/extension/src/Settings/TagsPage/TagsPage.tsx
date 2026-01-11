@@ -14,10 +14,11 @@ import { cn } from "@echotab/ui/util";
 import { HeartIcon, PaintBucketIcon } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
 
-import { BookmarkStore, useBookmarkStore } from "../../Bookmarks";
+import { bookmarkStoreActions, useBookmarkStore } from "~/store/bookmarkStore";
+import { tagStoreActions, useTagsById } from "~/store/tagStore";
+
 import SortButton from "../../components/SortButton";
 import { Tag } from "../../models";
-import TagStore, { useTagStore } from "../../TagStore";
 import { SortDir } from "../../util/sort";
 import { SettingsContent, SettingsPage, SettingsTitle } from "../SettingsLayout";
 import TagColorPicker from "./TagColorPicker";
@@ -45,8 +46,8 @@ function propComparator<T extends { name: string; tabCount: number; favorite: bo
 }
 
 export default function TagsPage({ contentClassName }: { contentClassName?: string }) {
-  const bookmarkStore = useBookmarkStore();
-  const tagStore = useTagStore();
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const tagsById = useTagsById();
 
   const [tagSort, setTagSort] = useState<{ col: (typeof sortableColumns)[number]; dir: SortDir }>({
     col: "tabCount",
@@ -63,9 +64,9 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
 
   const tagSettings: TagSetting[] = useMemo(() => {
     const tabCountsById = new Map(
-      Array.from(tagStore.tags.values()).map((t) => [t.id, { ...t, tabCount: 0 }]),
+      Array.from(tagsById.values()).map((t) => [t.id, { ...t, tabCount: 0 }]),
     );
-    for (const tab of bookmarkStore.tabs) {
+    for (const tab of tabs) {
       for (const tagId of tab.tagIds) {
         if (!tabCountsById.has(tagId)) {
           continue;
@@ -79,11 +80,11 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
       return propComparator(...tags, tagSort.col);
     });
     return sorted;
-  }, [tagStore.tags, bookmarkStore.tabs, tagSort]);
+  }, [tagsById, tabs, tagSort]);
 
   const handleDeleteTag = (tag: Tag) => {
-    BookmarkStore.removeTags([tag.id]);
-    TagStore.deleteTag(tag.id);
+    bookmarkStoreActions.removeTags([tag.id]);
+    tagStoreActions.deleteTag(tag.id);
 
     toast.success("Tag deleted");
   };
@@ -91,7 +92,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleAddTag = () => {
-    const tag = TagStore.createTag({ name: `Tag ${tagStore.tags.size + 1}` });
+    const tag = tagStoreActions.createTags([{ name: `Tag ${tagsById.size + 1}` }]);
     setTimeout(() => {
       // todo: do via ref
       contentRef?.current?.scrollTo({
@@ -100,7 +101,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
       });
 
       const input = contentRef.current?.querySelector(
-        `input[value="${tag.name}"`,
+        `input[value="${tag[0]?.name}"`,
       ) as HTMLInputElement;
 
       input?.focus();
@@ -109,7 +110,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
   };
 
   const handleShuffleTagColors = () => {
-    TagStore.shuffleTagColors();
+    tagStoreActions.shuffleTagColors();
   };
 
   return (
@@ -162,7 +163,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                 <TableCell className="text-center">
                   <TagColorPicker
                     value={t.color}
-                    onChange={(color) => TagStore.updateTag(t.id, { color })}
+                    onChange={(color) => tagStoreActions.updateTag(t.id, { color })}
                   />
                 </TableCell>
                 <TableCell>
@@ -170,7 +171,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                     <TagNameInput
                       key={t.name}
                       name={t.name}
-                      onChange={(name) => TagStore.updateTag(t.id, { name })}
+                      onChange={(name) => tagStoreActions.updateTag(t.id, { name })}
                     />
                   </div>
                 </TableCell>
@@ -185,7 +186,7 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
                     variant="ghost"
                     size="icon-sm"
                     aria-label={`Favorite ${t.name}`}
-                    onClick={() => TagStore.toggleTagFavorite(t.id)}>
+                    onClick={() => tagStoreActions.toggleTagFavorite(t.id)}>
                     <HeartIcon
                       className={cn("size-4", { "text-red-500": t.favorite })}
                       weight={t.favorite ? "fill" : "regular"}

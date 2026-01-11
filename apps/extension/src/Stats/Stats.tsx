@@ -1,8 +1,9 @@
 import { useDimensionsRef } from "@echotab/ui/hooks";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 
+import { unassignedTag, useTagStore } from "~/store/tagStore";
+
 import TagChip from "../components/tag/TagChip";
-import { unassignedTag, useTagStore } from "../TagStore";
 import CurateStats from "./CurateStats";
 import TagRelationshipGraph from "./TagRelationshipGraph";
 import TagUsageGraph from "./TagUsageGraph";
@@ -14,7 +15,7 @@ enum StatTab {
 }
 
 export default function Stats() {
-  const tagStore = useTagStore();
+  const tags = useTagStore((s) => s.tags);
   const { observerRef, dimensions } = useDimensionsRef();
 
   const showTags = false;
@@ -38,7 +39,7 @@ export default function Stats() {
       </Tabs>
       {showTags && (
         <div className="scrollbar-gray flex max-h-[200px] flex-row flex-wrap items-start gap-2 overflow-auto pt-5">
-          {Array.from(tagStore.tags.values())
+          {tags
             .filter((t) => t.id !== unassignedTag.id)
             .map((t) => (
               <TagChip key={t.id} color={t.color}>

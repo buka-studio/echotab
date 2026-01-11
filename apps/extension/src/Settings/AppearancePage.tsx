@@ -4,7 +4,9 @@ import { Switch } from "@echotab/ui/Switch";
 import { ToggleGroup, ToggleGroupItem } from "@echotab/ui/ToggleGroup";
 import { DesktopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
 
-import { Theme, useUIStore } from "../UIStore";
+import { Theme } from "~/store/schema";
+import { settingStoreActions, useSettingStore } from "~/store/settingStore";
+
 import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 
 const accentColors = [
@@ -27,7 +29,7 @@ const accentColors = [
 ];
 
 export default function AppearancePage() {
-  const uiStore = useUIStore();
+  const settings = useSettingStore((s) => s.settings);
 
   return (
     <SettingsPage>
@@ -40,9 +42,9 @@ export default function AppearancePage() {
           </div>
           <Switch
             id="hide-favicons"
-            checked={uiStore.settings?.hideFavicons ?? false}
+            checked={settings?.hideFavicons ?? false}
             onCheckedChange={(v) => {
-              uiStore.updateSettings({ hideFavicons: v });
+              settingStoreActions.updateSettings({ hideFavicons: v });
             }}
           />
         </div>
@@ -56,8 +58,8 @@ export default function AppearancePage() {
             id="theme"
             variant="outline"
             type="single"
-            value={uiStore.settings.theme}
-            onValueChange={(t) => uiStore.updateSettings({ theme: t as Theme })}>
+            value={settings.theme}
+            onValueChange={(t) => settingStoreActions.updateSettings({ theme: t as Theme })}>
             <ToggleGroupItem value={Theme.Light} aria-label="Set light theme" size="sm">
               <SunIcon className="h-4 w-4" />
             </ToggleGroupItem>

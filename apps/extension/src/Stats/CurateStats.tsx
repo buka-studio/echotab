@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import { Session, useCurateStore } from "../Curate/CurateStore";
+import { Session, useCurateStore } from "../store/curateStore";
 
 function Counter({ value, className }: { value: number; className?: string }) {
   return (
@@ -85,7 +85,7 @@ export function SessionNavigation({
   activeSession?: Session;
   onSessionClick: (session?: Session) => void;
 }) {
-  const curateStore = useCurateStore();
+  const sessions = useCurateStore((s) => s.sessions);
 
   return (
     <motion.ul
@@ -97,7 +97,7 @@ export function SessionNavigation({
       initial="hidden"
       animate="show">
       <AnimatePresence mode="popLayout" initial={false}>
-        {curateStore.sessions.length > 1 && (
+        {sessions.length > 1 && (
           <motion.li
             className={cn("text-foreground/50 mb-5 text-sm leading-4", {
               "text-foreground": !activeSession,
@@ -113,7 +113,7 @@ export function SessionNavigation({
             </button>
           </motion.li>
         )}
-        {curateStore.sessions.map((s, i) => {
+        {sessions.map((s, i) => {
           const isActive = activeSession?.date === s.date;
           return (
             <motion.li
@@ -139,10 +139,10 @@ export function SessionNavigation({
 }
 
 export default function CuratedStats({ className }: { className?: string }) {
-  const curateStore = useCurateStore();
-  const [session, setSession] = useState<Session | undefined>(curateStore.sessions[0]);
+  const sessions = useCurateStore((s) => s.sessions);
+  const [session, setSession] = useState<Session | undefined>(sessions[0]);
 
-  const allTime = curateStore.sessions.reduce(
+  const allTime = sessions.reduce(
     (acc, session) => {
       acc.kept += session.kept;
       acc.deleted += session.deleted;
@@ -154,7 +154,7 @@ export default function CuratedStats({ className }: { className?: string }) {
     },
   );
 
-  const noCurateSessions = curateStore.sessions.length === 0;
+  const noCurateSessions = sessions.length === 0;
 
   if (noCurateSessions) {
     return (

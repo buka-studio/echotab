@@ -13,13 +13,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
+import { ClipboardFormat } from "~/store/schema";
+import { settingStoreActions, useSettingStore } from "~/store/settingStore";
+
 import { useGetPublicLists, useUnpublishAllListsMutation } from "../Bookmarks/Lists/queries";
-import { ClipboardFormat, useUIStore } from "../UIStore";
 import { getFormattedLinksExample } from "../util";
 import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 
 export default function MiscPage() {
-  const uiStore = useUIStore();
+  const settings = useSettingStore((s) => s.settings);
 
   const publicLists = useGetPublicLists();
 
@@ -48,9 +50,9 @@ export default function MiscPage() {
           </div>
           <Switch
             id="include-tags"
-            checked={uiStore.settings?.clipboardIncludeTags ?? false}
+            checked={settings?.clipboardIncludeTags ?? false}
             onCheckedChange={(v) => {
-              uiStore.updateSettings({ clipboardIncludeTags: v });
+              settingStoreActions.updateSettings({ clipboardIncludeTags: v });
             }}
           />
         </div>
@@ -67,8 +69,8 @@ export default function MiscPage() {
                   <div className="mb-5 text-sm">Clipboard content preview:</div>
                   <pre className="scrollbar-gray text-muted-foreground font-mono text-xs">
                     {getFormattedLinksExample(
-                      uiStore.settings.clipboardFormat,
-                      uiStore.settings.clipboardIncludeTags,
+                      settings.clipboardFormat,
+                      settings.clipboardIncludeTags,
                     )}
                   </pre>
                 </TooltipContent>
@@ -79,9 +81,9 @@ export default function MiscPage() {
             </div>
           </div>
           <Select
-            value={uiStore.settings?.clipboardFormat}
+            value={settings?.clipboardFormat}
             onValueChange={(v) => {
-              uiStore.updateSettings({
+              settingStoreActions.updateSettings({
                 clipboardFormat: v as ClipboardFormat,
               });
             }}>
