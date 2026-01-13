@@ -1,12 +1,14 @@
 import { toast } from "@echotab/ui/Toast";
 import Fuse from "fuse.js";
 import { useMemo } from "react";
+import { proxy, subscribe, useSnapshot } from "valtio";
+import { proxySet } from "valtio/utils";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 import { pluralize, sortRecord } from "~/util";
-import { toggle } from "~/util/array";
 import { createLogger } from "~/util/Logger";
+import { toggle as toggleSet } from "~/util/set";
 import { SortDir } from "~/util/sort";
 import { isValidActiveTab } from "~/util/tab";
 import { canonicalizeURL, getDomain } from "~/util/url";
@@ -98,29 +100,23 @@ export const useTabViewStore = create(
   })),
 );
 
-const useTabSelectionStore = create(() => ({
-  selectedTabIds: [] as number[],
-}));
+export const SelectionStore = proxy({
+  selectedTabIds: proxySet<number>(),
+});
 
-export const toggleSelectedTabId = (tabId: number) => {
-  const selectedTabIds = useTabSelectionStore.getState().selectedTabIds;
-  useTabSelectionStore.setState({ selectedTabIds: toggle(selectedTabIds, tabId) });
+const toggleSelected = (tabId: number) => {
+  toggleSet(SelectionStore.selectedTabIds, tabId);
 };
 
-export const selectTabs = (tabIds: number[]) => {
-  useTabSelectionStore.setState({ selectedTabIds: tabIds });
+const selectTabs = (tabIds?: Set<number>) => {
+  SelectionStore.selectedTabIds = proxySet(tabIds);
 };
-
-export const selectAllTabs = () => {
-  const filteredIds = getFilteredTabIds();
-  useTabSelectionStore.setState({ selectedTabIds: Array.from(filteredIds) });
+const selectAllTabs = () => {
+  SelectionStore.selectedTabIds = proxySet(getFilteredTabIds());
 };
-
-export const deselectAllTabs = () => {
-  useTabSelectionStore.setState({ selectedTabIds: [] });
+const deselectAllTabs = () => {
+  SelectionStore.selectedTabIds = proxySet();
 };
-
-export const useTabSelectionStoreHook = () => useTabSelectionStore();
 
 export const initStore = async () => {
   const tabs = await getActiveTabs();
@@ -164,10 +160,9 @@ export const initStore = async () => {
 
     useTabStore.setState({ tabs: state.tabs.filter((t) => t.id !== id) });
 
-    const selectedTabIds = useTabSelectionStore.getState().selectedTabIds;
-    useTabSelectionStore.setState({
-      selectedTabIds: selectedTabIds.filter((tabId) => tabId !== id),
-    });
+    const selectedTabIds = new Set(SelectionStore.selectedTabIds);
+    selectedTabIds.delete(id);
+    SelectionStore.selectedTabIds = proxySet(selectedTabIds);
   });
 
   chrome.windows?.onFocusChanged.addListener((windowId) => {
@@ -322,10 +317,11 @@ export const removeTabsPar = async (tabIds: number[], opts: RemoveTabOpts = {}) 
     }));
 
     // Remove from selection
-    const selectedTabIds = useTabSelectionStore.getState().selectedTabIds;
-    useTabSelectionStore.setState({
-      selectedTabIds: selectedTabIds.filter((id) => !idsSet.has(id)),
-    });
+    const selectedTabIds = new Set(SelectionStore.selectedTabIds);
+    for (const id of idsSet) {
+      selectedTabIds.delete(id);
+    }
+    SelectionStore.selectedTabIds = proxySet(selectedTabIds);
 
     if (opts.notify !== false) {
       toast.success(`Closed ${pluralize(tabIds.length, "tab")}`, {
@@ -706,27 +702,39 @@ export const useViewTabIds = () => {
 export const useTabInfo = (tabId: number) => {
   const duplicateTabIds = useViewDuplicateTabIds();
   const staleTabIds = useViewStaleTabIds();
-  const selectedTabIds = useTabSelectionStore((s) => s.selectedTabIds);
+  const selected = useIsTabSelected(tabId);
 
   return useMemo(
     () => ({
       duplicate: duplicateTabIds.has(tabId),
       stale: staleTabIds.has(tabId),
-      selected: selectedTabIds.includes(tabId),
+      selected,
     }),
-    [duplicateTabIds, staleTabIds, selectedTabIds, tabId],
+    [duplicateTabIds, staleTabIds, selected, tabId],
   );
 };
 
-export const useIsTabSelected = (tabId: number) => {
-  return useTabSelectionStore((s) => s.selectedTabIds.includes(tabId));
-};
+export function useTabSelectionStore() {
+  return useSnapshot(SelectionStore);
+}
+
+export function useIsTabSelected(tabId: number) {
+  const [selected, setSelected] = useState(SelectionStore.selectedTabIds.has(tabId));
+
+  useEffect(() => {
+    const callback = () => {
+      setSelected(SelectionStore.selectedTabIds.has(tabId));
+    };
+    const unsubscribe = subscribe(SelectionStore, callback);
+    callback();
+
+    return unsubscribe;
+  }, [tabId]);
+
+  return selected;
+}
 
 export const tabStoreActions = {
-  toggleSelectedTabId,
-  selectTabs,
-  selectAllTabs,
-  deselectAllTabs,
   toggleAssignedTagId,
   clearAssignedTagIds,
   setView,
@@ -754,4 +762,17 @@ export const tabStoreActions = {
   getFilteredTabIds,
   getDuplicateTabIds,
   getStaleTabIds,
+};
+
+export const tabStoreViewActions = {
+  setView,
+  updateFilter,
+  clearFilter,
+};
+
+export const tabStoreSelectionActions = {
+  deselectAllTabs,
+  selectAllTabs,
+  selectTabs,
+  toggleSelected,
 };

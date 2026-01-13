@@ -9,7 +9,7 @@ export default function FeedbackPage() {
     <SettingsPage>
       <SettingsTitle>Feedback</SettingsTitle>
 
-      <SettingsContent className="flex h-full flex-col items-center gap-5">
+      <SettingsContent className="flex h-full flex-col items-center gap-5 pt-10">
         <motion.img
           initial={{ opacity: 0, filter: "blur(4px)", scale: 0.95 }}
           animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}

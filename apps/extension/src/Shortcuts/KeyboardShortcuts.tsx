@@ -2,10 +2,10 @@ import { cn } from "@echotab/ui/util";
 
 import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
 import { Panel } from "../models";
-import { useUIStore } from "../UIStore";
+import { useSettingStore } from "../store/settingStore";
 
 export default function KeyboardShortcuts({ className }: { className?: string }) {
-  const { activePanel } = useUIStore();
+  const activePanel = useSettingStore((s) => s.activePanel);
 
   return (
     <ul className={cn("flex flex-col gap-4 text-sm", className)}>

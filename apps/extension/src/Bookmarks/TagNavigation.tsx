@@ -4,8 +4,8 @@ import { LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { Tag } from "../models";
-import { useTagStore } from "../TagStore";
-import { useBookmarkStore } from "./BookmarkStore";
+import { useViewTagIds } from "../store/bookmarkStore";
+import { useTagsById } from "../store/tagStore";
 
 interface Props {
   visibleTagIds: Set<number>;
@@ -14,9 +14,9 @@ interface Props {
 }
 
 export default function TagNavigationLinks({ visibleTagIds, onTagClick, className }: Props) {
-  const tagStore = useTagStore();
-  const bookmarkStore = useBookmarkStore();
-  const tags = bookmarkStore.viewTagIds.map((id) => tagStore.tags.get(id)!);
+  const tagsById = useTagsById();
+  const viewTagIds = useViewTagIds();
+  const tags = viewTagIds.map((id) => tagsById.get(id)!);
 
   return (
     // todo: implement skip navigation for keyboard users

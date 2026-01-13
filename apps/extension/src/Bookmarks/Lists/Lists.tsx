@@ -7,16 +7,17 @@ import { FilePlusIcon } from "@radix-ui/react-icons";
 import { useMemo, useState } from "react";
 
 import ExpandIcon from "~/components/ExpandIcon";
+import { List } from "~/models";
 
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../../components/ItemListPlaceholder";
-import { useBookmarkStore } from "../BookmarkStore";
+import { useBookmarkStore } from "../../store/bookmarkStore";
 import ItemGrid from "../ItemGrid";
 import ListFormDialog from "./ListFormDialog";
 import ListItem from "./ListItem";
 import { useGetPublicLists } from "./queries";
 
 export default function Lists() {
-  const bookmarkStore = useBookmarkStore();
+  const lists = useBookmarkStore((s) => s.lists);
 
   const [expanded, setExpanded] = useState(true);
 
@@ -33,7 +34,7 @@ export default function Lists() {
           <span className="text-muted-foreground flex items-center gap-2">
             <SquaresFourIcon /> Collections
           </span>
-          <Badge variant="card">{bookmarkStore.lists?.length}</Badge>
+          <Badge variant="card">{lists?.length}</Badge>
         </span>
         <Button
           variant="ghost"
@@ -54,7 +55,7 @@ export default function Lists() {
 
       {expanded && (
         <>
-          {bookmarkStore.lists.length === 0 && (
+          {lists.length === 0 && (
             <ItemListPlaceholder
               layout="grid"
               count={5}
@@ -65,15 +66,15 @@ export default function Lists() {
               />
             </ItemListPlaceholder>
           )}
-          <ItemGrid items={bookmarkStore.lists.map((l) => l.id)} className="dark:shadow-sm">
+          <ItemGrid items={lists.map((l) => l.id)} className="dark:shadow-sm">
             {({ index }) => {
-              const list = bookmarkStore.lists[index];
+              const list = lists[index];
 
               if (!list) {
                 return null;
               }
 
-              return <ListItem list={list} publicList={publicListsById[list.id]} />;
+              return <ListItem list={list as List} publicList={publicListsById[list.id]} />;
             }}
           </ItemGrid>
         </>

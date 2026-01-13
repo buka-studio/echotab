@@ -16,7 +16,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useRef } from "react";
 
 import { List } from "../../models";
-import BookmarkStore from "../BookmarkStore";
+import { bookmarkStoreActions } from "../../store/bookmarkStore";
 import { updateList } from "./api";
 
 interface Props {
@@ -35,7 +35,7 @@ export default function ListDeleteDialog({ list, children, publicList }: Props) 
         await updateList(list.id, { published: false });
       }
 
-      BookmarkStore.removeList(list.id);
+      bookmarkStoreActions.removeList(list.id);
     },
   });
 

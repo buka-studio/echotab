@@ -13,6 +13,23 @@ const logger = createLogger("background");
 
 const AUTO_SNAPSHOT_ENABLED = false;
 
+async function openOrCreateEchoTab() {
+  const url = chrome.runtime.getURL("home.html");
+
+  const tabs = await chrome.tabs.query({ pinned: true });
+  const echotab = tabs.find((t) => t.url === url);
+
+  if (echotab && echotab.id) {
+    await chrome.tabs.update(echotab.id, { active: true });
+
+    if (echotab.windowId) {
+      await chrome.windows.update(echotab.windowId, { focused: true });
+    }
+  } else {
+    await chrome.tabs.create({ url, pinned: true, active: true });
+  }
+}
+
 export default defineBackground({
   main() {
     const extensionUrl = chrome.runtime.getURL("home.html");
@@ -67,6 +84,8 @@ export default defineBackground({
 
           if (canHaveContentScript) {
             MessageBus.sendToTab(tab.id, "widget:toggle", {}).catch(() => {});
+          } else {
+            await openOrCreateEchoTab();
           }
         } catch {
           // Invalid URL or other error, ignore
@@ -76,20 +95,7 @@ export default defineBackground({
 
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       if (info.menuItemId === "open") {
-        const url = chrome.runtime.getURL("home.html");
-
-        const tabs = await chrome.tabs.query({ pinned: true });
-        const echotab = tabs.find((t) => t.url === url);
-
-        if (echotab && echotab.id) {
-          await chrome.tabs.update(echotab.id, { active: true });
-
-          if (echotab.windowId) {
-            await chrome.windows.update(echotab.windowId, { focused: true });
-          }
-        } else {
-          await chrome.tabs.create({ url, pinned: true, active: true });
-        }
+        await openOrCreateEchoTab();
       }
     });
 

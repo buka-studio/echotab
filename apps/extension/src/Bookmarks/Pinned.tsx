@@ -6,12 +6,12 @@ import { useState } from "react";
 import ExpandIcon from "~/components/ExpandIcon";
 
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../components/ItemListPlaceholder";
-import { useBookmarkStore } from "./BookmarkStore";
+import { usePinnedTabs } from "../store/bookmarkStore";
 import ItemGrid from "./ItemGrid";
 import SavedTabItem from "./SavedTabItem";
 
 export default function Pinned() {
-  const bookmarkStore = useBookmarkStore();
+  const pinnedTabs = usePinnedTabs();
 
   const [expanded, setExpanded] = useState(true);
 
@@ -22,7 +22,7 @@ export default function Pinned() {
           <span className="text-muted-foreground flex items-center gap-2">
             <DrawingPinFilledIcon /> Pinned
           </span>
-          <Badge variant="card">{bookmarkStore.pinnedTabs?.length}</Badge>
+          <Badge variant="card">{pinnedTabs?.length}</Badge>
         </span>
         <Button
           variant="ghost"
@@ -36,7 +36,7 @@ export default function Pinned() {
 
       {expanded && (
         <>
-          {bookmarkStore.pinnedTabs.length === 0 && (
+          {pinnedTabs.length === 0 && (
             <ItemListPlaceholder
               layout="grid"
               count={5}
@@ -47,9 +47,14 @@ export default function Pinned() {
               />
             </ItemListPlaceholder>
           )}
-          <ItemGrid items={bookmarkStore.pinnedTabs.map((t) => t.id)}>
+          <ItemGrid items={pinnedTabs.map((t) => t.id)}>
             {({ index }) => {
-              const tab = bookmarkStore.pinnedTabs[index];
+              const tab = pinnedTabs[index];
+
+              if (!tab) {
+                return null;
+              }
+
               return <SavedTabItem tab={tab} />;
             }}
           </ItemGrid>

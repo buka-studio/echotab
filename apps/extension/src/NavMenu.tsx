@@ -18,18 +18,19 @@ import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { BroomIcon } from "@phosphor-icons/react";
 
 import { NumberNotificationBadge } from "./components/NumberNotificationBadge";
-import { Curate, CurateTrigger, useCurateStore } from "./Curate";
+import { Curate, CurateTrigger } from "./Curate";
+import { useCurateQueue, useCurateStore } from "./store/curateStore";
+import { settingStoreActions, useSettingStore } from "./store/settingStore";
 
 export default function NavMenu() {
-  const curateStore = useCurateStore();
+  const queue = useCurateQueue();
+  const open = useCurateStore((s) => s.open);
+  const settingsOpen = useSettingStore((s) => s.open);
 
   return (
     <div className="flex gap-2">
-      <Curate key={String(curateStore.open)}>
-        <NumberNotificationBadge
-          value={curateStore.queue.length}
-          variant="secondary"
-          show={curateStore.queue.length > 0}>
+      <Curate key={String(open)}>
+        <NumberNotificationBadge value={queue.length} variant="secondary" show={queue.length > 0}>
           <CurateTrigger>
             <ButtonWithTooltip
               tooltipText="Curate"
@@ -59,7 +60,9 @@ export default function NavMenu() {
           <Stats />
         </DialogContent>
       </Dialog>
-      <Dialog>
+      <Dialog
+        open={settingsOpen}
+        onOpenChange={(open) => settingStoreActions.setSettingsOpen(open)}>
         <DialogTrigger asChild>
           <ButtonWithTooltip
             tooltipText="Settings"

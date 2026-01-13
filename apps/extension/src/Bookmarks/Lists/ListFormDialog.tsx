@@ -21,24 +21,28 @@ import { ComponentProps, ReactNode, useMemo, useRef, useState } from "react";
 
 import TabItem, { Favicon } from "~/components/TabItem";
 import TagChipCombobox from "~/components/tag/TagChipCombobox";
-import TagStore from "~/TagStore";
 
 import { List, SavedTab } from "../../models";
+import { bookmarkStoreActions, filterTabs, useBookmarkStore } from "../../store/bookmarkStore";
+import { useTagsById } from "../../store/tagStore";
 import { formatDate } from "../../util/date";
-import BookmarkStore, { filterTabs, useBookmarkStore } from "../BookmarkStore";
 import { useUpdateListMutation } from "./queries";
 
 function useItemLookupService() {
-  const bookmarkStore = useBookmarkStore();
+  const tabs = useBookmarkStore((s) => s.tabs);
 
   const ItemLookupService = useMemo(() => {
-    const tabsById = new Map(bookmarkStore.tabs.map((t) => [t.id, t]));
+    const tabsById = new Map(tabs.map((t) => [t.id, t]));
 
     return {
       search: (query: string, cb: (results: { value: string; label: string }[]) => void) => {
-        const results = filterTabs(bookmarkStore.tabs, { keywords: [query], tags: [] });
+        const results = filterTabs(tabs, {
+          keywords: [query],
+          tags: [],
+          looseMatch: false,
+        });
 
-        const tabs = Array.from(results).map((id) => {
+        const tabResults = Array.from(results).map((id) => {
           const tab = tabsById.get(id) as SavedTab;
           return {
             value: tab!.id,
@@ -47,12 +51,52 @@ function useItemLookupService() {
           };
         });
 
-        cb(tabs);
+        cb(tabResults);
       },
     };
-  }, [bookmarkStore.tabs]);
+  }, [tabs]);
 
   return ItemLookupService;
+}
+
+function TabMentionPopover({ mention }: { mention: string }) {
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const tagsById = useTagsById();
+
+  const tab = tabs.find((t) => t.id === mention);
+  if (!tab) {
+    return null;
+  }
+
+  const tags = tab.tagIds.flatMap((t) => {
+    const tag = tagsById.get(t);
+    return tag ? [tag] : [];
+  });
+
+  return (
+    <PopoverContent className="max-w-[200px] border-none p-0">
+      <TabItem
+        className="rounded-lg"
+        tab={tab}
+        icon={
+          <Favicon
+            src={tab.url}
+            className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
+          />
+        }
+        link={
+          <a
+            className="overflow-hidden rounded-sm text-ellipsis whitespace-nowrap focus-visible:underline focus-visible:outline-none"
+            target="_blank"
+            href={tab.url}>
+            {tab.url}
+          </a>
+        }
+        linkPreview={false}
+        actions={<TagChipCombobox editable={false} tags={tags} />}
+      />
+    </PopoverContent>
+  );
 }
 
 type Props = {
@@ -97,7 +141,7 @@ export default function ListFormDialog({
 
     const tabIds = editorRef.current!.getMentions();
 
-    const result = BookmarkStore.upsertList({
+    const result = bookmarkStoreActions.upsertList({
       ...list,
       title,
       content,
@@ -155,42 +199,7 @@ export default function ListFormDialog({
                   plugins={
                     <>
                       <MentionsPopoverPlugin>
-                        {({ mention }) => {
-                          const tab = BookmarkStore.tabs.find((t) => t.id === mention);
-                          if (!tab) {
-                            return null;
-                          }
-
-                          const tags = tab.tagIds.flatMap((t) => {
-                            const tag = TagStore.tags.get(t);
-                            return tag ? [tag] : [];
-                          });
-
-                          return (
-                            <PopoverContent className="max-w-[200px] border-none p-0">
-                              <TabItem
-                                className="rounded-lg"
-                                tab={tab}
-                                icon={
-                                  <Favicon
-                                    src={tab.url}
-                                    className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
-                                  />
-                                }
-                                link={
-                                  <a
-                                    className="overflow-hidden rounded-sm text-ellipsis whitespace-nowrap focus-visible:underline focus-visible:outline-none"
-                                    target="_blank"
-                                    href={tab.url}>
-                                    {tab.url}
-                                  </a>
-                                }
-                                linkPreview={false}
-                                actions={<TagChipCombobox editable={false} tags={tags} />}
-                              />
-                            </PopoverContent>
-                          );
-                        }}
+                        {({ mention }) => <TabMentionPopover mention={mention} />}
                       </MentionsPopoverPlugin>
                     </>
                   }

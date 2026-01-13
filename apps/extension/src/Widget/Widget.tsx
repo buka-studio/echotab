@@ -9,12 +9,14 @@ import { Command as CommandPrimitive } from "cmdk";
 import { AnimatePresence, motion } from "framer-motion";
 import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
-import { useActiveTabStore } from "../ActiveTabs/ActiveStore";
+import { ActiveTab } from "~/store/schema";
+
 import TagChip from "../components/tag/TagChip";
 import { MessageBus } from "../messaging";
 import PulseLogo from "../PulseLogo";
-import TagStore, { unassignedTag, useTagStore } from "../TagStore";
-import { subscribeUIStore, useUIStore } from "../UIStore";
+import { subscribeSettingStore, useSettingStore } from "../store/settingStore";
+import { tabStoreActions } from "../store/tabStore";
+import { tagStoreActions, unassignedTag, useTagStore } from "../store/tagStore";
 import { getWidgetRoot } from "./util";
 
 const HeaderUrl = ({ children, className }: { children: ReactNode; className?: string }) => (
@@ -51,11 +53,10 @@ const exactMatchFilter = (value: string, search: string) => {
 
 function Widget({ onClose }: Props) {
   const [tab, setTab] = useState<chrome.tabs.Tab | null>(null);
-  const activeStore = useActiveTabStore();
-  const tagStore = useTagStore();
-  const uiStore = useUIStore();
+  const tags = useTagStore((s) => s.tags);
+  const { theme: settingsTheme } = useSettingStore((s) => s.settings);
 
-  subscribeUIStore();
+  subscribeSettingStore();
 
   const [closeAfterSave, setCloseAfterSave] = useState(true);
   const [takeSnapshot, setTakeSnapshot] = useState(true);
@@ -98,12 +99,11 @@ function Widget({ onClose }: Props) {
       await MessageBus.send("snapshot:save", { tabId: tab.id, url: tab.url });
     }
 
-    const results = await activeStore.saveTabsSeq(
-      [{ ...tab, tagIds: assignedTagIds }],
-      false,
+    const results = await tabStoreActions.saveTabsSeq(
+      [{ ...tab, tagIds: assignedTagIds } as ActiveTab & { tagIds: number[] }],
       false,
     );
-    const result = results.success[0];
+    const result = results?.success?.[0];
     if (result) {
       handleCloseAfterSave(result.tabId);
     }
@@ -112,8 +112,10 @@ function Widget({ onClose }: Props) {
   const handleCreateTag = () => {
     if (!search) return;
 
-    const newTag = tagStore.createTag({ name: search });
-    handleToggleTag(newTag.id);
+    const [newTag] = tagStoreActions.createTags([{ name: search }]);
+    if (newTag) {
+      handleToggleTag(newTag.id);
+    }
     setSearch("");
   };
 
@@ -124,15 +126,16 @@ function Widget({ onClose }: Props) {
       await MessageBus.send("snapshot:save", { tabId: tab.id, url: tab.url });
     }
 
-    const tagName = TagStore.getQuickSaveTagName(false);
-    const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
+    const tagName = tagStoreActions.getQuickSaveTagName(false);
+    const [quickTag] = tagStoreActions.createTags([{ name: tagName, isQuick: true }]);
 
-    const results = await activeStore.saveTabsSeq(
-      [{ ...tab, tagIds: [quickTag.id] }],
-      false,
+    if (!quickTag) return;
+
+    const results = await tabStoreActions.saveTabsSeq(
+      [{ ...tab, tagIds: [quickTag.id] } as ActiveTab & { tagIds: number[] }],
       false,
     );
-    const result = results.success[0];
+    const result = results?.success?.[0];
     if (result) {
       handleCloseAfterSave(result.tabId);
     }
@@ -148,16 +151,16 @@ function Widget({ onClose }: Props) {
   };
 
   const theme = useMemo(() => {
-    if (uiStore.settings.theme === "system") {
+    if (settingsTheme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
 
       return systemTheme;
     } else {
-      return uiStore.settings.theme;
+      return settingsTheme;
     }
-  }, [uiStore.settings.theme]);
+  }, [settingsTheme]);
 
   return (
     <motion.main
@@ -224,7 +227,7 @@ function Widget({ onClose }: Props) {
                 )}
               </CommandPrimitive.Empty>
 
-              {Array.from(tagStore.tags.values())
+              {Array.from(tags.values())
                 .reverse()
                 .filter((t) => t.id !== unassignedTag.id)
                 .map((t) => (

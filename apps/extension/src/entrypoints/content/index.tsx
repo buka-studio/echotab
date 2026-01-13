@@ -6,11 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { snapdom } from "@zumer/snapdom";
 import ReactDOM from "react-dom/client";
 
-import ActiveStore from "../../ActiveTabs/ActiveStore";
-import BookmarkStore from "../../Bookmarks/BookmarkStore";
 import { MessageBus } from "../../messaging";
-import TagStore from "../../TagStore";
-import UIStore from "../../UIStore";
+import { init as storeInit } from "../../store";
 import { createLogger } from "../../util/Logger";
 import Widget from "../../Widget";
 
@@ -26,8 +23,8 @@ export default defineContentScript({
 
     async function initStores() {
       try {
-        await Promise.all([UIStore.initStore(), TagStore.initStore()]);
-        await Promise.all([BookmarkStore.initStore(), ActiveStore.initStore()]);
+        await Promise.all([storeInit.initSettingStore(), storeInit.initTagStore()]);
+        await Promise.all([storeInit.initBookmarkStore(), storeInit.initTabStore()]);
       } catch (e) {
         logger.error("Failed to initialize stores", e);
       }

@@ -9,7 +9,7 @@ import ItemGrid from "../../Bookmarks/ItemGrid";
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../../components/ItemListPlaceholder";
 import TabItem, { Favicon } from "../../components/TabItem";
 import { ActiveTab } from "../../models";
-import { useRecentlyClosedStore } from "./RecentlyClosedStore";
+import { recentlyClosedActions, useRecentlyClosedStore } from "../../store/recentlyClosedStore";
 
 function RecentlyClosedTabItem({ tab }: { tab: ActiveTab }) {
   return (
@@ -31,10 +31,10 @@ function RecentlyClosedTabItem({ tab }: { tab: ActiveTab }) {
 }
 
 export default function RecentlyClosed() {
-  const recentlyClosedStore = useRecentlyClosedStore();
+  const recentlyClosedTabs = useRecentlyClosedStore((s) => s.tabs);
   const [expanded, setExpanded] = useState(true);
 
-  const recentlyClosedTabs = recentlyClosedStore.tabs.slice(0, 10);
+  const visibleTabs = recentlyClosedTabs.slice(0, 10);
 
   return (
     <div className="flex flex-col gap-3">
@@ -58,7 +58,7 @@ export default function RecentlyClosed() {
             variant="ghost"
             className="ml-auto"
             onClick={() => {
-              recentlyClosedStore.clear();
+              recentlyClosedActions.clear();
             }}>
             <XIcon className="mr-2 h-4 w-4" />
             Clear
@@ -68,7 +68,7 @@ export default function RecentlyClosed() {
 
       {expanded && (
         <>
-          {recentlyClosedTabs.length === 0 && (
+          {visibleTabs.length === 0 && (
             <ItemListPlaceholder
               layout="grid"
               count={5}
@@ -79,9 +79,9 @@ export default function RecentlyClosed() {
               />
             </ItemListPlaceholder>
           )}
-          <ItemGrid items={recentlyClosedTabs.map((t) => t.id!)} className="dark:shadow-sm">
+          <ItemGrid items={visibleTabs.map((t) => t.id!)} className="dark:shadow-sm">
             {({ index }) => {
-              const tab = recentlyClosedTabs[index];
+              const tab = visibleTabs[index];
               if (!tab) {
                 return null;
               }

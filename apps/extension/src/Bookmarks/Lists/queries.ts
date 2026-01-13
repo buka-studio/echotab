@@ -3,21 +3,23 @@ import { toast } from "@echotab/ui/Toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { List } from "../../models";
+import { useBookmarkStore } from "../../store/bookmarkStore";
 import { replaceBy } from "../../util";
 import { createLogger } from "../../util/Logger";
-import BookmarkStore, { useBookmarkStore } from "../BookmarkStore";
 import { getLists, publishList, unpublishLists, updateList } from "./api";
 
 const logger = createLogger("lists:queries");
 
 function getListPayload(list: List) {
+  const { tabs } = useBookmarkStore.getState();
+  const tabsById = new Map(tabs.map((t) => [t.id, t]));
   return {
     localId: list.id,
     title: list.title,
     content: list.content,
     published: true,
     links: list.tabIds.map((id) => {
-      const tab = BookmarkStore.viewTabsById[id];
+      const tab = tabsById.get(id)!;
       return {
         localId: tab.id,
         url: tab.url,

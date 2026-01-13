@@ -23,12 +23,14 @@ export const init = {
 };
 
 export const useStoresInitialized = () => {
-  return (
-    useSettingStore((s) => s.initialized) &&
-    useTagStore((s) => s.initialized) &&
-    useTabStore((s) => s.initialized) &&
-    useBookmarkStore((s) => s.initialized) &&
-    useCurateStore((s) => s.initialized) &&
-    useRecentlyClosedStore((s) => s.initialized)
-  );
+  const statuses = [
+    useSettingStore((s) => s.initialized),
+    useTagStore((s) => s.initialized),
+    useTabStore((s) => s.initialized),
+    useBookmarkStore((s) => s.initialized),
+    useCurateStore((s) => s.initialized),
+    useRecentlyClosedStore((s) => s.initialized),
+  ];
+
+  return statuses.every(Boolean);
 };

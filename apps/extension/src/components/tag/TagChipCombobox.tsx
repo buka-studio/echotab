@@ -15,7 +15,7 @@ import { motion } from "framer-motion";
 import { ReactNode, useMemo, useRef, useState } from "react";
 
 import { Tag } from "~/models";
-import { unassignedTag, useTagStore } from "~/TagStore";
+import { tagStoreActions, unassignedTag, useTagStore } from "~/store/tagStore";
 import { toggle } from "~/util/set";
 
 import TagChip from "./TagChip";
@@ -68,10 +68,10 @@ export default function TagChipCombobox({
   const [open, setOpen] = useState(false);
 
   const handleCreateTag = () => {
-    const tag = tagStore.createTag({ name: search });
+    const tag = tagStoreActions.createTags([{ name: search }]);
     setSelectedTagIds((tagIds) => {
       const wipSet = new Set(tagIds);
-      toggle(wipSet, tag.id);
+      toggle(wipSet, tag[0]?.id);
 
       return wipSet;
     });
@@ -223,7 +223,7 @@ export default function TagChipCombobox({
                             {tag.name}
                           </TagChip>
                         </motion.div>
-                        {!checked && <div className="w-4" />}
+                        <div className="w-6" />
                       </div>
                     </CommandItem>
                   );

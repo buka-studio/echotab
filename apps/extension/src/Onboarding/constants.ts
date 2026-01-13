@@ -1,4 +1,4 @@
-import { pickRandomTagColor } from "../TagStore";
+import { pickRandomTagColor } from "../store/tagStore";
 
 export const tagSuggestions = [
   "news",

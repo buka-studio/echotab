@@ -1,10 +1,10 @@
 import { Tag } from "~/models";
+import { bookmarkStoreActions } from "~/store/bookmarkStore";
+import { tagStoreActions, unassignedTag, useTagStore } from "~/store/tagStore";
 import { getUtcISO } from "~/util/date";
 import { intersection } from "~/util/set";
 import { normalizedComparator } from "~/util/string";
 
-import BookmarkStore from "../../Bookmarks/BookmarkStore";
-import TagStore, { unassignedTag } from "../../TagStore";
 import { EchotabData, echotabDataSchema } from "./EchotabData";
 
 export interface EchotabImportResult {
@@ -83,8 +83,9 @@ export class EchotabImporter {
       this.validated.tags.map((t) => [t.name.trim().toLowerCase(), t]),
     );
 
+    const tagsByNormalizedName = tagStoreActions.getTagsNormalizedByName();
     const duplicateNames = intersection(
-      Array.from(TagStore.tagsByNormalizedName.keys()),
+      Array.from(tagsByNormalizedName.keys()),
       Array.from(importedTagsByNormalizedName.keys()),
     );
 
@@ -94,7 +95,7 @@ export class EchotabImporter {
 
     for (const normalizedName of duplicateNames) {
       const importedTag = importedTagsByNormalizedName.get(normalizedName);
-      const existingTag = TagStore.tagsByNormalizedName.get(normalizedName);
+      const existingTag = tagsByNormalizedName.get(normalizedName);
 
       if (importedTag && existingTag && importedTag.id !== existingTag.id) {
         remappedIds.set(importedTag.id, existingTag.id);
@@ -107,20 +108,22 @@ export class EchotabImporter {
   private remapDuplicateTagIds(): void {
     if (!this.validated) return;
 
+    const tags = new Map(useTagStore.getState().tags.map((t) => [t.id, t]));
+
     const importedTagsById = new Map(this.validated.tags.map((t) => [t.id, t]));
-    const duplicateIds = intersection(TagStore.tags.keys(), importedTagsById.keys());
+    const duplicateIds = intersection(tags.keys(), importedTagsById.keys());
 
     duplicateIds.delete(unassignedTag.id);
 
     if (duplicateIds.size === 0) return;
 
-    const startId = TagStore.getNextTagId();
+    const startId = tagStoreActions.getNextTagId();
     let idOffset = 0;
 
     const remappedIds = new Map<number, number>();
 
     for (const id of duplicateIds) {
-      const existingTag = TagStore.tags.get(id);
+      const existingTag = tags.get(id);
       const importedTag = importedTagsById.get(id);
 
       if (
@@ -155,15 +158,13 @@ export class EchotabImporter {
   private importTags(): void {
     if (!this.validated) return;
 
-    TagStore.import({
-      tags: new Map(this.validated.tags.map((t) => [t.id, t as Tag])),
-    });
+    tagStoreActions.addTags(this.validated.tags as Tag[]);
   }
 
   private importTabs(): void {
     if (!this.validated) return;
 
-    BookmarkStore.import({
+    bookmarkStoreActions.importBookmarks({
       tabs: this.validated.tabs.map((t) => ({
         ...t,
         savedAt: t.savedAt ?? getUtcISO(),

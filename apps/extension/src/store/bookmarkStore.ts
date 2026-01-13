@@ -2,6 +2,8 @@ import { toast } from "@echotab/ui/Toast";
 import Fuse from "fuse.js";
 import { useMemo } from "react";
 import { uuidv7 } from "uuidv7";
+import { proxy, subscribe, useSnapshot } from "valtio";
+import { proxySet } from "valtio/utils";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
@@ -85,36 +87,27 @@ export const useBookmarkViewStore = create(
   })),
 );
 
-interface SelectionStore {
-  selectedTabIds: Set<string>;
-}
+export const SelectionStore = proxy({
+  selectedTabIds: proxySet<string>(),
+});
 
-const useSelectionStore = create<SelectionStore>(() => ({
-  selectedTabIds: new Set<string>(),
-}));
-
-export const toggleSelectedTabId = (tabId: string) => {
-  const selectedTabIds = new Set(useSelectionStore.getState().selectedTabIds);
-  toggle(selectedTabIds, tabId);
-  useSelectionStore.setState({ selectedTabIds });
+const toggleSelected = (tabId: string) => {
+  toggle(SelectionStore.selectedTabIds, tabId);
 };
 
-export const selectTabs = (tabIds: string[]) => {
-  useSelectionStore.setState({ selectedTabIds: new Set(tabIds) });
+const selectTabs = (tabIds?: Set<string>) => {
+  SelectionStore.selectedTabIds = proxySet(tabIds);
 };
 
-export const selectAllTabs = () => {
-  const tabs = useBookmarkStore.getState().tabs;
-  useSelectionStore.setState({
-    selectedTabIds: new Set(tabs.filter((t) => !t.pinned).map((t) => t.id)),
-  });
+const selectAllTabs = () => {
+  SelectionStore.selectedTabIds = proxySet(
+    getFilteredTabIds(useBookmarkStore.getState().tabs, useBookmarkViewStore.getState().filter),
+  );
 };
 
-export const deselectAllTabs = () => {
-  useSelectionStore.setState({ selectedTabIds: new Set<string>() });
+const deselectAllTabs = () => {
+  SelectionStore.selectedTabIds = proxySet();
 };
-
-export const useBookmarkSelectionStore = () => useSelectionStore();
 
 export const initStore = async () => {
   const stored = await persistence.load();
@@ -256,11 +249,11 @@ export const removeTabs = (tabIds: string[]) => {
   }));
 
   // Remove from selection
-  const selectedTabIds = new Set(useSelectionStore.getState().selectedTabIds);
+  const selectedTabIds = new Set(SelectionStore.selectedTabIds);
   for (const id of idsSet) {
     selectedTabIds.delete(id);
   }
-  useSelectionStore.setState({ selectedTabIds });
+  SelectionStore.selectedTabIds = proxySet(selectedTabIds);
 
   toast.success(`Deleted ${pluralize(tabIds.length, "tab")}`, {
     action: {
@@ -276,7 +269,7 @@ export const removeTabs = (tabIds: string[]) => {
 
 export const removeAllItems = () => {
   useBookmarkStore.setState({ tabs: [], lists: [] });
-  useSelectionStore.setState({ selectedTabIds: new Set() });
+  SelectionStore.selectedTabIds = proxySet();
 };
 
 export const togglePinTab = (tabId: string) => {
@@ -483,20 +476,28 @@ export const useFiltersApplied = () => {
   }, [filter.keywords.length, filter.tags.length]);
 };
 
+const getFiltersApplied = (filter: Filter) => {
+  return filter.keywords.length + filter.tags.length > 0;
+};
+
+const getFilteredTabIds = (tabs: SavedTab[], filter: Filter) => {
+  const filtersApplied = getFiltersApplied(filter);
+  const allIds = new Set(tabs.filter((t) => !t.pinned).map((t) => t.id));
+
+  if (!filtersApplied) {
+    return allIds;
+  }
+
+  return filterTabs(tabs, filter);
+};
+
 export const useFilteredTabIds = () => {
   const tabs = useBookmarkStore((state) => state.tabs);
   const filter = useBookmarkViewStore((state) => state.filter);
-  const filtersApplied = useFiltersApplied();
 
   return useMemo(() => {
-    const allIds = new Set(tabs.filter((t) => !t.pinned).map((t) => t.id));
-
-    if (!filtersApplied) {
-      return allIds;
-    }
-
-    return filterTabs(tabs, filter);
-  }, [tabs, filter, filtersApplied]);
+    return getFilteredTabIds(tabs, filter);
+  }, [tabs, filter]);
 };
 
 export const useViewTabsById = () => {
@@ -567,35 +568,41 @@ export const useViewTagIds = () => {
   }, [filteredTabsByTagId, sort, tags]);
 };
 
+const getViewTabIds = (
+  tabs: SavedTab[],
+  filteredIds: Set<string>,
+  sort: { prop: TabSortProp | undefined; dir: SortDir },
+) => {
+  const tabsById = new Map(tabs.map((t) => [t.id, t]));
+  const filtered = Array.from(filteredIds);
+
+  if (sort.prop === TabSortProp.Title) {
+    filtered.sort((a, b) =>
+      stringComparator(tabsById.get(a)!.title, tabsById.get(b)!.title, sort.dir),
+    );
+  } else if (sort.prop === TabSortProp.TagCount) {
+    filtered.sort((a, b) =>
+      numberComparator(tabsById.get(a)!.tagIds.length, tabsById.get(b)!.tagIds.length, sort.dir),
+    );
+  } else if (sort.prop === TabSortProp.SavedAt) {
+    filtered.sort((a, b) =>
+      numberComparator(
+        new Date(tabsById.get(a)!.savedAt).getTime(),
+        new Date(tabsById.get(b)!.savedAt).getTime(),
+        sort.dir,
+      ),
+    );
+  }
+
+  return filtered;
+};
+
 export const useViewTabIds = () => {
   const tabs = useBookmarkStore((state) => state.tabs);
   const sort = useBookmarkViewStore((state) => state.sort);
   const filteredIds = useFilteredTabIds();
 
-  return useMemo(() => {
-    const tabsById = new Map(tabs.map((t) => [t.id, t]));
-    const filtered = Array.from(filteredIds);
-
-    if (sort.prop === TabSortProp.Title) {
-      filtered.sort((a, b) =>
-        stringComparator(tabsById.get(a)!.title, tabsById.get(b)!.title, sort.dir),
-      );
-    } else if (sort.prop === TabSortProp.TagCount) {
-      filtered.sort((a, b) =>
-        numberComparator(tabsById.get(a)!.tagIds.length, tabsById.get(b)!.tagIds.length, sort.dir),
-      );
-    } else if (sort.prop === TabSortProp.SavedAt) {
-      filtered.sort((a, b) =>
-        numberComparator(
-          new Date(tabsById.get(a)!.savedAt).getTime(),
-          new Date(tabsById.get(b)!.savedAt).getTime(),
-          sort.dir,
-        ),
-      );
-    }
-
-    return filtered;
-  }, [tabs, filteredIds, sort]);
+  return useMemo(() => getViewTabIds(tabs, filteredIds, sort), [tabs, filteredIds, sort]);
 };
 
 export const usePinnedTabs = () => {
@@ -615,9 +622,25 @@ export const useItems = () => {
   }, [tabs, lists]);
 };
 
-export const useIsTabSelected = (tabId: string) => {
-  return useSelectionStore((state) => state.selectedTabIds.has(tabId));
-};
+export function useBookmarkSelectionStore() {
+  return useSnapshot(SelectionStore);
+}
+
+export function useIsTabSelected(tabId: string = "") {
+  const [selected, setSelected] = useState(SelectionStore.selectedTabIds.has(tabId));
+
+  useEffect(() => {
+    const callback = () => {
+      setSelected(SelectionStore.selectedTabIds.has(tabId));
+    };
+    const unsubscribe = subscribe(SelectionStore, callback);
+    callback();
+
+    return unsubscribe;
+  }, [tabId]);
+
+  return selected;
+}
 
 export const bookmarkStoreActions = {
   saveTabs,
@@ -630,5 +653,23 @@ export const bookmarkStoreActions = {
   tagTabs,
   removeTabTag,
   removeTabTags,
+  removeTabsTag,
   removeTags,
+  importBookmarks,
+  upsertList,
+  removeList,
+  removeLists,
+};
+
+export const bookmarkStoreViewActions = {
+  setView,
+  updateFilter,
+  clearFilter,
+};
+
+export const bookmarkStoreSelectionActions = {
+  deselectAllTabs,
+  selectAllTabs,
+  selectTabs,
+  toggleSelected,
 };

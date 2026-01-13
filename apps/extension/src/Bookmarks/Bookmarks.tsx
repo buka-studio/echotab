@@ -5,22 +5,34 @@ import { useMatchMedia } from "@echotab/ui/hooks";
 import { cn } from "@echotab/ui/util";
 import { BookmarkFilledIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Virtualizer } from "@tanstack/react-virtual";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import ExpandIcon from "~/components/ExpandIcon";
 
-import { BookmarkStore } from ".";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import FilterTagChips from "../components/FilterTagChips";
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../components/ItemListPlaceholder";
 import { MobileBottomBarPortal } from "../components/MobileBottomBar";
 import { SelectableList } from "../components/SelectableList";
 import { Tag } from "../models";
-import { useTagStore } from "../TagStore";
+import {
+  bookmarkStoreSelectionActions,
+  bookmarkStoreViewActions,
+  SelectionStore,
+  TabGrouping,
+  useFilteredTabIds as useBookmarkFilteredTabIds,
+  useFiltersApplied as useBookmarkFiltersApplied,
+  useBookmarkStore,
+  useBookmarkViewStore,
+  useViewTabIds as useBookmarkViewTabIds,
+  useViewTabsById as useBookmarkViewTabsById,
+  useFilteredTabsByTagId,
+  useViewTagIds,
+} from "../store/bookmarkStore";
+import { useTagsById } from "../store/tagStore";
 import { isPopoverOpen } from "../util/dom";
 import BookmarkCommand from "./BookmarkCommand";
-import { SelectionStore, TabGrouping, useBookmarkStore } from "./BookmarkStore";
 import Lists from "./Lists";
 import Pinned from "./Pinned";
 import SavedTabItem from "./SavedTabItem";
@@ -30,20 +42,27 @@ import TagHeader from "./TagHeader";
 import TagNavigation from "./TagNavigation";
 import ViewControl from "./ViewControl";
 
+const MemoSavedTabItem = memo(SavedTabItem);
+
 export default function Bookmarks() {
-  const bookmarkStore = useBookmarkStore();
-  const tagStore = useTagStore();
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const tagsById = useTagsById();
+  const view = useBookmarkViewStore();
+  const viewTagIds = useViewTagIds();
+  const viewTabIds = useBookmarkViewTabIds();
+  const viewTabsById = useBookmarkViewTabsById();
+  const filteredTabsByTagId = useFilteredTabsByTagId();
+  const filteredTabIds = useBookmarkFilteredTabIds();
+  const filtersApplied = useBookmarkFiltersApplied();
 
   const [tagsExpanded, setTagsExpanded] = useState(
-    Object.fromEntries(bookmarkStore.viewTagIds.map((id) => [id, true])),
+    Object.fromEntries(viewTagIds.map((id) => [id, true])),
   );
 
-  const prevView = useRef(bookmarkStore.viewTagIds);
-  if (prevView.current !== bookmarkStore.viewTagIds) {
-    prevView.current = bookmarkStore.viewTagIds;
-    setTagsExpanded(
-      Object.fromEntries(bookmarkStore.viewTagIds.map((id) => [id, tagsExpanded[id] ?? true])),
-    );
+  const prevView = useRef(viewTagIds);
+  if (prevView.current !== viewTagIds) {
+    prevView.current = viewTagIds;
+    setTagsExpanded(Object.fromEntries(viewTagIds.map((id) => [id, tagsExpanded[id] ?? true])));
   }
 
   const toggleTagsExpanded = (id: number) => {
@@ -54,14 +73,14 @@ export default function Bookmarks() {
   };
 
   const handleRemoveFilterTag = (tagId: number) => {
-    bookmarkStore.updateFilter({
-      tags: bookmarkStore.view.filter.tags.filter((id) => id !== tagId),
+    bookmarkStoreViewActions.updateFilter({
+      tags: view.filter.tags.filter((id) => id !== tagId),
     });
   };
 
   const handleRemoveFilterKeyword = (keyword: string) => {
-    bookmarkStore.updateFilter({
-      keywords: bookmarkStore.view.filter.keywords.filter((kw) => kw !== keyword.trim()),
+    bookmarkStoreViewActions.updateFilter({
+      keywords: view.filter.keywords.filter((kw) => kw !== keyword.trim()),
     });
   };
 
@@ -79,17 +98,17 @@ export default function Bookmarks() {
 
   const allCollapsed = Object.values(tagsExpanded).every((v) => !v);
 
-  const isTagView = bookmarkStore.view.grouping === TabGrouping.Tag;
+  const isTagView = view.grouping === TabGrouping.Tag;
 
   const itemGroups = isTagView
-    ? bookmarkStore.viewTagIds
+    ? viewTagIds
         .map((id) => ({
-          tag: tagStore.tags.get(id),
-          items: tagsExpanded[id] ? bookmarkStore.filteredTabsByTagId[id] : [],
+          tag: tagsById.get(id),
+          items: tagsExpanded[id] ? filteredTabsByTagId[id] : [],
         }))
         .filter((g) => g.tag)
-    : bookmarkStore.viewTabIds.length
-      ? [{ tag: undefined, items: bookmarkStore.viewTabIds }]
+    : viewTabIds.length
+      ? [{ tag: undefined, items: viewTabIds }]
       : [];
 
   const [scrollTargetId, setScrollTargetId] = useState<number | null>(null);
@@ -111,7 +130,7 @@ export default function Bookmarks() {
   }, [scrollTargetId]);
 
   const [tagVisibility, setTagVisibility] = useState(
-    Object.fromEntries(bookmarkStore.viewTagIds.map((id) => [id, false])),
+    Object.fromEntries(viewTagIds.map((id) => [id, false])),
   );
 
   const virtualizerRefs = useRef(new Set<Virtualizer<Window, Element>>());
@@ -119,7 +138,7 @@ export default function Bookmarks() {
     virtualizerRefs.current.forEach((v) => {
       v.measure();
     });
-  }, [bookmarkStore.view]);
+  }, [view]);
 
   const groupRefs = useRef<Record<number, HTMLDivElement | null>>({});
   useEffect(() => {
@@ -145,7 +164,7 @@ export default function Bookmarks() {
     return () => {
       observer.disconnect();
     };
-  }, [bookmarkStore.view]);
+  }, [view]);
 
   const handleScrollToTag = ({ tag, index }: { tag: Tag; index: number }) => {
     const item = groupRefs.current[tag.id];
@@ -163,18 +182,18 @@ export default function Bookmarks() {
       .filter(([_, v]) => v)
       .map(([k, _]) => Number(k)),
   );
-  const hasTabs = bookmarkStore.tabs.length > 0;
-  const hasFilteredTabs = bookmarkStore.filteredTabIds.size > 0;
+  const hasTabs = tabs.length > 0;
+  const hasFilteredTabs = filteredTabIds.size > 0;
 
   const isXLScreen = useMatchMedia("(min-width: 1440px)");
 
   useHotkeys(
     "meta+a",
     () => {
-      if (BookmarkStore.viewTabIds.length === SelectionStore.selectedItemIds.size) {
-        SelectionStore.deselectAllTabs();
+      if (viewTabIds.length === SelectionStore.selectedTabIds.size) {
+        bookmarkStoreSelectionActions.deselectAllTabs();
       } else {
-        SelectionStore.selectAllTabs();
+        bookmarkStoreSelectionActions.selectAllTabs();
       }
     },
     {
@@ -183,7 +202,7 @@ export default function Bookmarks() {
     },
   );
 
-  const tagCount = bookmarkStore.viewTagIds.length;
+  const tagCount = viewTagIds.length;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -191,13 +210,13 @@ export default function Bookmarks() {
         <BookmarkCommand />
       </div>
       <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:p-2">
-        {bookmarkStore.filtersApplied && (
+        {filtersApplied && (
           <div className="flex items-center gap-5">
-            <Button variant="ghost" onClick={bookmarkStore.clearFilter}>
+            <Button variant="ghost" onClick={bookmarkStoreViewActions.clearFilter}>
               Clear Filter
             </Button>
             <FilterTagChips
-              filter={bookmarkStore.view.filter}
+              filter={view.filter}
               onRemoveKeyword={handleRemoveFilterKeyword}
               onRemoveTag={handleRemoveFilterTag}
             />
@@ -221,9 +240,11 @@ export default function Bookmarks() {
             intersect: "native",
           },
         }}
-        onResetSelection={() => SelectionStore.deselectAllTabs()}
-        getSelected={() => SelectionStore.selectedItemIds}
-        onSelectionChange={(selection) => SelectionStore.selectItems(selection as Set<string>)}
+        onResetSelection={() => bookmarkStoreSelectionActions.deselectAllTabs()}
+        getSelected={() => SelectionStore.selectedTabIds}
+        onSelectionChange={(selection) =>
+          bookmarkStoreSelectionActions.selectTabs(selection as Set<string>)
+        }
         className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr] items-start">
         {isTagView && tagCount > 0 && (
           <>
@@ -270,13 +291,13 @@ export default function Bookmarks() {
                 <span className="text-muted-foreground flex items-center gap-2">
                   <BookmarkFilledIcon /> Bookmarks
                 </span>
-                <AnimatedNumberBadge value={bookmarkStore.viewTabIds.length} />
+                <AnimatedNumberBadge value={viewTabIds.length} />
                 <ViewControl />
               </div>
               <div className="ml-auto flex">
                 <SelectButton />
                 {hasFilteredTabs &&
-                  bookmarkStore.view.grouping === TabGrouping.Tag &&
+                  view.grouping === TabGrouping.Tag &&
                   (allCollapsed ? (
                     <Button variant="ghost" onClick={handleExpandAll}>
                       Expand All
@@ -311,13 +332,9 @@ export default function Bookmarks() {
           <div className="flex w-full flex-col">
             {itemGroups.map(({ tag, items }, i) => {
               const tabsVisible = tag ? tagsExpanded[tag.id] : !isTagView;
-              const key = tag ? `${tag.id}_ ${tag.name}` : i;
+              const key = tag ? `${tag.id}_${tag.name}` : i;
               const isLast = i === itemGroups.length - 1;
               const expanded = tag ? tagsExpanded[tag.id] : true;
-
-              if (!items?.length) {
-                return null;
-              }
 
               return (
                 <div
@@ -357,7 +374,7 @@ export default function Bookmarks() {
                   {tabsVisible && (
                     <SelectableVirtualList
                       className="sortable-list"
-                      items={items}
+                      items={items || []}
                       ref={(e) => {
                         e?.virtualizer && virtualizerRefs.current.add(e?.virtualizer);
                       }}>
@@ -366,11 +383,12 @@ export default function Bookmarks() {
                         if (!tabId) {
                           return null;
                         }
-                        const tab = bookmarkStore.viewTabsById[tabId];
+                        const tab = viewTabsById[tabId];
                         if (!tab) {
                           return null;
                         }
-                        return <SavedTabItem tab={tab} currentGroupTagId={tag?.id} />;
+
+                        return <MemoSavedTabItem tab={tab} currentGroupTagId={tag?.id} />;
                       }}
                     </SelectableVirtualList>
                   )}

@@ -48,7 +48,7 @@ export default function Ruler({
   return (
     <div
       className={cn(
-        "ruler border-muted pointer-events-none fixed top-1/2 left-0 z-100 h-[calc(var(--step-size)*var(--steps)*1px)] -translate-y-1/2",
+        "ruler dark:border-muted border-border-active pointer-events-none fixed top-1/2 left-0 z-100 h-[calc(var(--step-size)*var(--steps)*1px)] -translate-y-1/2",
         {
           "left-2 border-l-2": isLeft,
           "right-2 border-r-2": isRight,
@@ -67,7 +67,7 @@ export default function Ruler({
             key={i}
             style={{ "--offset": i * stepSize } as CSSProperties}
             className={cn(
-              "ruler-step outline-muted absolute top-[calc(var(--offset)*1px)] w-1 outline",
+              "ruler-step dark:outline-muted outline-border-active absolute top-[calc(var(--offset)*1px)] w-1 outline",
               {
                 "w-3": i % 5 === 0,
                 "w-5": i % 10 === 0,

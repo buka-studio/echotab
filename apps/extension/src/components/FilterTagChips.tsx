@@ -1,4 +1,4 @@
-import { useTagStore } from "../TagStore";
+import { useTagsById } from "../store/tagStore";
 import TagChipList from "./tag/TagChipList";
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function FilterTagChips({ filter, onRemoveKeyword, onRemoveTag }: Props) {
-  const tagStore = useTagStore();
+  const tagsById = useTagsById();
 
   return (
     <div className="flex items-center gap-5">
@@ -33,7 +33,7 @@ export default function FilterTagChips({ filter, onRemoveKeyword, onRemoveTag }:
           Tags:{" "}
           <TagChipList
             max={4}
-            tags={filter.tags.map((t) => tagStore.tags.get(t)!)}
+            tags={filter.tags.map((t) => tagsById.get(t)!)}
             onRemove={onRemoveTag ? (tag) => onRemoveTag(tag.id!) : undefined}
           />
         </div>

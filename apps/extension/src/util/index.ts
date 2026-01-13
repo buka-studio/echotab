@@ -1,4 +1,4 @@
-import { ClipboardFormat } from "../UIStore";
+import { ClipboardFormat } from "~/store/schema";
 
 export function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

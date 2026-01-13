@@ -1,25 +1,26 @@
 import { AnimatePresence, motion } from "framer-motion";
 
 import TagChip from "~/components/tag/TagChip";
-import { useTagStore } from "~/TagStore";
 
-import { BookmarkStore } from "../Bookmarks";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
+import { bookmarkStoreActions } from "../store/bookmarkStore";
+import { useTagsById, useTagStore } from "../store/tagStore";
 
 export default function TagList({ tagIds, tabId }: { tagIds: number[]; tabId: string }) {
-  const tagStore = useTagStore();
+  const allTags = useTagStore((s) => s.tags);
+  const tagsById = useTagsById();
 
-  const tags = Array.from(tagStore.tags.values()).filter((tag) => tagIds.includes(tag.id));
+  const tags = allTags.filter((tag) => tagIds.includes(tag.id));
 
   const handleSetTags = (tagIds: number[]) => {
-    BookmarkStore.tagTabs([tabId], tagIds, true);
+    bookmarkStoreActions.tagTabs([tabId], tagIds, true);
   };
 
   return (
     <motion.ul className="scrollbar-gray flex max-w-[80vw] flex-nowrap gap-2" layoutScroll>
       <AnimatePresence mode="popLayout">
         {tagIds.map((id, i) => {
-          const tag = tagStore.tags.get(id);
+          const tag = tagsById.get(id);
           return (
             <motion.div
               layout

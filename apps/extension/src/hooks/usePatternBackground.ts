@@ -1,11 +1,12 @@
-import { useUIStore } from "../UIStore";
+import { useSettingStore } from "../store/settingStore";
 import { URLEncodeSVG } from "../util";
 import { getRootElement } from "../util/dom";
 
 export type PatternType = "diagonal_lines" | "dots";
 
 export default function usePatternBackground(type: PatternType) {
-  useUIStore();
+  // Subscribe to settings changes to trigger re-render when theme changes
+  const _theme = useSettingStore((s) => s.settings.theme);
 
   const root = getRootElement();
 

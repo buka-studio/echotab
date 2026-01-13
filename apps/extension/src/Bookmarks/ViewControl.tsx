@@ -11,8 +11,13 @@ import {
 import { cn } from "@echotab/ui/util";
 import { ArrowDownIcon, ArrowUpIcon, CheckIcon, MixerVerticalIcon } from "@radix-ui/react-icons";
 
+import {
+  bookmarkStoreViewActions,
+  TabGrouping,
+  TabSortProp,
+  useBookmarkViewStore,
+} from "../store/bookmarkStore";
 import { SortDir } from "../util/sort";
-import { TabGrouping, TabSortProp, useBookmarkStore } from "./BookmarkStore";
 
 const tagViewSortOptions = [
   { value: TabSortProp.TagName, label: "Tag Name" },
@@ -36,21 +41,21 @@ const sortOptionsByView = {
 };
 
 export default function ViewControl() {
-  const tabStore = useBookmarkStore();
+  const view = useBookmarkViewStore();
 
   function handleToggleSort(prop: TabSortProp) {
-    tabStore.setView({
+    bookmarkStoreViewActions.setView({
       sort: {
         prop,
-        dir: tabStore.view.sort.dir === SortDir.Asc ? SortDir.Desc : SortDir.Asc,
+        dir: view.sort.dir === SortDir.Asc ? SortDir.Desc : SortDir.Asc,
       },
     });
   }
 
   function handleSetGrouping(grouping: TabGrouping) {
-    tabStore.setView({
+    bookmarkStoreViewActions.setView({
       grouping,
-      sort: { prop: sortOptionsByView[grouping][0].value, dir: SortDir.Asc },
+      sort: { prop: sortOptionsByView[grouping]![0]!.value, dir: SortDir.Asc },
     });
   }
 
@@ -72,15 +77,15 @@ export default function ViewControl() {
               key={value}
               className="gap-2">
               {label}
-              {tabStore.view.grouping === value && <CheckIcon className="ml-auto h-4 w-4" />}
+              {view.grouping === value && <CheckIcon className="ml-auto h-4 w-4" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-          {sortOptionsByView[tabStore.view.grouping].map(({ value, label }) => {
-            const active = tabStore.view.sort.prop === value;
+          {sortOptionsByView[view.grouping].map(({ value, label }) => {
+            const active = view.sort.prop === value;
             return (
               <DropdownMenuItem
                 key={value}
@@ -92,7 +97,7 @@ export default function ViewControl() {
                   className={cn({
                     "opacity-0": !active,
                   })}>
-                  {tabStore.view.sort.dir === SortDir.Asc ? (
+                  {view.sort.dir === SortDir.Asc ? (
                     <ArrowUpIcon className="ml-auto h-4 w-4" />
                   ) : (
                     <ArrowDownIcon className="ml-auto h-4 w-4" />

@@ -25,6 +25,7 @@ export default function CollectionsPage() {
           </div>
           <div className="flex items-center gap-1">
             <Input
+              placeholder="https://example.com"
               id="profile-link"
               onChange={(e) => handleProfileLinkUpdate(e.target.value)}
               className=""

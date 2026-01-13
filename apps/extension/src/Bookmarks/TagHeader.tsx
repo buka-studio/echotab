@@ -26,11 +26,16 @@ import { ReactNode } from "react";
 
 import TagChip from "../components/tag/TagChip";
 import { Tag } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
+import {
+  bookmarkStoreActions,
+  useBookmarkSelectionStore,
+  useBookmarkStore,
+  useFilteredTabsByTagId,
+} from "../store/bookmarkStore";
+import { useSettingStore } from "../store/settingStore";
+import { unassignedTag, useTagsById } from "../store/tagStore";
 import { formatLinks, pluralize } from "../util";
 import { intersection } from "../util/set";
-import { useBookmarkSelectionStore, useBookmarkStore } from "./BookmarkStore";
 
 function UntagConfirmDialog({
   onConfirm,
@@ -118,21 +123,22 @@ export default function TagHeader({
   highlighted?: boolean;
   className?: string;
 }) {
-  const bookmarkStore = useBookmarkStore();
-  const tagStore = useTagStore();
-  const selection = useBookmarkSelectionStore();
-  const uiStore = useUIStore();
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const tagsById = useTagsById();
+  const selectionStore = useBookmarkSelectionStore();
+  const { clipboardFormat } = useSettingStore((s) => s.settings);
+  const filteredTabsByTagId = useFilteredTabsByTagId();
 
-  if (!tagStore.tags.has(Number(tag?.id))) {
+  if (!tagsById.has(Number(tag?.id))) {
     return null;
   }
 
-  const tabIds = bookmarkStore.filteredTabsByTagId[tag?.id];
+  const tabIds = filteredTabsByTagId[tag?.id];
   if (!tabIds) {
     return null;
   }
 
-  const selectedTabIds = intersection(selection.selectedItemIds, tabIds);
+  const selectedTabIds = intersection(selectionStore.selectedTabIds, tabIds);
   const affectedTabIds = new Set(selectedTabIds.size ? selectedTabIds : tabIds);
   const affectedLabel =
     selectedTabIds.size && selectedTabIds.size !== tabIds.length
@@ -140,15 +146,15 @@ export default function TagHeader({
       : "all links";
 
   const handleCopyToClipboard = () => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) => affectedTabIds.has(tab.id));
+    const selectedLinks = tabs.filter((tab) => affectedTabIds.has(tab.id));
 
     const linksWithTags = selectedLinks.map((tab) => ({
       title: tab.title,
       url: tab.url,
-      tags: tab.tagIds.map((tagId) => tagStore.tags.get(tagId)!.name),
+      tags: tab.tagIds.map((tagId) => tagsById.get(tagId)?.name ?? ""),
     }));
 
-    const formatted = formatLinks(linksWithTags, uiStore.settings.clipboardFormat);
+    const formatted = formatLinks(linksWithTags, clipboardFormat);
 
     navigator.clipboard
       .writeText(formatted)
@@ -161,7 +167,7 @@ export default function TagHeader({
   };
 
   const handleOpen = (newWindow?: boolean) => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) => affectedTabIds.has(tab.id));
+    const selectedLinks = tabs.filter((tab) => affectedTabIds.has(tab.id));
     const urls = selectedLinks.map((tab) => tab.url);
     if (newWindow) {
       chrome.windows.create({
@@ -189,7 +195,7 @@ export default function TagHeader({
                 "text-primary": highlighted,
               },
             )}>
-            {tagStore.tags.get(Number(tag.id))!.name}
+            {tagsById.get(Number(tag.id))?.name}
           </span>
           <Badge variant="card">{tabIds?.length}</Badge>
         </span>
@@ -212,12 +218,11 @@ export default function TagHeader({
           <DropdownMenuSeparator />
           <UntagConfirmDialog
             tag={tag}
-            onConfirm={() => bookmarkStore.removeTabsTag(tabIds, tag.id)}
+            onConfirm={() => bookmarkStoreActions.removeTabsTag(tabIds, tag.id)}
             affectedCount={affectedTabIds.size}>
             {tag.id !== unassignedTag.id && (
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  {/* Untag <span className="text-muted-foreground">{tag.name}</span> */}
                   Untag{" "}
                   <TagChip color={tag.color} className="inline-flex">
                     {tag.name}
@@ -229,7 +234,7 @@ export default function TagHeader({
 
           <DeleteConfirmDialog
             affectedCount={affectedTabIds.size}
-            onConfirm={() => bookmarkStore.removeTabs(tabIds)}>
+            onConfirm={() => bookmarkStoreActions.removeTabs(tabIds)}>
             <AlertDialogTrigger asChild>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
             </AlertDialogTrigger>

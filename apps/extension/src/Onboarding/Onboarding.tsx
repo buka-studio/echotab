@@ -13,15 +13,13 @@ import { cn } from "@echotab/ui/util";
 import { useState } from "react";
 
 import TagChip from "../components/tag/TagChip";
-import TagStore from "../TagStore";
-import UIStore, { useUIStore } from "../UIStore";
+import { settingStoreActions, useSettingStore } from "../store/settingStore";
+import { tagStoreActions } from "../store/tagStore";
 import { toggle } from "../util/set";
 import { tagSuggestions } from "./constants";
 
 export default function OnboardingDialog() {
-  const {
-    settings: { showOnboarding },
-  } = useUIStore();
+  const { showOnboarding } = useSettingStore((s) => s.settings);
 
   const [selectedTagIndices, setSelectedTagIndices] = useState(new Set<number>());
 
@@ -39,16 +37,16 @@ export default function OnboardingDialog() {
   }
 
   const handleConfirmTags = () => {
-    TagStore.createTags(
+    tagStoreActions.createTags(
       Array.from(selectedTagIndices)
         .map((i) => tagSuggestions[i]!)
         .filter(Boolean),
     );
-    UIStore.updateSettings({ showOnboarding: false });
+    settingStoreActions.updateSettings({ showOnboarding: false });
   };
 
   const handleSkip = () => {
-    UIStore.updateSettings({ showOnboarding: false });
+    settingStoreActions.updateSettings({ showOnboarding: false });
   };
 
   return (

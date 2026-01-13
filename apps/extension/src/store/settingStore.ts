@@ -29,6 +29,7 @@ export const useSettingStore = create(
       clipboardIncludeTags: false,
     } as Settings,
     activePanel: Panel.Tabs,
+    open: false,
     initialized: false,
   })),
 );
@@ -53,6 +54,10 @@ export const updateSettings = (settings: Partial<Settings>) => {
 
 export const activatePanel = (panel: Panel) => {
   useSettingStore.setState({ activePanel: panel });
+};
+
+export const setSettingsOpen = (open: boolean) => {
+  useSettingStore.setState({ open });
 };
 
 // src https://github.com/pacocoursey/next-themes/blob/main/next-themes/src/index.tsx
@@ -103,4 +108,5 @@ export function subscribeSettingStore() {
 export const settingStoreActions = {
   updateSettings,
   activatePanel,
+  setSettingsOpen,
 };

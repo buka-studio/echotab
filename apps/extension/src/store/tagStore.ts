@@ -9,9 +9,20 @@ import { getUtcISO } from "~/util/date";
 import { StoragePersistence } from "./persistence";
 import { Tag, tagColors } from "./schema";
 
+export const unassignedTag = {
+  id: 0,
+  color: "#000000",
+  name: "Untagged",
+  favorite: false,
+};
+
+export const defaultTagColor = "#4338ca";
+
+const defaultTags: Tag[] = [unassignedTag as Tag];
+
 export const useTagStore = create(
   subscribeWithSelector(() => ({
-    tags: [] as Tag[],
+    tags: defaultTags,
     initialized: false,
   })),
 );
@@ -28,17 +39,6 @@ const persistence = new StoragePersistence<Tag[]>({ key: "echotab-tag-store" });
 export function pickRandomTagColor() {
   return tagColors[Math.floor(Math.random() * tagColors.length)] || defaultTagColor;
 }
-
-export const unassignedTag = {
-  id: 0,
-  color: "#000000",
-  name: "Untagged",
-  favorite: false,
-};
-
-export const defaultTagColor = "#4338ca";
-
-const defaultTags: Tag[] = [unassignedTag as Tag];
 
 export const addTags = (tags: Tag[]) => {
   useTagStore.setState((state) => ({ tags: [...state.tags, ...tags] }));

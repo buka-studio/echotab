@@ -8,9 +8,9 @@ import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
 import { ComponentProps, useMemo, useState } from "react";
 
+import { useBookmarkStore } from "~/store/bookmarkStore";
 import { unassignedTag, useTagStore } from "~/store/tagStore";
 
-import { useBookmarkStore } from "../Bookmarks";
 import TagChip from "../components/tag/TagChip";
 import { SavedTab, Tag } from "../models";
 import { pluralize } from "../util";
@@ -147,7 +147,9 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
 
   const noRelationships = tabMatrix.flat().every((n) => n === 0);
 
-  const tabCount = tabMatrix[tooltip.tooltipData!.from]?.[tooltip.tooltipData!.to] ?? 0;
+  const tabCount = tooltip.tooltipOpen
+    ? (tabMatrix[tooltip.tooltipData!.from]?.[tooltip.tooltipData!.to] ?? 0)
+    : 0;
 
   if (noRelationships) {
     return (

@@ -27,8 +27,10 @@ import {
   OpenInNewWindowIcon,
 } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import { curateStoreActions } from "~/store/curateStore";
 
 import FilterTagChips from "../components/FilterTagChips";
 import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
@@ -43,17 +45,25 @@ import {
 } from "../components/TabCommand";
 import TagChip from "../components/tag/TagChip";
 import TagChipList from "../components/tag/TagChipList";
-import { ActiveTab, Panel } from "../models";
-import TagStore, { unassignedTag, useTagStore } from "../TagStore";
-import UIStore, { useUIStore } from "../UIStore";
-import { formatLinks, pluralize } from "../util";
-import { isAlphanumeric } from "../util/string";
-import ActiveStore, {
+import { Panel } from "../models";
+import { settingStoreActions, useSettingStore } from "../store/settingStore";
+import {
   SelectionStore,
   staleThresholdDaysInMs,
-  useActiveSelectionStore,
-  useActiveTabStore,
-} from "./ActiveStore";
+  tabStoreActions,
+  tabStoreSelectionActions,
+  useTabSelectionStore,
+  useTabStore,
+  useTabViewStore,
+  useViewDuplicateTabIds,
+  useViewStaleTabIds,
+  useViewTabIds,
+  useViewTabIdsByWindowId,
+  useViewTabsById,
+} from "../store/tabStore";
+import { tagStoreActions, unassignedTag, useTagsById, useTagStore } from "../store/tagStore";
+import { formatLinks, pluralize } from "../util";
+import { isAlphanumeric } from "../util/string";
 
 const pages = ["/", "tag", "find", "paste"] as const;
 
@@ -121,10 +131,18 @@ const parseLinks = (text: string): string[] => {
 
 // todo: clean this & SavedCommand up
 export default function ActiveCommand() {
-  const tabStore = useActiveTabStore();
-  const tagStore = useTagStore();
-  const uiStore = useUIStore();
-  const selectionStore = useActiveSelectionStore();
+  const tabs = useTabStore((s) => s.tabs);
+  const assignedTagIds = useTabStore((s) => s.assignedTagIds);
+  const tags = useTagStore((s) => s.tags);
+  const tagsById = useTagsById();
+  const settings = useSettingStore((s) => s.settings);
+  const viewTabsById = useViewTabsById();
+  const viewTabIdsByWindowId = useViewTabIdsByWindowId();
+  const viewTabIds = useViewTabIds();
+  const viewDuplicateTabIds = useViewDuplicateTabIds();
+  const viewStaleTabIds = useViewStaleTabIds();
+  const view = useTabViewStore();
+  const selectionStore = useTabSelectionStore();
   const [pastedLinks, setPastedLinks] = useState<string[]>([]);
   const [pastedLinksVisible, setPastedLinksVisible] = useState(3);
 
@@ -152,96 +170,74 @@ export default function ActiveCommand() {
   const enterToSearch = false; //uiStore.settings.enterToSearch;
 
   const handleQuickSave = async () => {
-    const tagName = TagStore.getQuickSaveTagName();
+    const tagName = tagStoreActions.getQuickSaveTagName();
 
-    if (selectionStore.selectedTabIds.size) {
-      const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
+    if (SelectionStore.selectedTabIds.size) {
+      const [quickTag] = tagStoreActions.createTags([{ name: tagName, isQuick: true }]);
+      if (!quickTag) return;
 
       const tabsToSave = Array.from(SelectionStore.selectedTabIds)
-        .map((id) => ActiveStore.viewTabsById[id])
-        .filter(Boolean)
-        .map((t) => {
-          const tab = t as ActiveTab;
+        .map((id) => viewTabsById[id])
+        .filter((tab): tab is NonNullable<typeof tab> => tab != null)
+        .map((tab) => ({
+          ...tab,
+          tagIds: [quickTag.id],
+        }));
 
-          const tabToSave = {
-            id: tab.id,
-            url: tab.url,
-            favIconUrl: tab?.favIconUrl,
-            title: tab.title,
-            savedAt: Date.now(),
-            tagIds: [quickTag.id],
-          };
-
-          return tabToSave;
-        });
-
-      await tabStore.saveTabs(tabsToSave);
+      await tabStoreActions.saveTabs(tabsToSave);
       return;
     }
 
-    for (const w of Object.keys(ActiveStore.viewTabIdsByWindowId)) {
+    for (const w of Object.keys(viewTabIdsByWindowId)) {
       const windowId = Number(w);
-      if (ActiveStore.viewTabIdsByWindowId[windowId].length === 0) {
+      if (viewTabIdsByWindowId[windowId]?.length === 0) {
         continue;
       }
 
-      const tagName = TagStore.getQuickSaveTagName();
+      const tagName = tagStoreActions.getQuickSaveTagName();
+      const [quickTag] = tagStoreActions.createTags([{ name: tagName, isQuick: true }]);
+      if (!quickTag) continue;
 
-      const quickTag = tagStore.createTag({ name: tagName, isQuick: true });
+      const tabsToSave = (viewTabIdsByWindowId[windowId] ?? [])
+        .map((id) => viewTabsById[id])
+        .filter((tab): tab is NonNullable<typeof tab> => tab != null)
+        .map((tab) => ({
+          ...tab,
+          tagIds: [quickTag.id],
+        }));
 
-      const tabsToSave = ActiveStore.viewTabIdsByWindowId[windowId]
-        .map((id) => ActiveStore.viewTabsById[id])
-        .filter(Boolean)
-        .map((tab) => {
-          const tabToSave = {
-            id: tab.id,
-            url: tab.url,
-            favIconUrl: tab?.favIconUrl,
-            title: tab.title,
-            savedAt: Date.now(),
-            tagIds: [quickTag.id],
-          };
-
-          return tabToSave;
-        });
-
-      await tabStore.saveTabs(tabsToSave);
+      await tabStoreActions.saveTabs(tabsToSave);
       setSearch("");
     }
   };
 
   const handleSaveAssignedTags = async () => {
-    if (ActiveStore.assignedTagIds.size === 0) {
+    if (assignedTagIds.size === 0) {
       return;
     }
 
     const tabsToSave = Array.from(SelectionStore.selectedTabIds)
-      .map((id) => ActiveStore.viewTabsById[id])
-      .filter(Boolean)
-      .map((tab) => {
-        const tabToSave = {
-          id: tab.id,
-          url: tab.url,
-          favIconUrl: tab?.favIconUrl,
-          title: tab.title,
-          savedAt: Date.now(),
-          tagIds: Array.from(ActiveStore.assignedTagIds),
-        };
+      .map((id) => viewTabsById[id])
+      .filter((tab): tab is NonNullable<typeof tab> => tab != null)
+      .map((tab) => ({
+        ...tab,
+        tagIds: Array.from(assignedTagIds),
+      }));
 
-        return tabToSave;
-      });
+    await tabStoreActions.saveTabs(tabsToSave);
 
-    await tabStore.saveTabs(tabsToSave);
-
-    tabStore.clearAssignedTagIds();
+    tabStoreActions.clearAssignedTagIds();
     setSearch("");
     setPages(["/"]);
   };
 
   const handleCopyToClipboard = () => {
-    const selectedLinks = tabStore.tabs.filter((tab) => SelectionStore.selectedTabIds.has(tab.id));
+    const selectedIdsSet = new Set(SelectionStore.selectedTabIds);
+    const selectedLinks = tabs.filter((tab) => selectedIdsSet.has(tab.id));
 
-    const formatted = formatLinks(selectedLinks, uiStore.settings.clipboardFormat);
+    const formatted = formatLinks(selectedLinks, settings.clipboardFormat);
+
+    if (!formatted) return;
 
     navigator.clipboard
       .writeText(formatted)
@@ -254,34 +250,36 @@ export default function ActiveCommand() {
   };
 
   const handleCreateTag = () => {
-    const newTag = tagStore.createTag({ name: search });
-    tabStore.toggleAssignedTagId(newTag.id);
+    const [newTag] = tagStoreActions.createTags([{ name: search }]);
+    if (newTag) {
+      tabStoreActions.toggleAssignedTagId(newTag.id);
+    }
     setSearch("");
   };
 
   const handleCloseSelected = () => {
-    tabStore.removeTabs(Array.from(SelectionStore.selectedTabIds));
+    tabStoreActions.removeTabs(Array.from(SelectionStore.selectedTabIds));
   };
 
   const runningSearchRef = useRef<string>(search);
   const handleToggleFilterKeyword = (keyword: string, isQuick = false) => {
     if (isQuick) {
-      const keywords = [...ActiveStore.view.filter.keywords];
+      const keywords = [...view.filter.keywords];
       if (keywords.at(-1) === runningSearchRef.current) {
         keywords.pop();
       }
 
       keywords.push(keyword);
 
-      tabStore.updateFilter({
+      tabStoreActions.updateFilter({
         keywords,
       });
       runningSearchRef.current = keyword;
     } else {
-      const filterKeywords = new Set(ActiveStore.view.filter.keywords);
+      const filterKeywords = new Set(view.filter.keywords);
       filterKeywords.add(keyword.trim());
 
-      tabStore.updateFilter({
+      tabStoreActions.updateFilter({
         keywords: Array.from(filterKeywords),
       });
 
@@ -291,17 +289,17 @@ export default function ActiveCommand() {
   };
 
   const handleRemoveFilterKeyword = (keyword: string) => {
-    const filterKeywords = new Set(ActiveStore.view.filter.keywords);
+    const filterKeywords = new Set(view.filter.keywords);
     filterKeywords.delete(keyword.trim());
 
-    tabStore.updateFilter({
+    tabStoreActions.updateFilter({
       keywords: Array.from(filterKeywords),
     });
   };
 
   const handleMoveToNewWindow = async (incognito = false) => {
     const tabIds = Array.from(SelectionStore.selectedTabIds);
-    await ActiveStore.moveTabsToNewWindow(tabIds, incognito);
+    await tabStoreActions.moveTabsToNewWindow(tabIds, incognito);
   };
 
   const handleApply = () => {
@@ -316,6 +314,13 @@ export default function ActiveCommand() {
     return () => {
       fn();
       setSearch("");
+    };
+  };
+
+  const withClose = (fn: () => void) => {
+    return () => {
+      fn();
+      dialogRef.current?.close();
     };
   };
 
@@ -345,13 +350,14 @@ export default function ActiveCommand() {
   );
 
   const handleLooseMatch = () => {
-    tabStore.updateFilter({
+    tabStoreActions.updateFilter({
       looseMatch: true,
     });
   };
 
   const handleOpenInLLM = (provider: "chatgpt" | "claude") => () => {
-    const selectedLinks = tabStore.tabs.filter((tab) => SelectionStore.selectedTabIds.has(tab.id));
+    const selectedIdsSet = new Set(selectionStore.selectedTabIds);
+    const selectedLinks = tabs.filter((tab) => selectedIdsSet.has(tab.id));
     const linksText = selectedLinks.map((tab) => `[${tab.title}](${tab.url})`).join("\n");
     const prompt = `Open the following links and analyze the content. Tell me when you're done and ready to answer questions about them. ${linksText}`;
     const promptQuery = `q=${encodeURIComponent(prompt)}`;
@@ -450,7 +456,7 @@ export default function ActiveCommand() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={handleApply}
-                  disabled={ActiveStore.assignedTagIds.size === 0}
+                  disabled={assignedTagIds.size === 0}
                   className="focus-ring rounded px-2 text-sm whitespace-nowrap disabled:opacity-50">
                   Apply
                 </button>
@@ -483,12 +489,12 @@ export default function ActiveCommand() {
                   </span>
                 }>
                 {selectedCount === 0 ? (
-                  <TabCommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
+                  <TabCommandItem onSelect={withClear(tabStoreSelectionActions.selectAllTabs)}>
                     <CheckCircledIcon className="text-muted-foreground mr-2" />
                     Select All
                   </TabCommandItem>
                 ) : (
-                  <TabCommandItem onSelect={withClear(selectionStore.deselectAllTabs)}>
+                  <TabCommandItem onSelect={withClear(tabStoreSelectionActions.deselectAllTabs)}>
                     <MinusCircledIcon className="text-muted-foreground mr-2" />
                     Deselect All
                   </TabCommandItem>
@@ -537,16 +543,16 @@ export default function ActiveCommand() {
                   <MagnifyingGlassIcon className="text-muted-foreground mr-2" />
                   Find
                 </TabCommandItem>
-                {tabStore.viewDuplicateTabIds.size > 0 && (
-                  <TabCommandItem onSelect={withClear(ActiveStore.removeDuplicateTabs)}>
+                {viewDuplicateTabIds.size > 0 && (
+                  <TabCommandItem onSelect={withClear(tabStoreActions.removeDuplicateTabs)}>
                     <CopyIcon className="text-muted-foreground mr-2" />
-                    Close {pluralize(tabStore.viewDuplicateTabIds.size, "Duplicate")}
+                    Close {pluralize(viewDuplicateTabIds.size, "Duplicate")}
                   </TabCommandItem>
                 )}
-                {tabStore.viewStaleTabIds.size > 0 && (
-                  <TabCommandItem onSelect={withClear(ActiveStore.removeStaleTabs)}>
+                {viewStaleTabIds.size > 0 && (
+                  <TabCommandItem onSelect={withClear(tabStoreActions.removeStaleTabs)}>
                     <ClockIcon className="text-muted-foreground mr-2" />
-                    Close {tabStore.viewStaleTabIds.size} Stale Tabs{" "}
+                    Close {viewStaleTabIds.size} Stale Tabs{" "}
                     <span className="text-muted-foreground/50 ml-2 text-xs">
                       &gt; {staleThresholdDaysInMs / (1000 * 60 * 60 * 24)} days old
                     </span>
@@ -559,15 +565,16 @@ export default function ActiveCommand() {
                   <ClipboardIcon className="text-muted-foreground mr-2" />
                   Paste to Open
                 </TabCommandItem>
-                <TabCommandItem onSelect={() => UIStore.activatePanel(Panel.Bookmarks)}>
+                <TabCommandItem onSelect={() => settingStoreActions.activatePanel(Panel.Bookmarks)}>
                   <BookmarkIcon className="text-muted-foreground mr-2" />
                   Go to Bookmarks
                 </TabCommandItem>
-                <TabCommandItem onSelect={() => {}}>
+                <TabCommandItem
+                  onSelect={withClose(() => settingStoreActions.setSettingsOpen(true))}>
                   <GearIcon className="text-muted-foreground mr-2" />
                   Open Settings
                 </TabCommandItem>
-                <TabCommandItem onSelect={() => {}}>
+                <TabCommandItem onSelect={withClose(() => curateStoreActions.setCurateOpen(true))}>
                   <BroomIcon className="text-muted-foreground mr-2" />
                   Curate
                 </TabCommandItem>
@@ -577,31 +584,31 @@ export default function ActiveCommand() {
           )}
           {activePage === "tag" && (
             <div className="flex flex-col gap-4">
-              {tabStore.assignedTagIds.size > 0 && (
+              {assignedTagIds.size > 0 && (
                 <div className="tags flex items-center gap-2 pl-2">
                   <button
                     className="focus-ring rounded px-2 text-sm whitespace-nowrap"
-                    onClick={ActiveStore.clearAssignedTagIds}>
+                    onClick={tabStoreActions.clearAssignedTagIds}>
                     Clear all
                   </button>
                   <TagChipList
                     max={10}
-                    tags={Array.from(tabStore.assignedTagIds).map((t) => tagStore.tags.get(t)!)}
+                    tags={Array.from(assignedTagIds).map((t) => tagsById.get(t)!)}
                     onRemove={(tag) => {
-                      tabStore.toggleAssignedTagId(tag.id!);
+                      tabStoreActions.toggleAssignedTagId(tag.id!);
                     }}
                   />
                 </div>
               )}
               <TabCommandGroup>
-                {Array.from(tagStore.tags.values())
-                  .filter((t) => !tabStore.assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
+                {tags
+                  .filter((t) => !assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
                   .map((t) => (
                     <TabCommandItem
                       key={t.id}
                       value={t.name}
                       onSelect={withClear(() => {
-                        tabStore.toggleAssignedTagId(t.id);
+                        tabStoreActions.toggleAssignedTagId(t.id);
                       })}>
                       <div className="flex items-center">
                         {t.name}{" "}
@@ -627,10 +634,7 @@ export default function ActiveCommand() {
           {activePage === "find" && (
             <div>
               <div className="mb-2 px-2">
-                <FilterTagChips
-                  filter={tabStore.view.filter}
-                  onRemoveKeyword={handleRemoveFilterKeyword}
-                />
+                <FilterTagChips filter={view.filter} onRemoveKeyword={handleRemoveFilterKeyword} />
               </div>
               <CommandEmpty className="flex items-center justify-center gap-2">
                 <div className="text-muted-foreground">
@@ -642,7 +646,7 @@ export default function ActiveCommand() {
                     "Find by keywords"
                   )}
                 </div>
-                {tabStore.viewTabIds.length === 0 && !tabStore.view.filter.looseMatch && (
+                {viewTabIds.length === 0 && !view.filter.looseMatch && (
                   <motion.div
                     className="flex items-center gap-2"
                     initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
@@ -661,7 +665,7 @@ export default function ActiveCommand() {
                 )}
               </CommandEmpty>
               <div className="text-muted-foreground absolute right-3 bottom-2 overflow-hidden">
-                Results: <NumberFlow value={tabStore.viewTabIds.length} />
+                Results: <NumberFlow value={viewTabIds.length} />
               </div>
             </div>
           )}

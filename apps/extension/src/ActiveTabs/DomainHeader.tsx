@@ -15,9 +15,14 @@ import { ReactNode, useMemo } from "react";
 
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { Favicon } from "../components/TabItem";
+import {
+  tabStoreActions,
+  useTabStore,
+  useViewTabIdsByDomain,
+  useViewTabsById,
+} from "../store/tabStore";
 import { pluralize } from "../util";
 import { getDomain } from "../util/url";
-import { useActiveTabStore } from "./ActiveStore";
 
 export default function DomainHeader({
   domain,
@@ -28,13 +33,15 @@ export default function DomainHeader({
   actions?: ReactNode;
   className?: string;
 }) {
-  const tabStore = useActiveTabStore();
+  const tabs = useTabStore((s) => s.tabs);
+  const viewTabIdsByDomain = useViewTabIdsByDomain();
+  const viewTabsById = useViewTabsById();
 
   const domainTabIds = useMemo(() => {
-    return tabStore.tabs.filter((tab) => getDomain(tab.url) === domain).map((tab) => tab.id);
-  }, [tabStore.tabs, domain]);
+    return tabs.filter((tab) => getDomain(tab.url) === domain).map((tab) => tab.id);
+  }, [tabs, domain]);
 
-  const viewTabIds = tabStore.viewTabIdsByDomain[domain];
+  const viewTabIds = viewTabIdsByDomain[domain];
   const closeLabel = `This action will close ${pluralize(viewTabIds.length, "tab")}.`;
   const ctaLabel = viewTabIds.length < domainTabIds.length ? `Close` : "Close All";
 
@@ -42,7 +49,7 @@ export default function DomainHeader({
     <div className={cn("flex justify-between", className)}>
       <div className="inline-flex items-center select-none">
         <span className="mr-2 inline-flex items-center gap-2">
-          <Favicon src={tabStore.viewTabsById[viewTabIds[0]].url} />
+          <Favicon src={viewTabsById[viewTabIds[0]].url} />
           <span className={cn("text-muted-foreground text-sm transition-colors duration-300")}>
             {domain}
           </span>
@@ -62,7 +69,7 @@ export default function DomainHeader({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => tabStore.removeTabs(viewTabIds)}
+              onClick={() => tabStoreActions.removeTabs(viewTabIds)}
               variant="destructive">
               {ctaLabel}
             </AlertDialogAction>

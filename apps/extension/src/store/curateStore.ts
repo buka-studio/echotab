@@ -163,7 +163,7 @@ const composeComparators = (inclusions: Inclusion[]) => {
   };
 };
 
-export const useCurateQueue = ({ manualIds }: { manualIds: string[] }) => {
+export const useCurateQueue = ({ manualIds = [] }: { manualIds?: string[] } = {}) => {
   const settings = useCurateStore((s) => s.settings);
   const tabs = useBookmarkStore((s) => s.tabs);
   const tags = useTagsById();

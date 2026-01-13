@@ -38,6 +38,8 @@ import { motion } from "framer-motion";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { curateStoreActions } from "~/store/curateStore";
+
 import FilterTagChips from "../components/FilterTagChips";
 import {
   CommandPagination,
@@ -51,12 +53,20 @@ import {
 import TagChip from "../components/tag/TagChip";
 import TagChipList from "../components/tag/TagChipList";
 import { Panel, SavedTab } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
+import {
+  bookmarkStoreActions,
+  bookmarkStoreSelectionActions,
+  bookmarkStoreViewActions,
+  useBookmarkSelectionStore,
+  useBookmarkStore,
+  useBookmarkViewStore,
+  useViewTabIds as useBookmarkViewTabIds,
+} from "../store/bookmarkStore";
+import { settingStoreActions, useSettingStore } from "../store/settingStore";
+import { tagStoreActions, unassignedTag, useTagsById, useTagStore } from "../store/tagStore";
 import { formatLinks } from "../util";
 import { toggle } from "../util/set";
 import { isAlphanumeric } from "../util/string";
-import BookmarkStore, { useBookmarkSelectionStore, useBookmarkStore } from "./BookmarkStore";
 import ListFormDialog from "./Lists/ListFormDialog";
 
 const pages = ["/", "tag", "find"] as const;
@@ -84,10 +94,13 @@ const CommandLabel = ({ page }: { page: string }) => {
 };
 
 export default function BookmarkCommand({ onCurate }: { onCurate?: () => void }) {
-  const bookmarkStore = useBookmarkStore();
-  const tagStore = useTagStore();
-  const uiStore = useUIStore();
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const tags = useTagStore((s) => s.tags);
+  const tagsById = useTagsById();
+  const settings = useSettingStore((s) => s.settings);
   const selectionStore = useBookmarkSelectionStore();
+  const view = useBookmarkViewStore();
+  const viewTabIds = useBookmarkViewTabIds();
 
   const { pages, goToPage, search, setSearch, activePage, setPages, pushPage, goToPrevPage } =
     useTabCommand<Page>();
@@ -102,29 +115,31 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     }
   };
 
+  const [assignedTagIds, setAssignedTagIds] = useState<Set<number>>(new Set());
+
   const handleSaveAssignedTags = async () => {
-    bookmarkStore.tagTabs(
-      Array.from(selectionStore.selectedItemIds),
-      Array.from(BookmarkStore.assignedTagIds),
+    bookmarkStoreActions.tagTabs(
+      Array.from(selectionStore.selectedTabIds),
+      Array.from(assignedTagIds),
     );
-    bookmarkStore.clearAssignedTagIds();
+    setAssignedTagIds(new Set());
 
     setSearch("");
     setPages(["/"]);
   };
 
   const handleCopyToClipboard = () => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
-      selectionStore.selectedItemIds.has(tab.id),
-    );
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
 
     const linksWithTags = selectedLinks.map((tab) => ({
       title: tab.title,
       url: tab.url,
-      tags: tab.tagIds.map((tagId) => tagStore.tags.get(tagId)!.name),
+      tags: tab.tagIds.map((tagId) => tagsById.get(tagId)?.name ?? ""),
     }));
 
-    const formatted = formatLinks(linksWithTags, uiStore.settings.clipboardFormat);
+    const formatted = formatLinks(linksWithTags, settings.clipboardFormat);
+
+    if (!formatted) return;
 
     navigator.clipboard
       .writeText(formatted)
@@ -137,9 +152,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   };
 
   const handleOpenSelected = (newWindow?: boolean) => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
-      selectionStore.selectedItemIds.has(tab.id),
-    );
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
     const urls = selectedLinks.map((tab) => tab.url);
     if (newWindow) {
       chrome.windows.create({
@@ -160,20 +173,34 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const handleRemoveSelected = () => {
-    bookmarkStore.removeTabs(Array.from(selectionStore.selectedItemIds));
+    bookmarkStoreActions.removeTabs(Array.from(selectionStore.selectedTabIds));
   };
 
   const handleCreateTag = () => {
-    const newTag = tagStore.createTag({ name: search });
-    bookmarkStore.toggleAssignedTagId(newTag.id);
+    const [newTag] = tagStoreActions.createTags([{ name: search }]);
+    if (newTag) {
+      setAssignedTagIds((prev) => new Set([...prev, newTag.id]));
+    }
     setSearch("");
   };
 
+  const toggleAssignedTagId = (tagId: number) => {
+    setAssignedTagIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(tagId)) {
+        newSet.delete(tagId);
+      } else {
+        newSet.add(tagId);
+      }
+      return newSet;
+    });
+  };
+
   const handleToggleFilterTag = (id: number) => {
-    let filterTags = new Set(BookmarkStore.view.filter.tags);
+    let filterTags = new Set(view.filter.tags);
     toggle(filterTags, id);
 
-    bookmarkStore.updateFilter({
+    bookmarkStoreViewActions.updateFilter({
       tags: Array.from(filterTags),
     });
   };
@@ -191,22 +218,22 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   const runningSearchRef = useRef<string>(search);
   const handleToggleFilterKeyword = (keyword: string, isQuick = false) => {
     if (isQuick) {
-      const keywords = [...BookmarkStore.view.filter.keywords];
+      const keywords = [...view.filter.keywords];
       if (keywords.at(-1) === runningSearchRef.current) {
         keywords.pop();
       }
 
       keywords.push(keyword);
 
-      bookmarkStore.updateFilter({
+      bookmarkStoreViewActions.updateFilter({
         keywords,
       });
       runningSearchRef.current = keyword;
     } else {
-      const filterKeywords = new Set(BookmarkStore.view.filter.keywords);
+      const filterKeywords = new Set(view.filter.keywords);
       filterKeywords.add(keyword.trim());
 
-      bookmarkStore.updateFilter({
+      bookmarkStoreViewActions.updateFilter({
         keywords: Array.from(filterKeywords),
       });
 
@@ -216,10 +243,10 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   };
 
   const handleRemoveFilterKeyword = (keyword: string) => {
-    const filterKeywords = new Set(BookmarkStore.view.filter.keywords);
+    const filterKeywords = new Set(view.filter.keywords);
     filterKeywords.delete(keyword.trim());
 
-    bookmarkStore.updateFilter({
+    bookmarkStoreViewActions.updateFilter({
       keywords: Array.from(filterKeywords),
     });
   };
@@ -236,9 +263,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   });
 
   const handleCreateListFromSelected = () => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
-      selectionStore.selectedItemIds.has(tab.id),
-    );
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
 
     setListDialog({ open: true, defaultLinks: selectedLinks });
   };
@@ -248,7 +273,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   };
 
   const handlePinSelected = () => {
-    BookmarkStore.pinTabs(Array.from(selectionStore.selectedItemIds));
+    bookmarkStoreActions.pinTabs(Array.from(selectionStore.selectedTabIds));
   };
 
   const customLabel = ["tag", "find"].includes(activePage);
@@ -260,7 +285,14 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     };
   };
 
-  const selectedCount = selectionStore.selectedItemIds.size;
+  const withClose = (fn: () => void) => {
+    return () => {
+      fn();
+      dialogRef.current?.close();
+    };
+  };
+
+  const selectedCount = selectionStore.selectedTabIds.size;
 
   const dialogRef = useRef<TabCommandDialogRef>(null);
 
@@ -277,15 +309,13 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   const enterToSearch = false; //uiStore.settings.enterToSearch;
 
   const handleLooseMatch = () => {
-    bookmarkStore.updateFilter({
+    bookmarkStoreViewActions.updateFilter({
       looseMatch: true,
     });
   };
 
   const handleOpenInLLM = (provider: "chatgpt" | "claude") => () => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
-      selectionStore.selectedItemIds.has(tab.id),
-    );
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
     const linksText = selectedLinks.map((tab) => `[${tab.title}](${tab.url})`).join("\n");
     const prompt = `Open the following links and analyze the content. Tell me when you're done and ready to answer questions about them. ${linksText}`;
     const promptQuery = `q=${encodeURIComponent(prompt)}`;
@@ -389,12 +419,14 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                     </span>
                   }>
                   {selectedCount === 0 ? (
-                    <TabCommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
+                    <TabCommandItem
+                      onSelect={withClear(bookmarkStoreSelectionActions.selectAllTabs)}>
                       <CheckCircledIcon className="text-muted-foreground mr-2" />
                       Select All
                     </TabCommandItem>
                   ) : (
-                    <TabCommandItem onSelect={withClear(selectionStore.deselectAllTabs)}>
+                    <TabCommandItem
+                      onSelect={withClear(bookmarkStoreSelectionActions.deselectAllTabs)}>
                       <MinusCircledIcon className="text-muted-foreground mr-2" /> Deselect All
                     </TabCommandItem>
                   )}
@@ -448,15 +480,17 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                       Curate
                     </TabCommandItem>
                   )}
-                  <TabCommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
+                  <TabCommandItem onSelect={() => settingStoreActions.activatePanel(Panel.Tabs)}>
                     <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
                     Go to Tabs
                   </TabCommandItem>
-                  <TabCommandItem onSelect={() => {}}>
+                  <TabCommandItem
+                    onSelect={withClose(() => settingStoreActions.setSettingsOpen(true))}>
                     <GearIcon className="text-muted-foreground mr-2" />
                     Open Settings
                   </TabCommandItem>
-                  <TabCommandItem onSelect={() => {}}>
+                  <TabCommandItem
+                    onSelect={withClose(() => curateStoreActions.setCurateOpen(true))}>
                     <BroomIcon className="text-muted-foreground mr-2" />
                     Curate
                   </TabCommandItem>
@@ -466,35 +500,31 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
             )}
             {activePage === "tag" && (
               <div className="flex flex-col gap-4">
-                {bookmarkStore.assignedTagIds.size > 0 && (
+                {assignedTagIds.size > 0 && (
                   <div className="tags flex items-center gap-2 pl-2">
                     <button
                       className="focus-ring rounded px-2 text-sm whitespace-nowrap"
-                      onClick={bookmarkStore.clearAssignedTagIds}>
+                      onClick={() => setAssignedTagIds(new Set())}>
                       Clear all
                     </button>
                     <TagChipList
                       max={10}
-                      tags={Array.from(bookmarkStore.assignedTagIds).map(
-                        (t) => tagStore.tags.get(t)!,
-                      )}
+                      tags={Array.from(assignedTagIds).map((t) => tagsById.get(t)!)}
                       onRemove={(tag) => {
-                        bookmarkStore.toggleAssignedTagId(tag.id!);
+                        toggleAssignedTagId(tag.id!);
                       }}
                     />
                   </div>
                 )}
                 <TabCommandGroup>
-                  {Array.from(tagStore.tags.values())
-                    .filter(
-                      (t) => !bookmarkStore.assignedTagIds.has(t.id) && t.id !== unassignedTag.id,
-                    )
+                  {tags
+                    .filter((t) => !assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
                     .map((t) => (
                       <TabCommandItem
                         key={t.id}
                         value={t.name}
                         onSelect={() => {
-                          bookmarkStore.toggleAssignedTagId(t.id);
+                          toggleAssignedTagId(t.id);
                           setSearch("");
                         }}>
                         <div className="flex items-center">
@@ -525,7 +555,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
               <div>
                 <div className="mb-2 px-2">
                   <FilterTagChips
-                    filter={bookmarkStore.view.filter}
+                    filter={view.filter}
                     onRemoveKeyword={handleRemoveFilterKeyword}
                     onRemoveTag={handleToggleFilterTag}
                   />
@@ -533,8 +563,8 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                 {Boolean(hashtag) && (
                   <div className="">
                     <TabCommandGroup>
-                      {Array.from(tagStore.tags.values())
-                        .filter((t) => !bookmarkStore.view.filter.tags.includes(t.id))
+                      {tags
+                        .filter((t) => !view.filter.tags.includes(t.id))
                         .map((t) => (
                           <TabCommandItem
                             value={"#" + t.name}
@@ -566,27 +596,26 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                       "Search by keyword or #tag"
                     )}
                   </div>
-                  {bookmarkStore.viewTabIds.length === 0 &&
-                    !bookmarkStore.view.filter.looseMatch && (
-                      <motion.div
-                        className="flex items-center gap-2"
-                        initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
-                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
-                        transition={{ duration: 0.2 }}>
-                        <div className="text-muted-foreground">or</div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-auto px-2 py-1 text-xs"
-                          onClick={handleLooseMatch}>
-                          Try loose match
-                        </Button>
-                      </motion.div>
-                    )}
+                  {viewTabIds.length === 0 && !view.filter.looseMatch && (
+                    <motion.div
+                      className="flex items-center gap-2"
+                      initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+                      transition={{ duration: 0.2 }}>
+                      <div className="text-muted-foreground">or</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-auto px-2 py-1 text-xs"
+                        onClick={handleLooseMatch}>
+                        Try loose match
+                      </Button>
+                    </motion.div>
+                  )}
                 </CommandEmpty>
                 <div className="text-muted-foreground absolute right-3 bottom-2 overflow-hidden">
-                  Results: <NumberFlow value={bookmarkStore.viewTabIds.length} />
+                  Results: <NumberFlow value={viewTabIds.length} />
                 </div>
               </div>
             )}

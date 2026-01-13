@@ -2,15 +2,15 @@ import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
 import { TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
-import { ComponentProps, ComponentRef } from "react";
+import { ComponentProps } from "react";
 
 import SnapshotPreview from "../components/SnapshotPreview";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { SavedTab, Tag } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
-import BookmarkStore, { useBookmarkStore, useIsTabSelected } from "./BookmarkStore";
+import { bookmarkStoreActions, useIsTabSelected } from "../store/bookmarkStore";
+import { useSettingStore } from "../store/settingStore";
+import { unassignedTag, useTagsById } from "../store/tagStore";
 
 function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagId?: number) {
   if (!currentTagId) {
@@ -25,35 +25,32 @@ function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagI
   return 0;
 }
 
-type Props = ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId?: number };
-type Ref = ComponentRef<typeof TabItem>;
+type Props = Omit<ComponentProps<typeof TabItem>, "tab"> & {
+  tab: SavedTab;
+  currentGroupTagId?: number;
+};
 
-function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref?: Ref }) {
-  const { assignedTagIds } = useBookmarkStore();
-  const { tags } = useTagStore();
-  const {
-    settings: { hideFavicons },
-  } = useUIStore();
+function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
+  const tagsById = useTagsById();
+  const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
 
-  const selected = useIsTabSelected(tab.id);
+  const selected = useIsTabSelected(tab?.id);
 
   const combinedTags = Array.from(tab.tagIds)
-    .concat(selected ? Array.from(assignedTagIds) : [])
-    .map((id) => tags.get(id)!)
+    .map((id) => tagsById.get(id)!)
     .filter((t) => Number.isFinite(t?.id));
 
   const handleSetTags = (tagIds: number[]) => {
-    BookmarkStore.tagTabs([tab.id], tagIds, true);
+    bookmarkStoreActions.tagTabs([tab.id], tagIds, true);
   };
 
   const isInTagGroup = Boolean(currentGroupTagId && currentGroupTagId !== unassignedTag.id);
 
-  const currentGroupTag = tags.get(currentGroupTagId!);
+  const currentGroupTag = tagsById.get(currentGroupTagId!);
 
   return (
     <TabItem
       data-selected={selected}
-      ref={ref}
       className={cn({
         "border-border-active bg-card-active": selected,
       })}
@@ -86,7 +83,7 @@ function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref?: 
             side="top"
             tooltipText={tab.pinned ? "Unpin" : "Pin"}
             onClick={(e) => {
-              BookmarkStore.togglePinTab(tab.id);
+              bookmarkStoreActions.togglePinTab(tab.id);
             }}>
             {tab.pinned ? (
               <DrawingPinFilledIcon className="h-5 w-5" />
@@ -100,7 +97,7 @@ function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref?: 
                 <ButtonWithTooltip
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => BookmarkStore.removeTabTag(tab.id, currentGroupTagId!)}
+                  onClick={() => bookmarkStoreActions.removeTabTag(tab.id, currentGroupTagId!)}
                   side="top"
                   tooltipText={currentGroupTag ? `Untag "${currentGroupTag.name}"` : "Untag"}>
                   <TagIcon className="h-5 w-5" weight="fill" />
@@ -109,7 +106,7 @@ function SavedTabItem({ tab, currentGroupTagId, ref, ...rest }: Props & { ref?: 
               <ButtonWithTooltip
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => BookmarkStore.removeTab(tab.id)}
+                onClick={() => bookmarkStoreActions.removeTab(tab.id)}
                 side="top"
                 tooltipText="Remove">
                 <TrashIcon className="h-5 w-5" />

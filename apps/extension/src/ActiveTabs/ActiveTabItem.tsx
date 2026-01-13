@@ -24,7 +24,7 @@ import {
 } from "@radix-ui/react-icons";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
-import { ComponentProps, Ref } from "react";
+import { ComponentProps } from "react";
 
 import SnapshotPreview from "../components/SnapshotPreview";
 import { SortableHandle } from "../components/SortableList";
@@ -35,6 +35,7 @@ import { ActiveTab } from "../models";
 import { useSettingStore } from "../store/settingStore";
 import {
   tabStoreActions,
+  tabStoreSelectionActions,
   useTabInfo,
   useTabStore,
   useViewTabIdsByWindowId,
@@ -63,7 +64,7 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
   };
 
   const handleTabSelection = () => {
-    tabStoreActions.toggleSelectedTabId(tab.id);
+    tabStoreSelectionActions.toggleSelected(tab.id);
   };
 
   const handlePinTab = () => {
@@ -130,12 +131,12 @@ function formatLastAccessed(lastAccessed: number | undefined) {
   return formatDistanceToNow(new Date(lastAccessed));
 }
 
-function ActiveTabItem({
-  tab,
-  className,
-  ref,
-  ...rest
-}: ComponentProps<typeof TabItem> & { tab: ActiveTab; ref: Ref<HTMLDivElement> }) {
+type Props = Omit<ComponentProps<typeof TabItem>, "tab"> & {
+  tab: ActiveTab;
+  currentGroupTagId?: number;
+};
+
+function ActiveTabItem({ className, tab, ...rest }: Props) {
   const assignedTagIds = useTabStore((s) => s.assignedTagIds);
   const tags = useTagsById();
   const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
@@ -166,7 +167,6 @@ function ActiveTabItem({
   return (
     <TabItem
       {...rest}
-      ref={ref}
       className={cn({ "border-border-active bg-card-active": selected }, className)}
       linkPreview={<SnapshotPreview url={tab.url} onVisit={handleFocusTab} />}
       icon={

@@ -3,7 +3,7 @@ import { cn } from "@echotab/ui/util";
 import { BrowserIcon } from "@phosphor-icons/react";
 import { DragHandleDots2Icon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import ExpandIcon from "~/components/ExpandIcon";
@@ -19,10 +19,23 @@ import SortableList, {
   SortableOverlayItem,
 } from "../components/SortableList";
 import TabItem, { Favicon } from "../components/TabItem";
-import { useUIStore } from "../UIStore";
+import { useSettingStore } from "../store/settingStore";
+import {
+  SelectionStore,
+  TabGrouping,
+  tabStoreActions,
+  tabStoreSelectionActions,
+  useFilteredTabIds,
+  useFiltersApplied,
+  useTabStore,
+  useTabViewStore,
+  useViewTabIds,
+  useViewTabIdsByDomain,
+  useViewTabIdsByWindowId,
+  useViewTabsById,
+} from "../store/tabStore";
 import { focusSiblingItem, isPopoverOpen } from "../util/dom";
 import ActiveCommand from "./ActiveCommand";
-import ActiveStore, { SelectionStore, TabGrouping, useActiveTabStore } from "./ActiveStore";
 import ActiveTabItem from "./ActiveTabItem";
 import DomainHeader from "./DomainHeader";
 import RecentlyClosed from "./RecentlyClosed";
@@ -30,36 +43,43 @@ import SelectButton from "./SelectButton";
 import ViewControl from "./ViewControl";
 import WindowHeader from "./WindowHeader";
 
-export default function ActiveTabs() {
-  const tabStore = useActiveTabStore();
-  const {
-    settings: { hideFavicons },
-  } = useUIStore();
+const MemoActiveTabItem = memo(ActiveTabItem);
 
-  const [tabIdsByWindowId, setTabIdsByWindowId] = useState(tabStore.viewTabIdsByWindowId);
+export default function ActiveTabs() {
+  const tabs = useTabStore((s) => s.tabs);
+  const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
+  const view = useTabViewStore();
+  const viewTabIdsByWindowId = useViewTabIdsByWindowId();
+  const viewTabIdsByDomain = useViewTabIdsByDomain();
+  const viewTabsById = useViewTabsById();
+  const viewTabIds = useViewTabIds();
+  const filtersApplied = useFiltersApplied();
+  const filteredTabIds = useFilteredTabIds();
+
+  const [tabIdsByWindowId, setTabIdsByWindowId] = useState(viewTabIdsByWindowId);
 
   const [domainsExpanded, setDomainsExpanded] = useState<Record<string, boolean>>(
-    Object.fromEntries(Object.keys(tabStore.viewTabIdsByDomain).map((id) => [Number(id), true])),
+    Object.fromEntries(Object.keys(viewTabIdsByDomain).map((id) => [Number(id), true])),
   );
 
   const [windowsExpanded, setWindowsExpanded] = useState<Record<number, boolean>>(
-    Object.fromEntries(Object.keys(tabStore.viewTabIdsByWindowId).map((id) => [Number(id), true])),
+    Object.fromEntries(Object.keys(viewTabIdsByWindowId).map((id) => [Number(id), true])),
   );
 
-  const prevTabsByWindowId = useRef(tabStore.viewTabIdsByWindowId);
-  if (prevTabsByWindowId.current !== ActiveStore.viewTabIdsByWindowId) {
-    prevTabsByWindowId.current = ActiveStore.viewTabIdsByWindowId;
+  const prevTabsByWindowId = useRef(viewTabIdsByWindowId);
+  if (prevTabsByWindowId.current !== viewTabIdsByWindowId) {
+    prevTabsByWindowId.current = viewTabIdsByWindowId;
 
-    setTabIdsByWindowId(tabStore.viewTabIdsByWindowId);
+    setTabIdsByWindowId(viewTabIdsByWindowId);
 
     setDomainsExpanded((d) => {
       const wipDomains = Object.fromEntries(
-        Object.keys(tabStore.viewTabIdsByDomain).map((id) => [Number(id), true]),
+        Object.keys(viewTabIdsByDomain).map((id) => [Number(id), true]),
       );
       for (const id of Object.keys(d)) {
         const domainId = Number(id);
         if (domainId in wipDomains) {
-          wipDomains[domainId] = d[domainId];
+          wipDomains[domainId] = d[domainId] ?? true;
         }
       }
       return wipDomains;
@@ -67,12 +87,12 @@ export default function ActiveTabs() {
 
     setWindowsExpanded((w) => {
       const wipWindows = Object.fromEntries(
-        Object.keys(tabStore.viewTabIdsByWindowId).map((id) => [Number(id), true]),
+        Object.keys(viewTabIdsByWindowId).map((id) => [Number(id), true]),
       );
       for (const id of Object.keys(w)) {
         const windowId = Number(id);
         if (windowId in wipWindows) {
-          wipWindows[windowId] = w[windowId];
+          wipWindows[windowId] = w[windowId] ?? true;
         }
       }
 
@@ -81,7 +101,7 @@ export default function ActiveTabs() {
   }
 
   const allCollapsed =
-    tabStore.view.grouping === TabGrouping.Domain
+    view.grouping === TabGrouping.Domain
       ? Object.values(domainsExpanded).every((v) => !v)
       : Object.values(windowsExpanded).every((v) => !v);
 
@@ -120,27 +140,26 @@ export default function ActiveTabs() {
   const [activeId, setActiveId] = useState<number | null>(null);
   const activeIdRef = useRef(activeId);
   activeIdRef.current = activeId;
-  const activeTab = tabStore.viewTabsById[activeId!];
+  const activeTab = viewTabsById[activeId!];
 
   const handleRemoveFilterKeyword = (keyword: string) => {
-    tabStore.updateFilter({
-      keywords: ActiveStore.view.filter.keywords.filter((kw) => kw !== keyword.trim()),
+    tabStoreActions.updateFilter({
+      keywords: view.filter.keywords.filter((kw) => kw !== keyword.trim()),
     });
   };
 
-  const hasTabs = tabStore.tabs.length > 0;
-  const hasFilteredTabs = tabStore.filteredTabIds.size > 0;
+  const hasTabs = tabs.length > 0;
+  const hasFilteredTabs = filteredTabIds.size > 0;
 
-  const groupedTabs =
-    tabStore.view.grouping === TabGrouping.Domain ? tabStore.viewTabIdsByDomain : tabIdsByWindowId;
+  const groupedTabs = view.grouping === TabGrouping.Domain ? viewTabIdsByDomain : tabIdsByWindowId;
 
   useHotkeys(
     "meta+a",
     () => {
-      if (SelectionStore.selectedTabIds.size === ActiveStore.viewTabIds.length) {
-        SelectionStore.deselectAllTabs();
+      if (SelectionStore.selectedTabIds.size === viewTabIds.length) {
+        tabStoreSelectionActions.deselectAllTabs();
       } else {
-        SelectionStore.selectAllTabs();
+        tabStoreSelectionActions.selectAllTabs();
       }
     },
     {
@@ -155,15 +174,12 @@ export default function ActiveTabs() {
         <ActiveCommand />
       </div>
       <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:px-3 not-empty:py-2">
-        {tabStore.filtersApplied && (
+        {filtersApplied && (
           <div className="flex items-center gap-5">
-            <Button variant="ghost" onClick={tabStore.clearFilter}>
+            <Button variant="ghost" onClick={tabStoreActions.clearFilter}>
               Clear Filter
             </Button>
-            <FilterTagChips
-              filter={tabStore.view.filter}
-              onRemoveKeyword={handleRemoveFilterKeyword}
-            />
+            <FilterTagChips filter={view.filter} onRemoveKeyword={handleRemoveFilterKeyword} />
           </div>
         )}
       </div>
@@ -174,9 +190,11 @@ export default function ActiveTabs() {
 
       <SelectableList
         className="grid grid-cols-[1fr_minmax(auto,56rem)_1fr]"
-        onResetSelection={SelectionStore.deselectAllTabs}
+        onResetSelection={tabStoreSelectionActions.deselectAllTabs}
         getSelected={() => SelectionStore.selectedTabIds}
-        onSelectionChange={(selection) => SelectionStore.selectTabs(selection as Set<number>)}
+        onSelectionChange={(selection) =>
+          tabStoreSelectionActions.selectTabs(selection as Set<number>)
+        }
         onBeforeStart={() => {
           return activeIdRef.current === null;
         }}>
@@ -187,7 +205,7 @@ export default function ActiveTabs() {
                 <BrowserIcon className="h-4 w-4" />
                 Tabs
               </span>
-              <AnimatedNumberBadge value={tabStore.viewTabIds.length} />
+              <AnimatedNumberBadge value={viewTabIds.length} />
               <ViewControl />
             </div>
             <div className="ml-auto">
@@ -227,7 +245,7 @@ export default function ActiveTabs() {
           getSelectedIds={() => SelectionStore.selectedTabIds}
           items={groupedTabs}
           onItemsChange={(items) => setTabIdsByWindowId(items)}
-          onSortEnd={(items) => tabStore.syncOrder(items)}
+          onSortEnd={(items) => tabStoreActions.syncOrder(items)}
           onActiveIdChange={setActiveId}>
           {Object.entries(groupedTabs).map(([groupId, tabIds], i, groups) => {
             const isLast = i === groups.length - 1;
@@ -280,7 +298,7 @@ export default function ActiveTabs() {
                     }
                   />
                 )}
-                {(tabStore.view.grouping === TabGrouping.All
+                {(view.grouping === TabGrouping.All
                   ? windowsExpanded[Number(groupId)]
                   : domainsExpanded[Number(groupId)]) && (
                   <DroppableContainer id={groupId} asChild>
@@ -293,15 +311,13 @@ export default function ActiveTabs() {
                       }}
                       className={cn("data-[over=true]:bg-muted/30 flex w-full flex-col", {
                         "[&_.echo-item-icon]:hidden":
-                          groupedTabs === tabStore.viewTabIdsByDomain && groupId !== "Other",
+                          groupedTabs === viewTabIdsByDomain && groupId !== "Other",
                       })}>
-                      {tabIds.map((tabId, j) => {
-                        const tab = tabStore.viewTabsById[tabId];
+                      {tabIds.map((tabId) => {
+                        const tab = viewTabsById[tabId];
                         if (!tab) {
                           return null;
                         }
-
-                        const isActive = activeId === tabId;
 
                         return (
                           <SelectableItem asChild id={tabId} key={tabId}>
@@ -321,7 +337,7 @@ export default function ActiveTabs() {
                                   </SortableItem>
                                 )}>
                                 <div className="group/sortable @container">
-                                  <ActiveTabItem
+                                  <MemoActiveTabItem
                                     tab={tab}
                                     className="group-data-[is-dragged=true]/sortable:opacity-20! group-data-[is-dragged=true]/sortable:blur-sm"
                                   />

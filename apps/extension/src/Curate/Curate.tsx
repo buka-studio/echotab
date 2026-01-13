@@ -36,16 +36,21 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { CurateStore } from ".";
-import { useBookmarkStore } from "../Bookmarks";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { SavedTab } from "../models";
+import { bookmarkStoreActions, useBookmarkStore } from "../store/bookmarkStore";
+import {
+  curateStoreActions,
+  InclusionReason,
+  InclusionResult,
+  useCurateQueue as useCurateQueueHook,
+  useCurateStore,
+} from "../store/curateStore";
 import { pluralize } from "../util";
 import { getUtcISO } from "../util/date";
 import { remap } from "../util/math";
 import { CurateCard } from "./CurateCard";
 import CurateDock, { DockAction } from "./CurateDock";
-import { InclusionReason, InclusionResult, useCurateStore } from "./CurateStore";
 import CurateSummary from "./CurateSummary";
 import Ruler from "./Ruler";
 import SwipeableCard, { Direction, SwipeableRef } from "./SwipeableCard";
@@ -57,18 +62,19 @@ interface Props {
 }
 
 const useCurateQueue = (maxCards: number) => {
-  const curateStore = useCurateStore();
+  const open = useCurateStore((s) => s.open);
+  const curateQueueItems = useCurateQueueHook({ manualIds: [] });
   const [queue, setQueue] = useState<InclusionResult[]>([]);
   const [initialized, setInitialized] = useState(false);
   const total = useRef(0);
 
   useEffect(() => {
-    setInitialized(curateStore.open);
-    if (curateStore.open) {
-      setQueue(curateStore.queue);
-      total.current = curateStore.queue.length;
+    setInitialized(open);
+    if (open) {
+      setQueue(curateQueueItems);
+      total.current = curateQueueItems.length;
     }
-  }, [curateStore.open]);
+  }, [open, curateQueueItems]);
 
   const [kept, setKept] = useState<InclusionResult[]>([]);
   const [deleted, setDeleted] = useState<InclusionResult[]>([]);
@@ -123,19 +129,21 @@ export function CurateTrigger({ children }: { children: ReactNode }) {
 }
 
 export default function Curate({ children, maxCards = 5 }: Props) {
-  const curateStore = useCurateStore();
-  const bookmarkStore = useBookmarkStore();
+  const open = useCurateStore((s) => s.open);
+  const settings = useCurateStore((s) => s.settings);
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const curateQueueItems = useCurateQueueHook({ manualIds: [] });
 
   const { initialized, total, queue, kept, deleted, left, dequeue, unshift } =
     useCurateQueue(maxCards);
 
   const curateTabsById = useMemo(() => {
-    const curateTabIds = new Set(curateStore.queue.map((result) => result.tabId));
+    const curateTabIds = new Set(curateQueueItems.map((result) => result.tabId));
 
     return Object.fromEntries(
-      bookmarkStore.tabs.filter((tab) => curateTabIds.has(tab.id)).map((tab) => [tab.id, tab]),
+      tabs.filter((tab) => curateTabIds.has(tab.id)).map((tab) => [tab.id, tab]),
     );
-  }, [bookmarkStore.tabs, queue]);
+  }, [tabs, curateQueueItems]);
 
   const swipeableRef = useRef<SwipeableRef | null>(null);
 
@@ -158,7 +166,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
   const handleFinish = () => {
     if (kept.length + deleted.length !== 0) {
-      CurateStore.saveSession({
+      curateStoreActions.saveCurateSession({
         kept: kept.length,
         deleted: deleted.length,
         keptIds: kept.map((result) => result.tabId),
@@ -166,16 +174,16 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
       if (deleted.length) {
         const deletedIds = deleted.map((result) => result.tabId);
-        bookmarkStore.removeTabs(deletedIds);
+        bookmarkStoreActions.removeTabs(deletedIds);
       }
 
       if (kept.length) {
         const keptIds = kept.map((result) => result.tabId);
-        bookmarkStore.updateTabs(keptIds, { lastCuratedAt: getUtcISO() });
+        bookmarkStoreActions.updateTabs(keptIds, { lastCuratedAt: getUtcISO() });
       }
     }
 
-    curateStore.setOpen(false);
+    curateStoreActions.setCurateOpen(false);
   };
 
   const tabId = queue[0]?.tabId;
@@ -198,15 +206,15 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
   return (
     <Dialog
-      open={curateStore.open}
+      open={open}
       onOpenChange={(state) => {
         if (state) {
-          curateStore.setOpen(true);
+          curateStoreActions.setCurateOpen(true);
         } else {
           if (left > 0 && !forceFinish) {
             setConfirmDialogOpen(true);
           } else {
-            curateStore.setOpen(false);
+            curateStoreActions.setCurateOpen(false);
           }
         }
       }}>
@@ -374,8 +382,8 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                 <AnimatePresence mode="popLayout">
                   {applicableReasons.map((r) => {
                     const reason = r as keyof InclusionReason;
-                    const threshold = curateStore.settings.reminder.value;
-                    const unit = curateStore.settings.reminder.unit;
+                    const threshold = settings.reminder.value;
+                    const unit = settings.reminder.unit;
 
                     return (
                       <motion.div
