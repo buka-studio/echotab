@@ -48,10 +48,10 @@ export class LogFormatter {
     return lines.length ? `\n${lines.join("\n")}` : "no changes";
   }
 
-  static jsonDiff(oldStr: string | null, newStr: string): DetailedDiff | null {
+  static jsonDiff(oldStr: any | null, newStr: any): DetailedDiff | null {
     try {
-      const oldObj = oldStr ? JSON.parse(oldStr) : {};
-      const newObj = JSON.parse(newStr);
+      const oldObj = typeof oldStr === "string" ? JSON.parse(oldStr) : oldStr;
+      const newObj = typeof newStr === "string" ? JSON.parse(newStr) : newStr;
       const diff = detailedDiff(oldObj, newObj) as DetailedDiff;
 
       const hasChanges =

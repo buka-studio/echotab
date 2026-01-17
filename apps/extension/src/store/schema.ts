@@ -77,6 +77,13 @@ export const ListSchema = z.object({
   updatedAt: z.string(),
 });
 
+export const accentColors = {
+  Orange: "oklch(0.69 0.26 36.81)",
+  Blue: "oklch(0.47 0.26 263.61)",
+  Green: "oklch(0.63 0.25 145.77)",
+  Purple: "oklch(0.57 0.27 337.5)",
+};
+
 export const SettingsSchema = z.object({
   id: z.string(),
   showOnboarding: z.boolean().default(true),
@@ -85,6 +92,7 @@ export const SettingsSchema = z.object({
   clipboardFormat: z.enum(ClipboardFormat).default(ClipboardFormat.Text),
   clipboardIncludeTags: z.boolean().default(false),
   activePanel: z.enum(Panel).default(Panel.Tabs),
+  accentColor: z.string().default(accentColors.Orange),
   updatedAt: z.string(),
 });
 

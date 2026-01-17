@@ -2,19 +2,26 @@ import ChromeLocalStorage from "~/util/ChromeLocalStorage";
 import { debounce } from "~/util/debounce";
 import { LogFormatter } from "~/util/LogFormatter";
 import { createLogger } from "~/util/Logger";
-import { StoragePersistenceOptions } from "~/util/StoragePersistence";
 
 type Wrapper<T> = { data: T; instanceId: string; version: number };
+type StoragePersistenceOptions = {
+  key: string;
+  version?: number;
+  debounceMs?: number;
+};
+
 const DEFAULT_DEBOUNCE_MS = 300;
 
 const logger = createLogger("StoragePersistence");
+const instanceId = crypto.randomUUID();
 
 export class StoragePersistence<T> {
   private key: string;
-  private instanceId = crypto.randomUUID();
+  private instanceId = instanceId;
   private version: number = 1;
   private lastKnownData: T | null = null;
   private debouncedSave: (data: T) => void;
+  private persistLock = false;
 
   constructor(options: StoragePersistenceOptions & { version?: number }) {
     this.key = options.key;
@@ -43,6 +50,7 @@ export class StoragePersistence<T> {
   }
 
   save(data: T, options?: { immediate?: boolean }): void {
+    if (this.persistLock) return;
     if (data === this.lastKnownData) return;
 
     if (!options?.immediate) {
@@ -64,7 +72,12 @@ export class StoragePersistence<T> {
       if (wrapper?.instanceId === this.instanceId) return;
 
       this.lastKnownData = wrapper.data;
+
+      this.persistLock = true;
+
       onChange(wrapper.data);
+
+      this.persistLock = false;
     });
   }
 }

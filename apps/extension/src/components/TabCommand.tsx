@@ -194,9 +194,9 @@ export function TabCommandDialog({
     <div ref={setCommandContainer} className={cn("relative flex w-full rounded-lg dark:shadow-sm")}>
       <button
         className={cn(
-          "focus-ring hover:bg-card-active bg-card flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
+          "focus-ring hover:bg-card-active bg-card flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-0",
           {
-            "opacity-0": open,
+            "opacity-0 duration-200": open,
           },
         )}
         onClick={openDialog}>
@@ -216,7 +216,7 @@ export function TabCommandDialog({
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[20px] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none md:max-w-[57rem]">
+          className="data-[state=open]:zoom-in-[96%] data-[state=closed]:zoom-out-[100%] absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none md:max-w-[57rem] duration-100">
           <DialogStateContext.Provider value={{ open, setOpen }}>
             {children}
           </DialogStateContext.Provider>

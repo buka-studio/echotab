@@ -34,7 +34,7 @@ type TagParams = {
   isAI?: boolean;
 };
 
-const persistence = new StoragePersistence<Tag[]>({ key: "echotab-tag-store" });
+const persistence = new StoragePersistence<{ tags: Tag[] }>({ key: "echotab-tag-store" });
 
 export function pickRandomTagColor() {
   return tagColors[Math.floor(Math.random() * tagColors.length)] || defaultTagColor;
@@ -162,14 +162,21 @@ export const getTagsNormalizedByName = () => {
 export const initStore = async () => {
   const stored = await persistence.load();
   if (stored) {
-    useTagStore.setState({ tags: stored });
+    useTagStore.setState({ tags: stored.tags ?? [] });
   }
+
+  persistence.subscribe((data) => {
+    useTagStore.setState({
+      tags: data.tags ?? [],
+    });
+  });
+
   useTagStore.setState({ initialized: true });
 };
 
 useTagStore.subscribe((store) => {
   if (store.initialized) {
-    persistence.save(store.tags);
+    persistence.save({ tags: store.tags });
   }
 });
 

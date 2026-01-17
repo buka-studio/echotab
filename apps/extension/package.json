@@ -55,6 +55,7 @@
     "react-hook-form": "~7.68.0",
     "react-hotkeys-hook": "~5.2.1",
     "tweakpane": "^4.0.5",
+    "usehooks-ts": "~3.1.1",
     "uuidv7": "^1.1.0",
     "valtio": "~2.3.0",
     "zod": "^4.1.13",

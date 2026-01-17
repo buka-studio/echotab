@@ -4,7 +4,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import { getRootElement } from "~/util/dom";
 
 import { StoragePersistence } from "./persistence";
-import { ClipboardFormat, Panel, Settings, Theme } from "./schema";
+import { accentColors, ClipboardFormat, Panel, Settings, Theme } from "./schema";
 
 export interface RecentlyClosedStore {
   initialized: boolean;
@@ -27,6 +27,7 @@ export const useSettingStore = create(
       theme: Theme.System,
       clipboardFormat: ClipboardFormat.Text,
       clipboardIncludeTags: false,
+      accentColor: accentColors.Orange,
     } as Settings,
     activePanel: Panel.Tabs,
     open: false,
@@ -101,6 +102,14 @@ export function subscribeSettingStore() {
       }
 
       enable();
+    },
+  );
+
+  useSettingStore.subscribe(
+    (s) => s.settings.accentColor,
+    (accentColor) => {
+      const root = getRootElement();
+      root.style.setProperty("--primary", accentColor);
     },
   );
 }

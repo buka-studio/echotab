@@ -35,8 +35,9 @@ import {
   TrashIcon,
 } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useDebounceValue } from "usehooks-ts";
 
 import { curateStoreActions } from "~/store/curateStore";
 
@@ -206,14 +207,14 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   };
 
   const [quickSearch, setQuickSearch] = useState("");
-  const quickDeferredSearch = useDeferredValue(quickSearch);
+  const [debouncedQuickSearch, setValue] = useDebounceValue(quickSearch, 300);
 
   useEffect(() => {
     if (!quickSearch) {
       return;
     }
     handleToggleFilterKeyword(quickSearch, true);
-  }, [quickDeferredSearch]);
+  }, [debouncedQuickSearch]);
 
   const runningSearchRef = useRef<string>(search);
   const handleToggleFilterKeyword = (keyword: string, isQuick = false) => {
@@ -365,6 +366,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
               if (!enterToSearch) {
                 if (isAlphanumeric(e.key) && !e.metaKey && !search.startsWith("#")) {
                   setQuickSearch(search + e.key);
+                  setValue(search + e.key);
                 }
               }
             }
