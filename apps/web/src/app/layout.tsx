@@ -1,6 +1,6 @@
 import "@echotab/ui/globals.css";
 
-import Toaster from "@echotab/ui/Toast";
+import { Toaster } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
 import { Metadata } from "next";
 import { Inter, JetBrains_Mono, Sahitya } from "next/font/google";

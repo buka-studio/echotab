@@ -3,7 +3,7 @@
 import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 
-import { PerformanceCard, WorkflowCard } from "./components/bento";
+import { PerfCard, WorkflowCard } from "./components/bento";
 import { extensionStoreURL } from "./constants";
 import CTA from "./CTA";
 import FeaturesCarousel from "./FeaturesCarousel";
@@ -62,9 +62,9 @@ export default function Home() {
           <Heading className="pt-[150px]" />
           <Hero />
           <FeaturesCarousel />
-          <div className="bento relative z-[2] flex max-w-screen-lg flex-col gap-5 p-5 md:flex-row">
+          <div className="bento relative z-2 flex max-w-5xl flex-col gap-5 p-5 md:flex-row">
             <WorkflowCard className="flex-1" />
-            <PerformanceCard className="flex-1" />
+            <PerfCard className="flex-1" />
           </div>
           <CTA />
         </main>
