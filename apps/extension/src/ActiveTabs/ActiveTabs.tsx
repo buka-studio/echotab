@@ -154,7 +154,7 @@ export default function ActiveTabs() {
   const groupedTabs = view.grouping === TabGrouping.Domain ? viewTabIdsByDomain : tabIdsByWindowId;
 
   useHotkeys(
-    "meta+a",
+    "mod+a",
     () => {
       if (SelectionStore.selectedTabIds.size === viewTabIds.length) {
         tabStoreSelectionActions.deselectAllTabs();
@@ -170,7 +170,7 @@ export default function ActiveTabs() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="header contained outlined-side sticky top-0 z-10 flex p-3 px-3">
+      <div className="header contained outlined-side sticky top-0 z-10 flex p-3 px-2">
         <ActiveCommand />
       </div>
       <div className="outlined-bottom outlined-side contained flex items-center justify-between gap-2 not-empty:px-3 not-empty:py-2">

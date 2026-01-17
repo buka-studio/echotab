@@ -1,24 +1,12 @@
-import { motion } from "framer-motion";
-
-import imageUrl from "~/assets/feedback.png";
-
+import FeedbackVisual from "./FeedbackVisual";
 import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 
 export default function FeedbackPage() {
   return (
     <SettingsPage>
       <SettingsTitle>Feedback</SettingsTitle>
-
       <SettingsContent className="flex h-full flex-col items-center gap-5 pt-10">
-        <motion.img
-          initial={{ opacity: 0, filter: "blur(4px)", scale: 0.95 }}
-          animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
-          transition={{ duration: 0.25 }}
-          src={imageUrl}
-          alt="Buka Studio team"
-          className="h-auto max-h-[145px] w-full object-contain"
-        />
-
+        <FeedbackVisual />
         <div className="flex max-w-[350px] flex-col text-center">
           <h1 className="text-sm font-semibold">Help improve EchoTab</h1>
 

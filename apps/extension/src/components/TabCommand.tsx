@@ -2,6 +2,7 @@ import { CommandGroup, CommandItem } from "@echotab/ui/Command";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@echotab/ui/Dialog";
 import GlowOutline from "@echotab/ui/GlowOutline";
 import { cn } from "@echotab/ui/util";
+import { useCommandState } from "cmdk";
 import {
   ComponentProps,
   createContext,
@@ -11,7 +12,7 @@ import {
   useState,
 } from "react";
 
-import { capitalize } from "../util";
+import { capitalize, pluralize } from "../util";
 
 const DialogStateContext = createContext<{
   open: boolean;
@@ -95,6 +96,40 @@ export function TabCommandItem({
       {...props}>
       {children}
     </CommandItem>
+  );
+}
+
+export function TabCommandFooter({
+  pages,
+  resultsCount: overrideResultsCount = undefined,
+  className,
+}: {
+  pages: string[];
+  resultsCount?: number;
+  className?: string;
+}) {
+  const resultsCount = useCommandState((state) => state.filtered.count);
+
+  return (
+    <div
+      className={cn(
+        "text-muted-foreground bg-accent/50 flex justify-between rounded-b-[calc(var(--radius)-1px)] border-t-[0.5px] p-2 text-xs",
+        className,
+      )}>
+      {pages.length > 1 ? (
+        <span>
+          <kbd className="keyboard-shortcut small text-[0.625rem]!">Backspace</kbd> to go back
+        </span>
+      ) : (
+        <span>
+          Use <kbd className="keyboard-shortcut small">↑</kbd>{" "}
+          <kbd className="keyboard-shortcut small">↓</kbd> to navigate
+        </span>
+      )}
+      <span className="ml-auto">
+        {pluralize(overrideResultsCount ?? resultsCount, "result", "s")}
+      </span>
+    </div>
   );
 }
 
@@ -216,7 +251,7 @@ export function TabCommandDialog({
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=open]:zoom-in-[96%] data-[state=closed]:zoom-out-[100%] absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none md:max-w-[57rem] duration-100">
+          className="data-[state=open]:zoom-in-[96%] data-[state=closed]:zoom-out-[100%] absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 duration-100 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none md:max-w-[57rem]">
           <DialogStateContext.Provider value={{ open, setOpen }}>
             {children}
           </DialogStateContext.Provider>

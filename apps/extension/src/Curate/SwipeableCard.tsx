@@ -15,7 +15,8 @@ export interface SwipeableRef {
 }
 
 interface Props {
-  onSwiped: (direction?: Direction) => void;
+  onSwipe: (direction?: Direction) => void;
+  onBeforeSwipe: (direction?: Direction) => void;
   constrained?: boolean;
   i: number;
   active: boolean;
@@ -25,7 +26,8 @@ interface Props {
 
 export default function SwipeableCard({
   children,
-  onSwiped,
+  onSwipe,
+  onBeforeSwipe,
   constrained,
   i,
   active,
@@ -88,7 +90,7 @@ export default function SwipeableCard({
         .start({
           x: flyAwayDistance(trajectory.current.direction) * 1.2,
         })
-        .then(() => onSwiped(trajectory.current.direction));
+        .then(() => onSwipe(trajectory.current.direction));
     }
   }
 
@@ -111,8 +113,8 @@ export default function SwipeableCard({
   }, [props.style?.y, controls, i, props.style?.filter]);
 
   const swipeLeft = () => {
+    onBeforeSwipe("left");
     trajectory.current.direction = "left";
-
     controls
       .start({
         opacity: 0,
@@ -120,15 +122,16 @@ export default function SwipeableCard({
         rotate: -90,
         filter: "blur(5px)",
         transition: {
-          duration: 0.2,
+          duration: 0.175,
         },
       })
       .then(() => {
-        onSwiped("left");
+        onSwipe("left");
       });
   };
 
   const swipeRight = () => {
+    onBeforeSwipe("right");
     trajectory.current.direction = "right";
     controls
       .start({
@@ -136,11 +139,11 @@ export default function SwipeableCard({
         x: 500,
         rotate: 90,
         transition: {
-          duration: 0.2,
+          duration: 0.175,
         },
       })
       .then(() => {
-        onSwiped("right");
+        onSwipe("right");
       });
   };
 
@@ -157,7 +160,7 @@ export default function SwipeableCard({
         },
       })
       .then(() => {
-        onSwiped("up");
+        onSwipe("up");
       })
       .then(() => controls.set({ zIndex: 0 }))
       .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }));
@@ -176,7 +179,7 @@ export default function SwipeableCard({
         },
       })
       .then(() => {
-        onSwiped("down");
+        onSwipe("down");
       })
       .then(() => controls.set({ zIndex: 0 }))
       .then(() => controls.start({ y: -100, transition: { duration: 0.15 } }));

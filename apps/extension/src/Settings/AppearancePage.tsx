@@ -11,12 +11,12 @@ import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 
 export default function AppearancePage() {
   const settings = useSettingStore((s) => s.settings);
-  console.log(settings);
+
   return (
     <SettingsPage>
       <SettingsTitle>Appearance</SettingsTitle>
       <SettingsContent className="flex flex-col gap-4">
-        <div className="flex items-center justify-between space-x-2">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <Label htmlFor="hide-favicons">Hide Favicons</Label>
             <div className="text-muted-foreground text-sm">Hide favicons for a cleaner look.</div>
@@ -53,7 +53,7 @@ export default function AppearancePage() {
           </ToggleGroup>
         </div>
         <Separator />
-        <div className="flex items-center justify-between gap-2 text-sm">
+        <div className="flex items-center justify-between gap-4 text-sm">
           <div className="flex flex-col gap-1">
             <Label htmlFor="theme">Accent Color</Label>
             <div className="text-muted-foreground text-sm">Change EchoTab's accent color.</div>
@@ -68,10 +68,11 @@ export default function AppearancePage() {
             {Object.entries(accentColors).map(([color, lch]) => {
               return (
                 <ToggleGroupItem
+                  key={lch}
                   value={lch}
                   aria-label={`Set ${color} accent color`}
                   style={{ backgroundColor: lch }}
-                  className="size-5! rounded-full! border! p-0 opacity-50 grayscale-0 transition-all hover:opacity-100 hover:grayscale-0 focus-visible:opacity-100 focus-visible:grayscale-0 data-[state=on]:opacity-100 data-[state=on]:grayscale-0"
+                  className="data-[state=on]:ring-ring size-5! rounded-full! border-0! p-0 shadow transition-all data-[state=on]:ring-2"
                   size="sm"
                 />
               );

@@ -15,7 +15,7 @@ export default function TagColorPicker({ value, onChange }: Props) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className="focus-ring border-muted border-opacity-10 h-4 w-4 rounded-full border bg-(--color)"
+        className="focus-ring border-muted h-4 w-4 rounded-full bg-(--color)"
         style={{ "--color": value } as CSSProperties}
       />
       <PopoverContent className="w-auto min-w-0 p-2">

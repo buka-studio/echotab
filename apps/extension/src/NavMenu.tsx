@@ -29,7 +29,7 @@ export default function NavMenu() {
 
   return (
     <div className="flex gap-2">
-      <Curate key={String(open)}>
+      <Curate key={String(open)} curateQueueItems={queue}>
         <NumberNotificationBadge value={queue.length} variant="secondary" show={queue.length > 0}>
           <CurateTrigger>
             <ButtonWithTooltip

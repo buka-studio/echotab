@@ -188,7 +188,7 @@ export default function Bookmarks() {
   const isXLScreen = useMatchMedia("(min-width: 1440px)");
 
   useHotkeys(
-    "meta+a",
+    "mod+a",
     () => {
       if (viewTabIds.length === SelectionStore.selectedTabIds.size) {
         bookmarkStoreSelectionActions.deselectAllTabs();

@@ -18,7 +18,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@echotab/ui/Command";
-import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
 import { BroomIcon, BrowserIcon, OpenAiLogoIcon, TagIcon } from "@phosphor-icons/react";
@@ -47,6 +46,7 @@ import {
   OnClose,
   TabCommandDialog,
   TabCommandDialogRef,
+  TabCommandFooter,
   TabCommandGroup,
   TabCommandItem,
   useTabCommand,
@@ -70,7 +70,7 @@ import { toggle } from "../util/set";
 import { isAlphanumeric } from "../util/string";
 import ListFormDialog from "./Lists/ListFormDialog";
 
-const pages = ["/", "tag", "find"] as const;
+const pages = ["/", "tag", "search"] as const;
 
 type Page = (typeof pages)[number];
 
@@ -83,11 +83,11 @@ const CommandLabel = ({ page }: { page: string }) => {
       </span>
     );
   }
-  if (page === "find") {
+  if (page === "search") {
     return (
       <span className="text-muted-foreground flex items-center gap-2">
         <MagnifyingGlassIcon className="animate-pulse" />
-        Finding...
+        Searching...
       </span>
     );
   }
@@ -277,7 +277,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     bookmarkStoreActions.pinTabs(Array.from(selectionStore.selectedTabIds));
   };
 
-  const customLabel = ["tag", "find"].includes(activePage);
+  const customLabel = ["tag", "search"].includes(activePage);
 
   const withClear = (fn: () => void) => {
     return () => {
@@ -298,16 +298,27 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   const dialogRef = useRef<TabCommandDialogRef>(null);
 
   useHotkeys(
-    "meta+f",
+    "mod+f",
     () => {
       dialogRef.current?.open();
-      setPages(["/", "find"]);
+      setPages(["/", "search"]);
       inputRef.current?.focus();
     },
     { preventDefault: true },
   );
 
-  const enterToSearch = false; //uiStore.settings.enterToSearch;
+  useHotkeys(
+    "alt+t",
+    () => {
+      dialogRef.current?.open();
+      setPages(["/", "tag"]);
+      inputRef.current?.focus();
+    },
+    { preventDefault: true, enabled: selectedCount > 0 },
+    [],
+  );
+
+  const enterToSearch = false;
 
   const handleLooseMatch = () => {
     bookmarkStoreViewActions.updateFilter({
@@ -357,7 +368,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                 handleSaveAssignedTags();
               }
             }
-            if (activePage === "find") {
+            if (activePage === "search") {
               if (e.key === "Enter" && !getValue() && search) {
                 e.preventDefault();
                 handleToggleFilterKeyword(search);
@@ -401,227 +412,231 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
               )}
             </div>
           </div>
-          <CommandList
-            className={cn(
-              "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-full block w-full overscroll-contain rounded-lg rounded-t-none border border-t-0 p-2 px-0 shadow-lg backdrop-blur-lg",
-            )}>
-            {activePage === "/" && (
-              <>
-                <TabCommandGroup
-                  heading={
-                    <span>
-                      Selection{" "}
-                      <Badge
-                        variant="card"
-                        className={cn("ml-2", {
-                          "opacity-0": !selectedCount,
-                        })}>
-                        {selectedCount}
-                      </Badge>
-                    </span>
-                  }>
-                  {selectedCount === 0 ? (
-                    <TabCommandItem
-                      onSelect={withClear(bookmarkStoreSelectionActions.selectAllTabs)}>
-                      <CheckCircledIcon className="text-muted-foreground mr-2" />
-                      Select All
-                    </TabCommandItem>
-                  ) : (
-                    <TabCommandItem
-                      onSelect={withClear(bookmarkStoreSelectionActions.deselectAllTabs)}>
-                      <MinusCircledIcon className="text-muted-foreground mr-2" /> Deselect All
-                    </TabCommandItem>
-                  )}
-                  {Boolean(selectedCount) && (
-                    <>
-                      <TabCommandItem onSelect={() => pushPage("tag")}>
-                        <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                        Tag
+          <div className="bg-popover/70 text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 pb-0 shadow-lg backdrop-blur-lg">
+            <CommandList className={cn("scrollbar-gray scroll-fade overscroll-contain")}>
+              {activePage === "/" && (
+                <>
+                  <TabCommandGroup
+                    heading={
+                      <span>
+                        Selection{" "}
+                        <Badge
+                          variant="card"
+                          className={cn("ml-2", {
+                            "opacity-0": !selectedCount,
+                          })}>
+                          {selectedCount}
+                        </Badge>
+                      </span>
+                    }>
+                    {selectedCount === 0 ? (
+                      <TabCommandItem
+                        onSelect={withClear(bookmarkStoreSelectionActions.selectAllTabs)}>
+                        <CheckCircledIcon className="text-muted-foreground mr-2" />
+                        Select All
                       </TabCommandItem>
-                      <TabCommandItem onSelect={withClear(handleCreateListFromSelected)}>
-                        <FilePlusIcon className="text-muted-foreground mr-2" /> Create a list
+                    ) : (
+                      <TabCommandItem
+                        onSelect={withClear(bookmarkStoreSelectionActions.deselectAllTabs)}>
+                        <MinusCircledIcon className="text-muted-foreground mr-2" /> Deselect All
                       </TabCommandItem>
-                      <TabCommandItem onSelect={withClear(handlePinSelected)}>
-                        <DrawingPinIcon className="text-muted-foreground mr-2" />
-                        Pin
-                      </TabCommandItem>
+                    )}
+                    {Boolean(selectedCount) && (
+                      <>
+                        <TabCommandItem onSelect={() => pushPage("tag")}>
+                          <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                          Tag
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handleCreateListFromSelected)}>
+                          <FilePlusIcon className="text-muted-foreground mr-2" /> Create a list
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handlePinSelected)}>
+                          <DrawingPinIcon className="text-muted-foreground mr-2" />
+                          Pin
+                        </TabCommandItem>
 
-                      <TabCommandItem onSelect={withClear(handleOpenSelected)}>
-                        <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in this
-                        window
+                        <TabCommandItem onSelect={withClear(handleOpenSelected)}>
+                          <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in this
+                          window
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(() => handleOpenSelected(true))}>
+                          <OpenInNewWindowIcon className="text-muted-foreground mr-2" /> Open in new
+                          window
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
+                          <ClipboardIcon className="text-muted-foreground mr-2" />
+                          Copy to clipboard
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                          <OpenAiLogoIcon className="text-muted-foreground mr-2" />
+                          Open in ChatGPT
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={() => setDeleteDialogOpen(true)}>
+                          <TrashIcon className="text-muted-foreground mr-2" /> Delete
+                        </TabCommandItem>
+                      </>
+                    )}
+                  </TabCommandGroup>
+                  <CommandSeparator />
+                  <TabCommandGroup heading="Bookmarks">
+                    <TabCommandItem onSelect={() => pushPage("search")} value="Find Search">
+                      <MagnifyingGlassIcon className="text-muted-foreground mr-2" /> Search
+                    </TabCommandItem>
+                  </TabCommandGroup>
+                  <CommandSeparator />
+                  <TabCommandGroup heading="Other">
+                    {onCurate && (
+                      <TabCommandItem onSelect={withClear(onCurate)}>
+                        <BroomIcon className="text-muted-foreground mr-2" />
+                        Curate
                       </TabCommandItem>
-                      <TabCommandItem onSelect={withClear(() => handleOpenSelected(true))}>
-                        <OpenInNewWindowIcon className="text-muted-foreground mr-2" /> Open in new
-                        window
-                      </TabCommandItem>
-                      <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
-                        <ClipboardIcon className="text-muted-foreground mr-2" />
-                        Copy to clipboard
-                      </TabCommandItem>
-                      <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
-                        <OpenAiLogoIcon className="text-muted-foreground mr-2" />
-                        Open in ChatGPT
-                      </TabCommandItem>
-                      <TabCommandItem onSelect={() => setDeleteDialogOpen(true)}>
-                        <TrashIcon className="text-muted-foreground mr-2" /> Delete
-                      </TabCommandItem>
-                    </>
-                  )}
-                </TabCommandGroup>
-                <CommandSeparator />
-                <TabCommandGroup heading="Bookmarks">
-                  <TabCommandItem onSelect={() => pushPage("find")}>
-                    <MagnifyingGlassIcon className="text-muted-foreground mr-2" /> Find
-                  </TabCommandItem>
-                </TabCommandGroup>
-                <CommandSeparator />
-                <TabCommandGroup heading="Other">
-                  {onCurate && (
-                    <TabCommandItem onSelect={withClear(onCurate)}>
+                    )}
+                    <TabCommandItem onSelect={() => settingStoreActions.activatePanel(Panel.Tabs)}>
+                      <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                      Go to Tabs
+                    </TabCommandItem>
+                    <TabCommandItem
+                      onSelect={withClose(() => settingStoreActions.setSettingsOpen(true))}>
+                      <GearIcon className="text-muted-foreground mr-2" />
+                      Open Settings
+                    </TabCommandItem>
+                    <TabCommandItem
+                      onSelect={withClose(() => curateStoreActions.setCurateOpen(true))}>
                       <BroomIcon className="text-muted-foreground mr-2" />
                       Curate
                     </TabCommandItem>
+                  </TabCommandGroup>
+                  <CommandEmpty>No Results</CommandEmpty>
+                </>
+              )}
+              {activePage === "tag" && (
+                <div className="flex flex-col gap-4">
+                  {assignedTagIds.size > 0 && (
+                    <div className="tags flex items-center gap-2 pl-2">
+                      <button
+                        className="focus-ring rounded px-2 text-sm whitespace-nowrap"
+                        onClick={() => setAssignedTagIds(new Set())}>
+                        Clear all
+                      </button>
+                      <TagChipList
+                        max={10}
+                        tags={Array.from(assignedTagIds).map((t) => tagsById.get(t)!)}
+                        onRemove={(tag) => {
+                          toggleAssignedTagId(tag.id!);
+                        }}
+                      />
+                    </div>
                   )}
-                  <TabCommandItem onSelect={() => settingStoreActions.activatePanel(Panel.Tabs)}>
-                    <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                    Go to Tabs
-                  </TabCommandItem>
-                  <TabCommandItem
-                    onSelect={withClose(() => settingStoreActions.setSettingsOpen(true))}>
-                    <GearIcon className="text-muted-foreground mr-2" />
-                    Open Settings
-                  </TabCommandItem>
-                  <TabCommandItem
-                    onSelect={withClose(() => curateStoreActions.setCurateOpen(true))}>
-                    <BroomIcon className="text-muted-foreground mr-2" />
-                    Curate
-                  </TabCommandItem>
-                </TabCommandGroup>
-                <CommandEmpty>No Results</CommandEmpty>
-              </>
-            )}
-            {activePage === "tag" && (
-              <div className="flex flex-col gap-4">
-                {assignedTagIds.size > 0 && (
-                  <div className="tags flex items-center gap-2 pl-2">
-                    <button
-                      className="focus-ring rounded px-2 text-sm whitespace-nowrap"
-                      onClick={() => setAssignedTagIds(new Set())}>
-                      Clear all
-                    </button>
-                    <TagChipList
-                      max={10}
-                      tags={Array.from(assignedTagIds).map((t) => tagsById.get(t)!)}
-                      onRemove={(tag) => {
-                        toggleAssignedTagId(tag.id!);
-                      }}
+                  <TabCommandGroup>
+                    {tags
+                      .filter((t) => !assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
+                      .map((t) => (
+                        <TabCommandItem
+                          key={t.id}
+                          value={t.name}
+                          onSelect={() => {
+                            toggleAssignedTagId(t.id);
+                            setSearch("");
+                          }}>
+                          <div className="flex items-center">
+                            {t.name}{" "}
+                            <div
+                              className="ml-2 h-3 w-3 rounded-full"
+                              style={{ background: t.color }}
+                            />
+                          </div>
+                        </TabCommandItem>
+                      ))}
+                  </TabCommandGroup>
+                  <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
+                    {search ? (
+                      <span className="inline-flex gap-2">
+                        Create{" "}
+                        <TagChip className="text-sm" color="#000">
+                          {search}
+                        </TagChip>
+                      </span>
+                    ) : (
+                      "Type to create a tag"
+                    )}
+                  </CommandEmpty>
+                </div>
+              )}
+              {activePage === "search" && (
+                <div>
+                  <div className="mb-2 px-2">
+                    <FilterTagChips
+                      filter={view.filter}
+                      onRemoveKeyword={handleRemoveFilterKeyword}
+                      onRemoveTag={handleToggleFilterTag}
                     />
                   </div>
-                )}
-                <TabCommandGroup>
-                  {tags
-                    .filter((t) => !assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
-                    .map((t) => (
-                      <TabCommandItem
-                        key={t.id}
-                        value={t.name}
-                        onSelect={() => {
-                          toggleAssignedTagId(t.id);
-                          setSearch("");
-                        }}>
-                        <div className="flex items-center">
-                          {t.name}{" "}
-                          <div
-                            className="ml-2 h-3 w-3 rounded-full"
-                            style={{ background: t.color }}
-                          />
-                        </div>
-                      </TabCommandItem>
-                    ))}
-                </TabCommandGroup>
-                <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
-                  {search ? (
-                    <span className="inline-flex gap-2">
-                      Create{" "}
-                      <TagChip className="text-sm" color="#000">
-                        {search}
-                      </TagChip>
-                    </span>
-                  ) : (
-                    "Type to create a tag"
+                  {Boolean(hashtag) && (
+                    <div className="">
+                      <TabCommandGroup>
+                        {tags
+                          .filter((t) => !view.filter.tags.includes(t.id))
+                          .map((t) => (
+                            <TabCommandItem
+                              value={"#" + t.name}
+                              key={t.id}
+                              onSelect={() => {
+                                handleToggleFilterTag(t.id);
+                              }}>
+                              <div className="flex items-center">
+                                {t.name}{" "}
+                                <div
+                                  className="ml-2 h-3 w-3 rounded-full"
+                                  style={{ background: t.color }}
+                                />
+                              </div>
+                            </TabCommandItem>
+                          ))}
+                      </TabCommandGroup>
+                    </div>
                   )}
-                </CommandEmpty>
-              </div>
-            )}
-            {activePage === "find" && (
-              <div>
-                <div className="mb-2 px-2">
-                  <FilterTagChips
-                    filter={view.filter}
-                    onRemoveKeyword={handleRemoveFilterKeyword}
-                    onRemoveTag={handleToggleFilterTag}
-                  />
-                </div>
-                {Boolean(hashtag) && (
-                  <div className="">
-                    <TabCommandGroup>
-                      {tags
-                        .filter((t) => !view.filter.tags.includes(t.id))
-                        .map((t) => (
-                          <TabCommandItem
-                            value={"#" + t.name}
-                            key={t.id}
-                            onSelect={() => {
-                              handleToggleFilterTag(t.id);
-                            }}>
-                            <div className="flex items-center">
-                              {t.name}{" "}
-                              <div
-                                className="ml-2 h-3 w-3 rounded-full"
-                                style={{ background: t.color }}
-                              />
-                            </div>
-                          </TabCommandItem>
-                        ))}
-                    </TabCommandGroup>
-                  </div>
-                )}
-                <CommandEmpty className="flex items-center justify-center gap-2">
-                  <div className="text-muted-foreground">
-                    {search && !Boolean(hashtag) ? (
-                      <span>
-                        Find by "<span className="text-foreground italic">{search}</span>"
-                      </span>
-                    ) : search ? (
-                      "No tags found"
-                    ) : (
-                      "Search by keyword or #tag"
+                  <CommandEmpty className="flex items-center justify-center gap-2">
+                    <div className="text-muted-foreground">
+                      {search && !Boolean(hashtag) ? (
+                        <span>
+                          Search by "<span className="text-foreground italic">{search}</span>"
+                        </span>
+                      ) : search ? (
+                        "No tags found"
+                      ) : (
+                        <span>
+                          Type to search - <kbd className="keyboard-shortcut small">#</kbd> to
+                          search by tag
+                        </span>
+                      )}
+                    </div>
+                    {viewTabIds.length === 0 && !view.filter.looseMatch && search && (
+                      <motion.div
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+                        transition={{ duration: 0.2 }}>
+                        <div className="text-muted-foreground">or</div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-auto px-2 py-1 text-xs"
+                          onClick={handleLooseMatch}>
+                          Try loose match
+                        </Button>
+                      </motion.div>
                     )}
-                  </div>
-                  {viewTabIds.length === 0 && !view.filter.looseMatch && (
-                    <motion.div
-                      className="flex items-center gap-2"
-                      initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
-                      transition={{ duration: 0.2 }}>
-                      <div className="text-muted-foreground">or</div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-auto px-2 py-1 text-xs"
-                        onClick={handleLooseMatch}>
-                        Try loose match
-                      </Button>
-                    </motion.div>
-                  )}
-                </CommandEmpty>
-                <div className="text-muted-foreground absolute right-3 bottom-2 overflow-hidden">
-                  Results: <NumberFlow value={viewTabIds.length} />
+                  </CommandEmpty>
                 </div>
-              </div>
-            )}
-          </CommandList>
+              )}
+            </CommandList>
+            <TabCommandFooter
+              className="mt-1"
+              pages={pages}
+              resultsCount={activePage === "search" ? viewTabIds.length : undefined}
+            />
+          </div>
         </Command>
       </TabCommandDialog>
       {/* todo: figure out how to wrap TabCommandItem in Dialog and make it work that way */}

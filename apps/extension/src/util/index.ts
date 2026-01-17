@@ -106,3 +106,7 @@ export function sortRecord<T>(
       .map(([key, value]) => [key, valueComparator ? value.sort(valueComparator) : value]),
   );
 }
+
+export function getModifierKey() {
+  return navigator.userAgent.includes("Mac") ? "meta" : "ctrl";
+}

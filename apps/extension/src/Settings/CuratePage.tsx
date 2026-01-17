@@ -69,7 +69,7 @@ export default function CuratePage() {
     <SettingsPage>
       <SettingsTitle>Curate</SettingsTitle>
       <SettingsContent className="flex flex-col gap-5">
-        <div className="flex items-center justify-between space-x-2">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <Label htmlFor="old-link-threshold-value">Link expiration</Label>
             <div className="text-muted-foreground text-sm">
@@ -105,7 +105,7 @@ export default function CuratePage() {
 
         <Separator />
 
-        <div className="flex items-center justify-between space-x-2">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <Label htmlFor="reminder-enabled">Reminders enabled</Label>
             <div className="text-muted-foreground text-sm">
@@ -122,7 +122,7 @@ export default function CuratePage() {
         </div>
         <Separator />
 
-        <div className="flex items-center justify-between space-x-2">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <Label htmlFor="reminder-interval-value">Reminders frequency</Label>
             <div className="text-muted-foreground text-sm">

@@ -16,7 +16,7 @@ export function ItemListPlaceholderCopy({
 }) {
   return (
     <div className="absolute top-1/2 left-1/2 z-1 w-full translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-      <div className="text-sm text-balance">{title}</div>
+      <div className="text-foreground text-sm font-semibold text-balance">{title}</div>
       <div className="text-muted-foreground text-sm text-balance">{subtitle}</div>
     </div>
   );
@@ -43,7 +43,7 @@ export default function ItemListPlaceholder({
   return (
     <div
       className={cn(
-        "item-list-placeholder fade-gradient relative mx-auto flex w-full max-w-4xl flex-col gap-2 select-none",
+        "item-list-placeholder fade-gradient relative mx-auto flex min-h-[92px] w-full max-w-4xl flex-col gap-2 select-none",
         className,
       )}>
       <div
@@ -59,7 +59,7 @@ export default function ItemListPlaceholder({
             key={i}
             style={{ backgroundImage: variant === "diagonal" ? patternBg : "" }}
             className={cn(
-              "group/item border-border-active text-card-foreground dark:border-[color-mix(in_oklch,var(--border-active)_40%,var(--card))] @container flex min-h-12 w-full items-center border p-2 transition-colors duration-200",
+              "group/item border-border-active text-card-foreground @container flex min-h-12 w-full items-center border p-2 transition-colors duration-200 dark:border-[color-mix(in_oklch,var(--border-active)_40%,var(--card))]",
               {
                 "bg-card/40": variant === "default",
                 "[&+&]:border-t-0": layout === "list",

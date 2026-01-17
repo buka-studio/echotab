@@ -168,7 +168,7 @@ export const useCurateQueue = ({ manualIds = [] }: { manualIds?: string[] } = {}
   const tabs = useBookmarkStore((s) => s.tabs);
   const tags = useTagsById();
 
-  return useMemo(() => {
+  const queue = useMemo(() => {
     const inclusionResults: Map<string, InclusionResult> = new Map();
 
     for (const item of tabs) {
@@ -213,6 +213,8 @@ export const useCurateQueue = ({ manualIds = [] }: { manualIds?: string[] } = {}
 
     return queue;
   }, [tabs, tags]);
+
+  return queue;
 };
 
 export const initStore = async () => {

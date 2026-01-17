@@ -43,7 +43,6 @@ import {
   curateStoreActions,
   InclusionReason,
   InclusionResult,
-  useCurateQueue as useCurateQueueHook,
   useCurateStore,
 } from "../store/curateStore";
 import { pluralize } from "../util";
@@ -59,11 +58,11 @@ import TagList from "./TagList";
 interface Props {
   children?: ReactNode;
   maxCards?: number;
+  curateQueueItems: InclusionResult[];
 }
 
-const useCurateQueue = (maxCards: number) => {
+const useCurateQueue = (maxCards: number, curateQueueItems: InclusionResult[]) => {
   const open = useCurateStore((s) => s.open);
-  const curateQueueItems = useCurateQueueHook({ manualIds: [] });
   const [queue, setQueue] = useState<InclusionResult[]>([]);
   const [initialized, setInitialized] = useState(false);
   const total = useRef(0);
@@ -128,14 +127,16 @@ export function CurateTrigger({ children }: { children: ReactNode }) {
   return <DialogTrigger asChild>{children}</DialogTrigger>;
 }
 
-export default function Curate({ children, maxCards = 5 }: Props) {
+export default function Curate({ children, maxCards = 5, curateQueueItems }: Props) {
   const open = useCurateStore((s) => s.open);
   const settings = useCurateStore((s) => s.settings);
   const tabs = useBookmarkStore((s) => s.tabs);
-  const curateQueueItems = useCurateQueueHook({ manualIds: [] });
+  // const curateQueueItems = useCurateQueueHook({ manualIds: [] });
 
-  const { initialized, total, queue, kept, deleted, left, dequeue, unshift } =
-    useCurateQueue(maxCards);
+  const { initialized, total, queue, kept, deleted, left, dequeue, unshift } = useCurateQueue(
+    maxCards,
+    curateQueueItems,
+  );
 
   const curateTabsById = useMemo(() => {
     const curateTabIds = new Set(curateQueueItems.map((result) => result.tabId));
@@ -146,6 +147,9 @@ export default function Curate({ children, maxCards = 5 }: Props) {
   }, [tabs, curateQueueItems]);
 
   const swipeableRef = useRef<SwipeableRef | null>(null);
+
+  const [pressAction, setPressAction] = useState<string | null>(null);
+  const pressActionTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleSwipe = (tab: SavedTab, direction?: Direction) => {
     if (direction === "left") {
@@ -162,6 +166,22 @@ export default function Curate({ children, maxCards = 5 }: Props) {
       });
       unshift();
     }
+  };
+
+  const handleBeforeSwipe = (tab: SavedTab, direction?: Direction) => {
+    if (direction === "left") {
+      setPressAction("delete");
+    } else if (direction === "right") {
+      setPressAction("keep");
+    }
+
+    if (pressActionTimeout.current) {
+      clearTimeout(pressActionTimeout.current);
+    }
+
+    pressActionTimeout.current = setTimeout(() => {
+      setPressAction(null);
+    }, 150);
   };
 
   const handleFinish = () => {
@@ -302,7 +322,8 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                         }
                       }}
                       directions={["left", "right", "down"]}
-                      onSwiped={(direction) => handleSwipe(tab, direction)}>
+                      onBeforeSwipe={(direction) => handleBeforeSwipe(tab, direction)}
+                      onSwipe={(direction) => handleSwipe(tab, direction)}>
                       <CurateCard tab={tab} index={i} visible={i === 0} />
                     </SwipeableCard>
                   );
@@ -325,7 +346,10 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                   <CurateDock>
                     <DockAction
                       onClick={() => swipeableRef.current?.swipe("left")}
-                      tooltipText="Delete">
+                      tooltipText="Delete"
+                      className={cn({
+                        "scale-90": pressAction === "delete",
+                      })}>
                       <XIcon
                         className="h-6 w-6 text-[#F05B5D] shadow-current dark:filter-[drop-shadow(0_0_4px_#D9282B)]"
                         weight="bold"
@@ -367,7 +391,10 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                     </div>
                     <DockAction
                       onClick={() => swipeableRef.current?.swipe("right")}
-                      tooltipText="Keep">
+                      tooltipText="Keep"
+                      className={cn({
+                        "scale-90": pressAction === "keep",
+                      })}>
                       <HeartIcon
                         className="h-6 w-6 text-[#F05BF0] shadow-current dark:filter-[drop-shadow(0_0_4px_#D328D9)]"
                         weight="bold"

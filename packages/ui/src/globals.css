@@ -36,7 +36,7 @@
 
   --background-base: oklch(96.42% 0 0);
   --background: oklch(100% 0 0);
-  --foreground: oklch(23.08% 0 0);
+  --foreground: oklch(25.08% 0 0);
   --card: oklch(99.4% 0 0);
   --card-active: oklch(94.91% 0 0);
   --card-foreground: oklch(23.08% 0 0);
@@ -46,9 +46,9 @@
   --primary-foreground: oklch(97.91% 0 0);
   --secondary: oklch(90.06% 0 0);
   --secondary-foreground: oklch(23.08% 0 0);
-  --muted: oklch(94.84% 0.0033 17.75);
+  --muted: oklch(94.84% 0 17.75);
   --muted-foreground: oklch(55.55% 0 0);
-  --accent: oklch(94.91% 0 0);
+  --accent: oklch(93.91% 0 0);
   --accent-foreground: oklch(23.08% 0 0);
   --border: oklch(90.37% 0 0);
   --border-active: oklch(90.37% 0 0);
@@ -291,6 +291,10 @@
 
 .keyboard-shortcut {
   @apply border-border bg-foreground/5 text-foreground rounded border p-1 px-2 font-mono text-xs whitespace-nowrap uppercase;
+
+  &.small {
+    @apply p-[2px_4px]!;
+  }
 }
 
 .outlined-bottom {
@@ -378,12 +382,12 @@
 }
 
 .scroll-fade {
-  --mask-height: 50px;
-
   animation: animate-fade-mask;
   animation-timeline: scroll(self y);
 
   --mask-offset: 20%;
+  --offset-y-top: 0%;
+  --offset-y-bottom: 0%;
 
   mask-image: linear-gradient(
     to bottom,
@@ -403,5 +407,34 @@
   100% {
     --offset-y-top: 100%;
     --offset-y-bottom: 0%;
+  }
+}
+
+.scroll-fade-horizontal {
+  animation: animate-fade-mask-horizontal;
+  animation-timeline: scroll(self x);
+
+  --mask-offset: 20%;
+  --offset-x-left: 0%;
+  --offset-x-right: 0%;
+
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black min(var(--offset-x-left), var(--mask-offset)),
+    black calc(100% - min(var(--offset-x-right), var(--mask-offset))),
+    transparent
+  );
+}
+
+@keyframes animate-fade-mask-horizontal {
+  0% {
+    --offset-x-left: 0%;
+    --offset-x-right: 100%;
+  }
+
+  100% {
+    --offset-x-left: 100%;
+    --offset-x-right: 0%;
   }
 }

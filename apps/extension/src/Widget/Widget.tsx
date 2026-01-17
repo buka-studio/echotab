@@ -54,7 +54,7 @@ const exactMatchFilter = (value: string, search: string) => {
 function Widget({ onClose }: Props) {
   const [tab, setTab] = useState<chrome.tabs.Tab | null>(null);
   const tags = useTagStore((s) => s.tags);
-  const { theme: settingsTheme } = useSettingStore((s) => s.settings);
+  const { theme: settingsTheme, accentColor } = useSettingStore((s) => s.settings);
 
   subscribeSettingStore();
 
@@ -165,6 +165,7 @@ function Widget({ onClose }: Props) {
   return (
     <motion.main
       className={cn("echotab-root rounded-xl", theme)}
+      style={{ "--primary": accentColor } as CSSProperties}
       initial={{ opacity: 0, y: 20, filter: "blur(5px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       exit={{ opacity: 0, y: -20, filter: "blur(5px)" }}
@@ -214,7 +215,7 @@ function Widget({ onClose }: Props) {
                 </ButtonWithTooltip>
               </div>
             </div>
-            <CommandPrimitive.List className="scrollbar-gray flex overflow-auto *:flex *:max-w-full *:gap-2 *:pb-3 focus-visible:outline-none [&>*:focus-visible]:outline-none">
+            <CommandPrimitive.List className="scrollbar-gray scroll-fade-horizontal flex overflow-auto *:flex *:max-w-full *:gap-2 *:pb-3 focus-visible:outline-none [&>*:focus-visible]:outline-none">
               <CommandPrimitive.Empty
                 className="text-muted-foreground flex cursor-pointer items-center gap-2 text-sm"
                 onClick={handleCreateTag}>
@@ -268,7 +269,7 @@ function Widget({ onClose }: Props) {
                 Close tab after saving
               </Label>
             </div>
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <Checkbox
                 id="take-snapshot"
                 checked={takeSnapshot}
@@ -277,7 +278,7 @@ function Widget({ onClose }: Props) {
               <Label htmlFor="take-snapshot" className="text-muted-foreground">
                 Take a snapshot
               </Label>
-            </div>
+            </div> */}
           </div>
 
           <Button onClick={handleSave}>

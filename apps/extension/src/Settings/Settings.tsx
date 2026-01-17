@@ -11,7 +11,6 @@ import { cn } from "@echotab/ui/util";
 import {
   BroomIcon,
   DatabaseIcon,
-  KeyboardIcon,
   PaletteIcon,
   SquaresFourIcon,
   TagIcon,
@@ -106,8 +105,8 @@ export default function Settings() {
         </SettingsCommandItem>
       </CommandGroup>
       <CommandGroup className="mt-auto p-0">
-        <SettingsCommandItem>
-          <KeyboardIcon className="text-muted-foreground mr-2" />
+        <SettingsCommandItem value="Shortcuts">
+          <span className="text-muted-foreground icon mr-2 text-base">⌘</span>
           Shortcuts
         </SettingsCommandItem>
         <SettingsCommandItem>

@@ -38,7 +38,7 @@ export default function RecentlyClosed() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex min-h-8 items-center px-2 text-sm select-none">
+      <div className="flex min-h-8 items-center pl-2 text-sm select-none">
         <span className="mr-2 inline-flex gap-2">
           <span className="text-muted-foreground flex items-center gap-2">
             <BrowsersIcon className="h-4 w-4" /> Recently Closed

@@ -32,7 +32,7 @@ export default function ItemGrid<T extends string | number>({
   return (
     <div
       className={cn(
-        "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] rounded-lg *:-mt-px *:-ml-px",
+        "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] rounded-lg *:-mt-px *:-ml-px empty:hidden",
         className,
       )}
       ref={gridRefCallback}>

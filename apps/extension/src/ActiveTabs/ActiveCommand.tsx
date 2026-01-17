@@ -7,7 +7,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@echotab/ui/Command";
-import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
@@ -39,6 +38,7 @@ import {
   OnClose,
   TabCommandDialog,
   TabCommandDialogRef,
+  TabCommandFooter,
   TabCommandGroup,
   TabCommandItem,
   useTabCommand,
@@ -65,7 +65,7 @@ import { tagStoreActions, unassignedTag, useTagsById, useTagStore } from "../sto
 import { formatLinks, pluralize } from "../util";
 import { isAlphanumeric } from "../util/string";
 
-const pages = ["/", "tag", "find", "paste"] as const;
+const pages = ["/", "tag", "search", "paste"] as const;
 
 type Page = (typeof pages)[number];
 
@@ -78,11 +78,11 @@ const CommandLabel = ({ page }: { page: string }) => {
       </span>
     );
   }
-  if (page === "find") {
+  if (page === "search") {
     return (
       <span className="text-muted-foreground flex items-center gap-2">
         <MagnifyingGlassIcon className="animate-pulse" />
-        Finding...
+        Searching...
       </span>
     );
   }
@@ -167,7 +167,7 @@ export default function ActiveCommand() {
     }
   };
 
-  const enterToSearch = false; //uiStore.settings.enterToSearch;
+  const enterToSearch = false;
 
   const handleQuickSave = async () => {
     const tagName = tagStoreActions.getQuickSaveTagName();
@@ -308,7 +308,7 @@ export default function ActiveCommand() {
     }
   };
 
-  const customLabel = ["tag", "find", "paste"].includes(activePage);
+  const customLabel = ["tag", "search", "paste"].includes(activePage);
 
   const withClear = (fn: () => void) => {
     return () => {
@@ -329,10 +329,10 @@ export default function ActiveCommand() {
   const dialogRef = useRef<TabCommandDialogRef>(null);
 
   useHotkeys(
-    "meta+f",
+    "mod+f",
     () => {
       dialogRef.current?.open();
-      setPages(["/", "find"]);
+      setPages(["/", "search"]);
       inputRef.current?.focus();
     },
     { preventDefault: true },
@@ -427,7 +427,7 @@ export default function ActiveCommand() {
               handleSaveAssignedTags();
             }
           }
-          if (activePage === "find") {
+          if (activePage === "search") {
             if (e.key === "Enter" && !getValue() && search) {
               e.preventDefault();
               handleToggleFilterKeyword(search);
@@ -468,249 +468,255 @@ export default function ActiveCommand() {
             )}
           </div>
         </div>
-        <CommandList
-          className={cn(
-            "scrollbar-gray bg-popover text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 shadow-lg",
-          )}>
-          {activePage === "/" && (
-            <>
-              <TabCommandGroup
-                className="px-0"
-                heading={
-                  <span>
-                    Selection{" "}
-                    <Badge
-                      variant="card"
-                      className={cn("ml-2 inline", {
-                        "opacity-0": !selectedCount,
-                      })}>
-                      {selectedCount}
-                    </Badge>
-                  </span>
-                }>
-                {selectedCount === 0 ? (
-                  <TabCommandItem onSelect={withClear(tabStoreSelectionActions.selectAllTabs)}>
-                    <CheckCircledIcon className="text-muted-foreground mr-2" />
-                    Select All
-                  </TabCommandItem>
-                ) : (
-                  <TabCommandItem onSelect={withClear(tabStoreSelectionActions.deselectAllTabs)}>
-                    <MinusCircledIcon className="text-muted-foreground mr-2" />
-                    Deselect All
-                  </TabCommandItem>
-                )}
-                {Boolean(selectedCount) && (
-                  <>
-                    <TabCommandItem onSelect={() => pushPage("tag")}>
-                      <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                      Tag
+        <div className="bg-popover/70 text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 pb-0 shadow-lg backdrop-blur-lg">
+          <CommandList className={cn("scrollbar-gray scroll-fade overscroll-contain")}>
+            {activePage === "/" && (
+              <>
+                <TabCommandGroup
+                  className="px-0"
+                  heading={
+                    <span>
+                      Selection{" "}
+                      <Badge
+                        variant="card"
+                        className={cn("ml-2 inline", {
+                          "opacity-0": !selectedCount,
+                        })}>
+                        {selectedCount}
+                      </Badge>
+                    </span>
+                  }>
+                  {selectedCount === 0 ? (
+                    <TabCommandItem onSelect={withClear(tabStoreSelectionActions.selectAllTabs)}>
+                      <CheckCircledIcon className="text-muted-foreground mr-2" />
+                      Select All
                     </TabCommandItem>
+                  ) : (
+                    <TabCommandItem onSelect={withClear(tabStoreSelectionActions.deselectAllTabs)}>
+                      <MinusCircledIcon className="text-muted-foreground mr-2" />
+                      Deselect All
+                    </TabCommandItem>
+                  )}
+                  {Boolean(selectedCount) && (
+                    <>
+                      <TabCommandItem onSelect={() => pushPage("tag")}>
+                        <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                        Tag
+                      </TabCommandItem>
 
+                      <TabCommandItem onSelect={withClear(handleQuickSave)}>
+                        <LightningBoltIcon className="text-muted-foreground mr-2" />
+                        Quick Save Tabs
+                        <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
+                      </TabCommandItem>
+
+                      <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
+                        <ClipboardIcon className="text-muted-foreground mr-2" />
+                        Copy to clipboard
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(handleMoveToNewWindow)}>
+                        <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
+                        Move to new window
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                        <OpenAiLogoIcon className="text-muted-foreground mr-2" />
+                        Open in ChatGPT
+                      </TabCommandItem>
+                      <TabCommandItem onSelect={withClear(handleCloseSelected)}>
+                        <Cross2Icon className="text-muted-foreground mr-2" /> Close
+                      </TabCommandItem>
+                    </>
+                  )}
+                </TabCommandGroup>
+                <CommandSeparator />
+                <TabCommandGroup heading="All Tabs">
+                  {selectedCount === 0 && (
                     <TabCommandItem onSelect={withClear(handleQuickSave)}>
                       <LightningBoltIcon className="text-muted-foreground mr-2" />
-                      Quick Save Tabs
+                      Quick Save All Tabs
                       <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
                     </TabCommandItem>
-
-                    <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
-                      <ClipboardIcon className="text-muted-foreground mr-2" />
-                      Copy to clipboard
-                    </TabCommandItem>
-                    <TabCommandItem onSelect={withClear(handleMoveToNewWindow)}>
-                      <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
-                      Move to new window
-                    </TabCommandItem>
-                    <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
-                      <OpenAiLogoIcon className="text-muted-foreground mr-2" />
-                      Open in ChatGPT
-                    </TabCommandItem>
-                    <TabCommandItem onSelect={withClear(handleCloseSelected)}>
-                      <Cross2Icon className="text-muted-foreground mr-2" /> Close
-                    </TabCommandItem>
-                  </>
-                )}
-              </TabCommandGroup>
-              <CommandSeparator />
-              <TabCommandGroup heading="All Tabs">
-                {selectedCount === 0 && (
-                  <TabCommandItem onSelect={withClear(handleQuickSave)}>
-                    <LightningBoltIcon className="text-muted-foreground mr-2" />
-                    Quick Save All Tabs
-                    <SaveSessionTooltip selectedCount={selectedCount} className="ml-2" />
+                  )}
+                  <TabCommandItem onSelect={() => pushPage("search")} value="Find Search">
+                    <MagnifyingGlassIcon className="text-muted-foreground mr-2" />
+                    Search
                   </TabCommandItem>
-                )}
-                <TabCommandItem onSelect={() => pushPage("find")} value="Find Search">
-                  <MagnifyingGlassIcon className="text-muted-foreground mr-2" />
-                  Find
-                </TabCommandItem>
-                {viewDuplicateTabIds.size > 0 && (
-                  <TabCommandItem onSelect={withClear(tabStoreActions.removeDuplicateTabs)}>
-                    <CopyIcon className="text-muted-foreground mr-2" />
-                    Close {pluralize(viewDuplicateTabIds.size, "Duplicate")}
-                  </TabCommandItem>
-                )}
-                {viewStaleTabIds.size > 0 && (
-                  <TabCommandItem onSelect={withClear(tabStoreActions.removeStaleTabs)}>
-                    <ClockIcon className="text-muted-foreground mr-2" />
-                    Close {viewStaleTabIds.size} Stale Tabs{" "}
-                    <span className="text-muted-foreground/50 ml-2 text-xs">
-                      &gt; {staleThresholdDaysInMs / (1000 * 60 * 60 * 24)} days old
-                    </span>
-                  </TabCommandItem>
-                )}
-              </TabCommandGroup>
-              <CommandSeparator />
-              <TabCommandGroup heading="Other">
-                <TabCommandItem onSelect={() => pushPage("paste")} value="Paste to Open">
-                  <ClipboardIcon className="text-muted-foreground mr-2" />
-                  Paste to Open
-                </TabCommandItem>
-                <TabCommandItem onSelect={() => settingStoreActions.activatePanel(Panel.Bookmarks)}>
-                  <BookmarkIcon className="text-muted-foreground mr-2" />
-                  Go to Bookmarks
-                </TabCommandItem>
-                <TabCommandItem
-                  onSelect={withClose(() => settingStoreActions.setSettingsOpen(true))}>
-                  <GearIcon className="text-muted-foreground mr-2" />
-                  Open Settings
-                </TabCommandItem>
-                <TabCommandItem onSelect={withClose(() => curateStoreActions.setCurateOpen(true))}>
-                  <BroomIcon className="text-muted-foreground mr-2" />
-                  Curate
-                </TabCommandItem>
-              </TabCommandGroup>
-              <CommandEmpty>No Results</CommandEmpty>
-            </>
-          )}
-          {activePage === "tag" && (
-            <div className="flex flex-col gap-4">
-              {assignedTagIds.size > 0 && (
-                <div className="tags flex items-center gap-2 pl-2">
-                  <button
-                    className="focus-ring rounded px-2 text-sm whitespace-nowrap"
-                    onClick={tabStoreActions.clearAssignedTagIds}>
-                    Clear all
-                  </button>
-                  <TagChipList
-                    max={10}
-                    tags={Array.from(assignedTagIds).map((t) => tagsById.get(t)!)}
-                    onRemove={(tag) => {
-                      tabStoreActions.toggleAssignedTagId(tag.id!);
-                    }}
-                  />
-                </div>
-              )}
-              <TabCommandGroup>
-                {tags
-                  .filter((t) => !assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
-                  .map((t) => (
-                    <TabCommandItem
-                      key={t.id}
-                      value={t.name}
-                      onSelect={withClear(() => {
-                        tabStoreActions.toggleAssignedTagId(t.id);
-                      })}>
-                      <div className="flex items-center">
-                        {t.name}{" "}
-                        <div
-                          className="ml-2 h-3 w-3 rounded-full"
-                          style={{ background: t.color }}
-                        />
-                      </div>
+                  {viewDuplicateTabIds.size > 0 && (
+                    <TabCommandItem onSelect={withClear(tabStoreActions.removeDuplicateTabs)}>
+                      <CopyIcon className="text-muted-foreground mr-2" />
+                      Close {pluralize(viewDuplicateTabIds.size, "Duplicate")}
                     </TabCommandItem>
-                  ))}
-              </TabCommandGroup>
-              <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
-                {search ? (
-                  <span className="inline-flex gap-2">
-                    Create <TagChip className="text-sm">{search}</TagChip>
-                  </span>
-                ) : (
-                  "Type to create a tag"
+                  )}
+                  {viewStaleTabIds.size > 0 && (
+                    <TabCommandItem onSelect={withClear(tabStoreActions.removeStaleTabs)}>
+                      <ClockIcon className="text-muted-foreground mr-2" />
+                      Close {viewStaleTabIds.size} Stale Tabs{" "}
+                      <span className="text-muted-foreground/50 ml-2 text-xs">
+                        &gt; {staleThresholdDaysInMs / (1000 * 60 * 60 * 24)} days old
+                      </span>
+                    </TabCommandItem>
+                  )}
+                </TabCommandGroup>
+                <CommandSeparator />
+                <TabCommandGroup heading="Other">
+                  <TabCommandItem onSelect={() => pushPage("paste")} value="Paste to Open">
+                    <ClipboardIcon className="text-muted-foreground mr-2" />
+                    Paste to Open
+                  </TabCommandItem>
+                  <TabCommandItem
+                    onSelect={() => settingStoreActions.activatePanel(Panel.Bookmarks)}>
+                    <BookmarkIcon className="text-muted-foreground mr-2" />
+                    Go to Bookmarks
+                  </TabCommandItem>
+                  <TabCommandItem
+                    onSelect={withClose(() => settingStoreActions.setSettingsOpen(true))}>
+                    <GearIcon className="text-muted-foreground mr-2" />
+                    Open Settings
+                  </TabCommandItem>
+                  <TabCommandItem
+                    onSelect={withClose(() => curateStoreActions.setCurateOpen(true))}>
+                    <BroomIcon className="text-muted-foreground mr-2" />
+                    Curate
+                  </TabCommandItem>
+                </TabCommandGroup>
+                <CommandEmpty>No Results</CommandEmpty>
+              </>
+            )}
+            {activePage === "tag" && (
+              <div className="flex flex-col gap-4">
+                {assignedTagIds.size > 0 && (
+                  <div className="tags flex items-center gap-2 pl-2">
+                    <button
+                      className="focus-ring rounded px-2 text-sm whitespace-nowrap"
+                      onClick={tabStoreActions.clearAssignedTagIds}>
+                      Clear all
+                    </button>
+                    <TagChipList
+                      max={10}
+                      tags={Array.from(assignedTagIds).map((t) => tagsById.get(t)!)}
+                      onRemove={(tag) => {
+                        tabStoreActions.toggleAssignedTagId(tag.id!);
+                      }}
+                    />
+                  </div>
                 )}
-              </CommandEmpty>
-            </div>
-          )}
-          {activePage === "find" && (
-            <div>
-              <div className="mb-2 px-2">
-                <FilterTagChips filter={view.filter} onRemoveKeyword={handleRemoveFilterKeyword} />
-              </div>
-              <CommandEmpty className="flex items-center justify-center gap-2">
-                <div className="text-muted-foreground">
+                <TabCommandGroup>
+                  {tags
+                    .filter((t) => !assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
+                    .map((t) => (
+                      <TabCommandItem
+                        key={t.id}
+                        value={t.name}
+                        onSelect={withClear(() => {
+                          tabStoreActions.toggleAssignedTagId(t.id);
+                        })}>
+                        <div className="flex items-center">
+                          {t.name}{" "}
+                          <div
+                            className="ml-2 h-3 w-3 rounded-full"
+                            style={{ background: t.color }}
+                          />
+                        </div>
+                      </TabCommandItem>
+                    ))}
+                </TabCommandGroup>
+                <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
                   {search ? (
-                    <span>
-                      Find by "<span className="text-foreground italic">{search}</span>"
+                    <span className="inline-flex gap-2">
+                      Create <TagChip className="text-sm">{search}</TagChip>
                     </span>
                   ) : (
-                    "Find by keywords"
+                    "Type to create a tag"
                   )}
-                </div>
-                {viewTabIds.length === 0 && !view.filter.looseMatch && (
-                  <motion.div
-                    className="flex items-center gap-2"
-                    initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
-                    transition={{ duration: 0.2 }}>
-                    <div className="text-muted-foreground">or</div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-auto px-2 py-1 text-xs"
-                      onClick={handleLooseMatch}>
-                      Try loose match
-                    </Button>
-                  </motion.div>
-                )}
-              </CommandEmpty>
-              <div className="text-muted-foreground absolute right-3 bottom-2 overflow-hidden">
-                Results: <NumberFlow value={viewTabIds.length} />
+                </CommandEmpty>
               </div>
-            </div>
-          )}
-
-          {activePage === "paste" && (
-            <div className="flex flex-col gap-2">
-              {pastedLinks.length > 0 ? (
-                <>
-                  <TabCommandGroup heading={`Pasted Links`}>
-                    <TabCommandItem onSelect={handleOpenPastedLinks}>
-                      <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
-                      Open {pluralize(pastedLinks.length, "Tab")}
-                    </TabCommandItem>
-                  </TabCommandGroup>
-                  <CommandSeparator />
-                  <div className="flex flex-col items-start gap-2 px-2">
-                    <ul>
-                      {pastedLinks.slice(0, pastedLinksVisible).map((link, i) => (
-                        <li
-                          key={i}
-                          className="text-muted-foreground flex items-center gap-2 truncate py-1 text-sm">
-                          <span className="truncate">{link}</span>
-                          <button onClick={() => handleRemovePastedLink(link)}>
-                            <XIcon className="text-muted-foreground mr-2" />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    {pastedLinks.length > pastedLinksVisible && (
-                      <button onClick={() => setPastedLinksVisible(pastedLinks.length)}>
-                        <span className="truncate">
-                          Show {pastedLinks.length - pastedLinksVisible} more
-                        </span>
-                      </button>
+            )}
+            {activePage === "search" && (
+              <div>
+                <div className="mb-2 px-2">
+                  <FilterTagChips
+                    filter={view.filter}
+                    onRemoveKeyword={handleRemoveFilterKeyword}
+                  />
+                </div>
+                <CommandEmpty className="flex items-center justify-center gap-2">
+                  <div className="text-muted-foreground">
+                    {search ? (
+                      <span>
+                        Search by "<span className="text-foreground italic">{search}</span>"
+                      </span>
+                    ) : (
+                      "Type to search"
                     )}
                   </div>
-                </>
-              ) : (
-                <CommandEmpty>
-                  <span className="text-muted-foreground">Paste text containing links (⌘V)</span>
+                  {viewTabIds.length === 0 && !view.filter.looseMatch && search && (
+                    <motion.div
+                      className="flex items-center gap-2"
+                      initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+                      transition={{ duration: 0.2 }}>
+                      <div className="text-muted-foreground">or</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-auto px-2 py-1 text-xs"
+                        onClick={handleLooseMatch}>
+                        Try loose match
+                      </Button>
+                    </motion.div>
+                  )}
                 </CommandEmpty>
-              )}
-            </div>
-          )}
-        </CommandList>
+              </div>
+            )}
+
+            {activePage === "paste" && (
+              <div className="flex flex-col gap-2">
+                {pastedLinks.length > 0 ? (
+                  <>
+                    <TabCommandGroup heading={`Pasted Links`}>
+                      <TabCommandItem onSelect={handleOpenPastedLinks}>
+                        <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
+                        Open {pluralize(pastedLinks.length, "Tab")}
+                      </TabCommandItem>
+                    </TabCommandGroup>
+                    <CommandSeparator />
+                    <div className="flex flex-col items-start gap-2 px-2">
+                      <ul>
+                        {pastedLinks.slice(0, pastedLinksVisible).map((link, i) => (
+                          <li
+                            key={i}
+                            className="text-muted-foreground flex items-center gap-2 truncate py-1 text-sm">
+                            <span className="truncate">{link}</span>
+                            <button onClick={() => handleRemovePastedLink(link)}>
+                              <XIcon className="text-muted-foreground mr-2" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      {pastedLinks.length > pastedLinksVisible && (
+                        <button onClick={() => setPastedLinksVisible(pastedLinks.length)}>
+                          <span className="truncate">
+                            Show {pastedLinks.length - pastedLinksVisible} more
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <CommandEmpty>
+                    <span className="text-muted-foreground">Paste text containing links (⌘V)</span>
+                  </CommandEmpty>
+                )}
+              </div>
+            )}
+          </CommandList>
+          <TabCommandFooter
+            className="mt-1"
+            pages={pages}
+            resultsCount={activePage === "search" ? viewTabIds.length : undefined}
+          />
+        </div>
       </Command>
     </TabCommandDialog>
   );

@@ -80,7 +80,7 @@ export const ListSchema = z.object({
 export const accentColors = {
   Orange: "oklch(0.69 0.26 36.81)",
   Blue: "oklch(0.47 0.26 263.61)",
-  Green: "oklch(0.63 0.25 145.77)",
+  Green: "oklch(0.53 0.25 145.77)",
   Purple: "oklch(0.57 0.27 337.5)",
 };
 

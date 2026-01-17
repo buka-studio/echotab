@@ -167,12 +167,15 @@ export default function TagChipCombobox({
               }
             }}>
             {editable && (
-              <CommandInput
-                placeholder="Search tags..."
-                className="px-2 py-1 text-sm"
-                value={search}
-                onValueChange={setSearch}
-              />
+              <>
+                <CommandInput
+                  placeholder="Search tags..."
+                  className="px-2 py-1 text-sm"
+                  value={search}
+                  onValueChange={setSearch}
+                />
+                <hr className="absolute inset-x-0 top-8" />{" "}
+              </>
             )}
             <CommandEmpty className="cursor-pointer py-3" onClick={() => handleCreateTag()}>
               {search ? (
@@ -183,8 +186,8 @@ export default function TagChipCombobox({
                 "Type to create a tag"
               )}
             </CommandEmpty>
-            <CommandList className="scroll-fade">
-              <CommandGroup>
+            <CommandList className="scroll-fade overscroll-contain">
+              <CommandGroup className="px-0">
                 {tagItems.map((tag, i) => {
                   const checked = editable && atLeastOneChecked;
 
@@ -236,7 +239,7 @@ export default function TagChipCombobox({
                   onClick={handleSave}
                   size="sm"
                   variant="outline"
-                  className="relative mt-1 h-6 w-full gap-2">
+                  className="relative h-6 w-full gap-2 rounded-sm">
                   <span>Save</span>
                   {/* <span className="text-muted-foreground/60 absolute right-1">⌘ + enter</span> */}
                 </Button>
