@@ -187,7 +187,7 @@ export default function TagChipCombobox({
               )}
             </CommandEmpty>
             <CommandList className="scroll-fade overscroll-contain">
-              <CommandGroup className="px-0">
+              <CommandGroup className={cn("px-0", { "py-0": !editable })}>
                 {tagItems.map((tag, i) => {
                   const checked = editable && atLeastOneChecked;
 
