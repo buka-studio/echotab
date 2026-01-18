@@ -58,7 +58,7 @@ function Highlight() {
       transition={{
         type: "spring",
         bounce: 0.2,
-        duration: 0.5,
+        duration: 0.25,
       }}
       style={{
         originY: "0px",
@@ -71,7 +71,7 @@ function PanelTrigger({ className, ...props }: ComponentProps<typeof TabsTrigger
   return (
     <TabsTrigger
       className={cn(
-        "focus-ring text-muted-foreground data-[state=active]:text-foreground relative rounded-full border-none p-2 px-8 transition-colors duration-200 data-[state=active]:bg-transparent! data-[state=active]:outline-none dark:data-[state=active]:shadow-none",
+        "focus-ring text-muted-foreground data-[state=active]:text-foreground relative rounded-full border-none p-2 px-4 transition-colors duration-200 data-[state=active]:bg-transparent! data-[state=active]:outline-none dark:data-[state=active]:shadow-none",
       )}
       {...props}
     />
@@ -115,7 +115,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2">
                   <TabsList className="flex h-auto gap-2 rounded-full border bg-transparent p-0 dark:shadow-sm">
-                    <div className="bg-surface-2 flex rounded-full">
+                    <div className="bg-surface-2 rounded-full grid grid-cols-2">
                       <PanelTrigger
                         value={Panel.Tabs}
                         onClick={() => settingStoreActions.activatePanel(Panel.Tabs)}>

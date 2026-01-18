@@ -22,6 +22,7 @@ const persistence = new StoragePersistence<{
 export const useSettingStore = create(
   subscribeWithSelector(() => ({
     settings: {
+      profileLinkUrl: undefined,
       showOnboarding: true,
       hideFavicons: false,
       theme: Theme.System,

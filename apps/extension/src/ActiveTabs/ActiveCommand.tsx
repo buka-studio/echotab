@@ -681,25 +681,25 @@ export default function ActiveCommand() {
                       </TabCommandItem>
                     </TabCommandGroup>
                     <CommandSeparator />
-                    <div className="flex flex-col items-start gap-2 px-2">
-                      <ul>
+                    <div className="flex flex-col items-start gap-1">
+                      <ul className="w-full">
                         {pastedLinks.slice(0, pastedLinksVisible).map((link, i) => (
                           <li
                             key={i}
-                            className="text-muted-foreground flex items-center gap-2 truncate py-1 text-sm">
+                            className="text-muted-foreground justify-between flex items-center gap-2 truncate py-1 text-sm hover:bg-card/50 pl-4 pr-1">
                             <span className="truncate">{link}</span>
-                            <button onClick={() => handleRemovePastedLink(link)}>
-                              <XIcon className="text-muted-foreground mr-2" />
-                            </button>
+                            <Button variant="ghost" size="icon-sm" className="size-6" onClick={() => handleRemovePastedLink(link)}>
+                              <XIcon className="text-muted-foreground " />
+                            </Button>
                           </li>
                         ))}
                       </ul>
-                      {pastedLinks.length > pastedLinksVisible && (
-                        <button onClick={() => setPastedLinksVisible(pastedLinks.length)}>
+                      {pastedLinks.length > 0 && (
+                        <Button onClick={() => setPastedLinksVisible(pastedLinks.length)} size="sm" variant="ghost" className="h-6 ml-1">
                           <span className="truncate">
                             Show {pastedLinks.length - pastedLinksVisible} more
                           </span>
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </>

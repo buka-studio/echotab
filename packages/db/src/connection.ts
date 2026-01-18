@@ -3,15 +3,18 @@ import { DB } from "kysely-codegen";
 import { Pool } from "pg";
 
 export function createConnection() {
-  const dialect = new PostgresDialect({
-    pool: new Pool({ connectionString: process.env.DATABASE_URL }),
+  const db = new Kysely<DB>({
+    dialect: new PostgresDialect({
+      pool: new Pool({
+        host: process.env.DB_HOST,
+        database: process.env.DB_NAME,
+        password: process.env.DB_PASSWORD,
+        user: process.env.DB_USER,
+      }),
+    }),
   });
 
-  const conn = new Kysely<DB>({
-    dialect,
-  });
-
-  return conn;
+  return db;
 }
 
 const connection = createConnection();

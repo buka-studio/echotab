@@ -2,11 +2,11 @@ import { incrementViewCount } from "@echotab/lists/ListService";
 import * as validators from "@echotab/lists/validators";
 
 interface Context {
-  params: { listId: string };
+  params: Promise<{ listId: string }>;
 }
 
 export async function POST(req: Request, context: Context) {
-  const listId = context.params.listId;
+  const { listId } = await context.params;
 
   const { error } = validators.userId.safeParse(listId);
   if (error) {

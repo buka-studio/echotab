@@ -87,6 +87,7 @@ export const accentColors = {
 export const SettingsSchema = z.object({
   id: z.string(),
   showOnboarding: z.boolean().default(true),
+  profileLinkUrl: z.string().url().optional(),
   hideFavicons: z.boolean().default(false),
   theme: z.enum(Theme).default(Theme.System),
   clipboardFormat: z.enum(ClipboardFormat).default(ClipboardFormat.Text),

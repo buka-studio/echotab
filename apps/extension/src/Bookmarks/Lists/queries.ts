@@ -2,6 +2,8 @@ import { UserList } from "@echotab/lists/models";
 import { toast } from "@echotab/ui/Toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useSettingStore } from "~/store/settingStore";
+
 import { List } from "../../models";
 import { useBookmarkStore } from "../../store/bookmarkStore";
 import { replaceBy } from "../../util";
@@ -45,9 +47,11 @@ export function useGetPublicLists() {
 
 export function usePublishListMutation() {
   const queryClient = useQueryClient();
+  const profileLink = useSettingStore((s) => s.settings.profileLinkUrl);
 
   return useMutation({
-    mutationFn: (list: List) => publishList(getListPayload(list)),
+    mutationFn: (list: List) =>
+      publishList({ ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
       logger.error("Failed to publish list", e);
       toast.error("Failed to publish list. Please try again.");
@@ -63,8 +67,11 @@ export function usePublishListMutation() {
 
 export function useUpdateListMutation() {
   const queryClient = useQueryClient();
+  const profileLink = useSettingStore((s) => s.settings.profileLinkUrl);
+
   return useMutation({
-    mutationFn: (list: List) => updateList(list.id, getListPayload(list)),
+    mutationFn: (list: List) =>
+      updateList(list.id, { ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
       logger.error("Failed to update list", e);
       toast.error("Failed to update list. Please try again.");

@@ -29,11 +29,11 @@ export default function ShareTooltip({ list }: { list: PublicList }) {
   return isXsSreen ? (
     <Drawer shouldScaleBackground={true}>
       <DrawerTrigger asChild>
-        <Button variant="ghost">
-          <Share2Icon className="mr-2" /> Share
+        <Button variant="ghost" className="gap-2">
+          <Share2Icon /> Share
         </Button>
       </DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="border-border">
         <DrawerHeader>
           <DrawerTitle>Share list</DrawerTitle>
           <DrawerDescription>Share this list with others</DrawerDescription>
@@ -44,12 +44,12 @@ export default function ShareTooltip({ list }: { list: PublicList }) {
   ) : (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost">
-          <Share2Icon className="mr-2" />
+        <Button variant="ghost" className="gap-2">
+          <Share2Icon />
           Share
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg border-border">
         <DialogHeader>
           <DialogTitle>Share list</DialogTitle>
           <DialogDescription>Share this list with others</DialogDescription>

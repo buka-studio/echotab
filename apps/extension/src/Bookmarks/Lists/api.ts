@@ -5,7 +5,7 @@ import { z } from "zod";
 import { getApiURL } from "./util";
 
 async function getUserId() {
-  return chrome.storage.local.get("userId").then(({ userId }) => userId);
+  return chrome.storage.local.get("userId").then(({ userId }) => userId as string);
 }
 
 export async function getPublicList(publicId: string): Promise<PublicListView> {

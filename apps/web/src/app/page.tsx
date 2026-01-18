@@ -19,8 +19,8 @@ function Heading({ className }: { className?: string }) {
             EchoTab <span className="align-super text-xs">tm</span>
           </div>
         </div>
-        <h1 className="max-w-[700px] text-center font-serif text-4xl text-pretty md:text-5xl">
-          Clean & simple tab management browser extension
+        <h1 className="max-w-[700px] text-center font-serif text-4xl text-pretty md:text-5xl px-5">
+          Clean & fast Chrome tab manager
         </h1>
         <Button variant="outline" size="lg" className="px-6 font-mono text-base uppercase" asChild>
           <a href={extensionStoreURL} target="_blank" rel="noopener noreferrer">

@@ -5,7 +5,7 @@
   "author": "Buka Studio",
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "migrate": "npx ts-node src/scripts/migrate.ts",
+    "migrate": "npx tsx src/scripts/migrate.ts",
     "gen-types": "npx kysely-codegen --include-pattern=\"public.*\"",
     "build": "tsc"
   },
@@ -19,12 +19,14 @@
     "./connection": "./src/connection.ts"
   },
   "dependencies": {
+    "@echotab/supabase": "workspace:*",
+    "dotenv": "~17.2.3",
     "kysely": "^0.28.8",
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "@echotab/tsconfig": "workspace:*",
     "@types/pg": "^8.15.6",
-    "kysely-codegen": "^0.19.0",
-    "@echotab/tsconfig": "workspace:*"
+    "kysely-codegen": "^0.19.0"
   }
 }

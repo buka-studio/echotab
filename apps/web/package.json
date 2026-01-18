@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -14,6 +14,8 @@
     "@echotab/supabase": "workspace:*",
     "@echotab/tsconfig": "workspace:*",
     "@echotab/ui": "workspace:*",
+    "@lexical/html": "~0.39.0",
+    "@lexical/markdown": "~0.39.0",
     "@number-flow/react": "~0.5.10",
     "@phosphor-icons/react": "~2.1.10",
     "@radix-ui/react-icons": "~1.3.2",
@@ -21,8 +23,11 @@
     "dayjs": "^1.11.19",
     "framer-motion": "^12.23.26",
     "jsdom": "^27.2.0",
+    "kysely": "^0.28.9",
+    "lexical": "^0.39.0",
     "next": "16.0.7",
     "next-themes": "^0.4.6",
+    "pg": "^8.16.3",
     "react": "^19",
     "react-dom": "^19",
     "uqr": "~0.1.2"

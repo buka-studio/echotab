@@ -1,15 +1,16 @@
 import { getPublicList, updateList } from "@echotab/lists/ListService";
 import * as validators from "@echotab/lists/validators";
+import { List } from "@echotab/lists/validators";
 import { NoResultError } from "kysely";
 
 import { safeUpsertListOGImage } from "../util";
 
 interface Context {
-  params: { listId: string };
+  params: Promise<{ listId: string }>;
 }
 
 export async function GET(req: Request, context: Context) {
-  const listId = context.params.listId;
+  const { listId } = await context.params;
 
   const { error } = validators.listId.safeParse(listId);
   if (error) {
@@ -31,7 +32,7 @@ export async function GET(req: Request, context: Context) {
 export async function PATCH(req: Request, context: Context) {
   const userId = req.headers.get("X-EchoTab-userId");
 
-  const listId = context.params.listId;
+  const { listId } = await context.params;
 
   const { error } = validators.listId.safeParse(listId);
   if (error) {
@@ -39,15 +40,17 @@ export async function PATCH(req: Request, context: Context) {
   }
 
   const data = await req.json();
-  const { error: dataError } = validators.list.partial().safeParse(data);
+  const { data: parsedData, error: dataError } = validators.list.partial().safeParse(data);
   const { error: userIdError } = validators.userId.safeParse(userId);
   if (dataError || userIdError) {
     return Response.json({ error: (dataError || userIdError)!.message }, { status: 400 });
   }
 
   try {
-    const list = await updateList(userId!, listId, data);
-    safeUpsertListOGImage(userId!, { ...list, linkCount: data.links.length });
+    const list = await updateList(userId!, listId, parsedData as List);
+    if (parsedData?.published) {
+      safeUpsertListOGImage(userId!, { ...list, linkCount: (parsedData.links || []).length });
+    }
 
     return Response.json({ list });
   } catch (e) {

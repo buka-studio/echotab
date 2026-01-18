@@ -3,26 +3,10 @@
 import { PublicList } from "@echotab/lists/models";
 import { Button } from "@echotab/ui/Button";
 import { Label } from "@echotab/ui/Label";
-import { XLogo as XLogoIcon } from "@phosphor-icons/react";
-import { CopyIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
+import { XLogoIcon } from "@phosphor-icons/react";
 import { renderSVG } from "uqr";
+import CopyButton from "./CopyButton";
 
-function CopyToClipboard({ content }: { content: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(content).then(() => {
-      setCopied(true);
-    });
-  };
-
-  return (
-    <Button onClick={handleCopy} variant="outline">
-      <CopyIcon className="mr-2" /> {copied ? "Link Copied!" : "Copy Link"}
-    </Button>
-  );
-}
 
 function buildTwitterShareLink(list: PublicList) {
   const params = new URLSearchParams();
@@ -38,25 +22,27 @@ export default function Share({ list }: { list: PublicList }) {
 
   const qr = renderSVG(listUrl, {
     blackColor: "var(--foreground)",
-    whiteColor: "var(--background)",
+    whiteColor: "var(--popover)",
   });
 
   return (
     <div className="flex flex-col gap-10 p-5">
       <div className="mx-auto flex w-full max-w-[200px] flex-col items-center justify-center gap-2 *:w-full">
-        <CopyToClipboard content={listUrl} />
-        <Button variant="outline" asChild>
+        <CopyButton value={listUrl} variant="outline">
+          Copy URL
+        </CopyButton>
+        <Button variant="outline" asChild className="gap-1">
           <a href={buildTwitterShareLink(list)} target="_blank" rel="noopener noreferrer">
-            Share on <XLogoIcon className="ml-2" />
+            Share on <XLogoIcon />
           </a>
         </Button>
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <Label>QR Code</Label>
+        <Label className="text-muted-foreground">QR Code</Label>
         <div
           dangerouslySetInnerHTML={{ __html: qr }}
-          className="border-border aspect-square w-full max-w-[200px] overflow-hidden rounded-lg border shadow sm:w-[200px]"
+          className="aspect-square w-full max-w-[200px] overflow-hidden rounded-lg   sm:w-[200px]"
         />
       </div>
     </div>

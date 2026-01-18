@@ -75,7 +75,7 @@ export default function OnboardingDialog() {
                 <button>
                   <TagChip
                     className={cn({
-                      "border-dashed": !selectedTagIndices.has(i),
+                      "border-dashed bg-transparent": !selectedTagIndices.has(i),
                     })}
                     color={color}
                     indicatorClassName={cn({

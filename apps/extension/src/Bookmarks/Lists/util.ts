@@ -3,5 +3,6 @@ export function getPublicListURL(publicId: string) {
 }
 
 export function getApiURL(path: string) {
-  return import.meta.env.VITE_PUBLIC_API_HOST + path;
+  return 'http://localhost:3001/api' + path;
+  // return import.meta.env.VITE_PUBLIC_API_HOST + path;
 }

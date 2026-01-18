@@ -131,7 +131,7 @@ export default function PerformanceCard({ className }: { className?: string }) {
         </div>
       }>
       <div>
-        <h3 className="text-foreground mb-2 flex items-center gap-2 font-mono text-sm">
+        <h3 className="text-foreground mb-2 flex items-center gap-2 font-mono text-sm uppercase">
           Fast & Smooth
         </h3>
         <p className="text-muted-foreground text-left text-balance">

@@ -11,6 +11,7 @@ import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "
 
 import { ActiveTab } from "~/store/schema";
 
+import { useHotkeys } from "react-hotkeys-hook";
 import TagChip from "../components/tag/TagChip";
 import { MessageBus } from "../messaging";
 import PulseLogo from "../PulseLogo";
@@ -161,6 +162,10 @@ function Widget({ onClose }: Props) {
       return settingsTheme;
     }
   }, [settingsTheme]);
+
+  useHotkeys('mod+enter', () => {
+    handleSave();
+  }, { preventDefault: true });
 
   return (
     <motion.main

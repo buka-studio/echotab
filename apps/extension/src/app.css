@@ -45,3 +45,8 @@
     background-position: 250% top;
   }
 }
+
+::selection {
+  background: color-mix(in lch, var(--primary) 10%, transparent);
+  color: var(--primary);
+}

@@ -448,7 +448,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                           Tag
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handleCreateListFromSelected)}>
-                          <FilePlusIcon className="text-muted-foreground mr-2" /> Create a list
+                          <FilePlusIcon className="text-muted-foreground mr-2" /> Create a collection
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handlePinSelected)}>
                           <DrawingPinIcon className="text-muted-foreground mr-2" />

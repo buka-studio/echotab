@@ -31,6 +31,7 @@ export async function up(db: Kysely<any>): Promise<void> {
                 "publicId" uuid not null default gen_random_uuid (),
                 "localId" uuid not null,
                 "ownerId" uuid not null,
+                "profileLinkUrl" text null,
                 title text null,
                 content text not null,
                 "viewCount" bigint not null default 0,

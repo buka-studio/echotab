@@ -11,7 +11,7 @@ import {
 } from "@echotab/ui/Dialog";
 import { Separator } from "@echotab/ui/Separator";
 import { Spinner } from "@echotab/ui/Spinner";
-import { ArrowTopRightIcon, BookmarkIcon, EyeOpenIcon } from "@radix-ui/react-icons";
+import { ArrowTopRightIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ReactNode, useState } from "react";
 
 import { List } from "~/models";
@@ -74,10 +74,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
                 <div className="text-muted-foreground flex items-center gap-2">
                   <EyeOpenIcon /> Views: {publicList?.viewCount}
                 </div>
-                <div className="text-muted-foreground flex items-center gap-2">
-                  <BookmarkIcon />
-                  Imports: {publicList?.importCount}
-                </div>
+
               </div>
               <div className="bg-card flex gap-4 rounded-md p-2">
                 <div className="text-foreground text-sm">{publicList.title}</div>

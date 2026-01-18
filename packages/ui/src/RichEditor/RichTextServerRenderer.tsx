@@ -1,5 +1,3 @@
-"use server";
-
 import { createHeadlessEditor as _createHeadlessEditor } from "@lexical/headless";
 
 import { defaultNodes } from "./constants";

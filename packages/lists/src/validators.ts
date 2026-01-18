@@ -12,8 +12,11 @@ export const link = z.object({
 
 export const list = z.object({
   localId: listId,
+  profileLinkUrl: z.string().url().optional(),
   title: z.string().min(1).max(255),
   content: z.string().min(1).max(5000),
   links: z.array(link),
   published: z.boolean().optional(),
 });
+
+export type List = z.infer<typeof list>;
