@@ -13,10 +13,10 @@ function PulseLogo() {
               "--pulse-delay": `${i * 0.5 + 10}s`,
             } as CSSProperties
           }
-          className="bg-primary z-1 logo-pulse absolute mx-1 h-4 w-4 rounded-full"
+          className="bg-primary logo-pulse absolute z-1 mx-1 h-4 w-4 rounded-full"
         />
       ))}
-      <div className="bg-primary z-1 relative mx-1 h-4 w-4 rounded-full" />
+      <div className="bg-primary relative z-1 mx-1 h-4 w-4 rounded-full" />
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import { Button } from "@echotab/ui/Button";
 
 export default function HeaderCTA() {
-
   return (
     <Button asChild variant="outline">
       <a

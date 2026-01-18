@@ -30,21 +30,21 @@ export default function Renderer(props: ComponentProps<typeof RichTextRenderer>)
   }, [hoveredMention]);
 
   const handleMentionClick = (mentionId: string) => {
-    const mentionLink = document.querySelector(`[data-mention="${mentionId}"]`)
+    const mentionLink = document.querySelector(`[data-mention="${mentionId}"]`);
     if (mentionLink) {
-      mentionLink.scrollIntoView({ behavior: "smooth" })
-      setHoveredMention(mentionId)
+      mentionLink.scrollIntoView({ behavior: "smooth" });
+      setHoveredMention(mentionId);
     }
-  }
+  };
 
   return (
     <RichTextRenderer
       ref={ref}
       {...props}
-      onClick={e => {
+      onClick={(e) => {
         if (e.target instanceof HTMLElement) {
           if (e.target.dataset.lexicalMention === "true") {
-            handleMentionClick(e.target.dataset.mention!)
+            handleMentionClick(e.target.dataset.mention!);
           }
         }
       }}

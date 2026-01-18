@@ -49,7 +49,7 @@ export default function ShareTooltip({ list }: { list: PublicList }) {
           Share
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg border-border">
+      <DialogContent className="border-border max-w-lg">
         <DialogHeader>
           <DialogTitle>Share list</DialogTitle>
           <DialogDescription>Share this list with others</DialogDescription>

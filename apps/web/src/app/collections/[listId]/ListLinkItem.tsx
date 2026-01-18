@@ -19,9 +19,10 @@ export default function ListLinkItem({ link }: { link: PublicLink }) {
     <li
       className={cn("text-foreground marker:text-muted-foreground text-sm marker:text-xs")}
       onMouseOver={handleActivateLink}>
-      <span className={cn("text-muted-foreground group", {
-        "text-foreground": hoveredMention === link.localId,
-      })}>
+      <span
+        className={cn("text-muted-foreground group", {
+          "text-foreground": hoveredMention === link.localId,
+        })}>
         <a
           href={link.url}
           data-mention={link.localId}

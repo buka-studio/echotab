@@ -5,8 +5,8 @@ import { Button } from "@echotab/ui/Button";
 import { Label } from "@echotab/ui/Label";
 import { XLogoIcon } from "@phosphor-icons/react";
 import { renderSVG } from "uqr";
-import CopyButton from "./CopyButton";
 
+import CopyButton from "./CopyButton";
 
 function buildTwitterShareLink(list: PublicList) {
   const params = new URLSearchParams();
@@ -42,7 +42,7 @@ export default function Share({ list }: { list: PublicList }) {
         <Label className="text-muted-foreground">QR Code</Label>
         <div
           dangerouslySetInnerHTML={{ __html: qr }}
-          className="aspect-square w-full max-w-[200px] overflow-hidden rounded-lg   sm:w-[200px]"
+          className="aspect-square w-full max-w-[200px] overflow-hidden rounded-lg sm:w-[200px]"
         />
       </div>
     </div>
