@@ -4,7 +4,6 @@ import { TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
 import { ComponentProps } from "react";
 
-import SnapshotPreview from "../components/SnapshotPreview";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { SavedTab, Tag } from "../models";
@@ -55,7 +54,6 @@ function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
         "border-border-active bg-card-active": selected,
       })}
       hideFavicon={hideFavicons}
-      linkPreview={<SnapshotPreview url={tab.url} />}
       icon={
         <Favicon
           src={tab.url}

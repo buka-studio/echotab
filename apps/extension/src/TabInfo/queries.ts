@@ -4,7 +4,7 @@ import type { TabMetadata } from "./models";
 import { getTabInfoService } from "./TabInfoService";
 
 interface UseTabInfoQueryOptions {
-  tabId: string;
+  tabId?: string;
   url: string;
   enabled?: boolean;
 }

@@ -26,7 +26,6 @@ import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { ComponentProps } from "react";
 
-import SnapshotPreview from "../components/SnapshotPreview";
 import { SortableHandle } from "../components/SortableList";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
@@ -145,8 +144,8 @@ function ActiveTabItem({ className, tab, ...rest }: Props) {
 
   const assignedTags = selected
     ? Array.from(assignedTagIds)
-        .map((id) => tags.get(id)!)
-        .filter(Boolean)
+      .map((id) => tags.get(id)!)
+      .filter(Boolean)
     : [];
 
   const handleFocusTab = async () => {
@@ -168,7 +167,6 @@ function ActiveTabItem({ className, tab, ...rest }: Props) {
     <TabItem
       {...rest}
       className={cn({ "border-border-active bg-card-active": selected }, className)}
-      linkPreview={<SnapshotPreview url={tab.url} onVisit={handleFocusTab} />}
       icon={
         // todo: clean up
         tab.pinned ? (

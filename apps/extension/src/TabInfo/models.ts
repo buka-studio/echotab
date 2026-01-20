@@ -18,7 +18,7 @@ export interface TabMetadata {
 }
 
 export interface TabMetadataRequest {
-  tabId: string;
+  tabId?: string;
   url: string;
 }
 

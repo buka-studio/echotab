@@ -1,11 +1,11 @@
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@echotab/ui/HoverCard";
-import { Spinner } from "@echotab/ui/Spinner";
 import { cn } from "@echotab/ui/util";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { ComponentProps, ReactNode } from "react";
 
 import { Tab } from "../models";
 import EchoItem from "./EchoItem";
+import { TabInfoPreview } from "./TabInfoPreview";
 
 function makeFaviconUrl(pageUrl: string) {
   const url = new URL(chrome.runtime.getURL("/_favicon/"));
@@ -52,23 +52,6 @@ export function Favicon({
   );
 }
 
-// doesn't really work
-const LinkPreview = ({ url }: { url: string }) => {
-  return (
-    <div className="relative h-full w-full">
-      <Spinner className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-      <iframe
-        src={url}
-        title={`Preview of ${url}`}
-        scrolling="no"
-        className="pointer-events-none relative z-1 h-full w-full border-none"
-        // @ts-ignore
-        credentialless="true"
-      />
-    </div>
-  );
-};
-
 interface Props {
   tab: Tab;
   hideFavicon?: boolean;
@@ -99,8 +82,12 @@ function TabItem({
           <HoverCard openDelay={1000}>
             <HoverCardTrigger asChild>{link}</HoverCardTrigger>
             <ArrowTopRightIcon className="icon h-4 w-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
-            <HoverCardContent className="h-[300px] w-[350px] overflow-hidden p-0">
-              {typeof linkPreview === "boolean" ? <LinkPreview url={tab.url} /> : linkPreview}
+            <HoverCardContent className="w-[375px] overflow-hidden p-0">
+              {typeof linkPreview === "boolean" ? (
+                <TabInfoPreview tab={tab} contentClassName="min-h-[196px]" />
+              ) : (
+                linkPreview
+              )}
             </HoverCardContent>
           </HoverCard>
         ) : (

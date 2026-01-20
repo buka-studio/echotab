@@ -1,15 +1,12 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@echotab/ui/Tabs";
 import { cn } from "@echotab/ui/util";
 import { BookmarkSimpleIcon, GlobeSimpleIcon } from "@phosphor-icons/react";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { formatDistanceToNow } from "date-fns";
 import { ReactNode } from "react";
 
+import { TabInfoPreview } from "~/components/TabInfoPreview";
 import { Favicon } from "~/components/TabItem";
 import { SavedTab } from "~/models";
-
-import { InfoDescription } from "./InfoDescription";
-import { OGImage } from "./OGImage";
 
 const Header = ({
   children,
@@ -115,35 +112,7 @@ export default function CurateCard({
       </Header>
       <div className="flex flex-1 flex-col gap-3 p-3 pt-3">
         <Jumbo tab={tab} className="" />
-        <Tabs defaultValue="image" className="flex flex-1 flex-col overflow-auto" key={tab.id}>
-          <div className="flex justify-between">
-            <TabsList className="ml-auto h-auto w-full rounded-md">
-              <TabsTrigger value="image" className="flex-1 gap-2 rounded px-2 py-1 text-xs">
-                Image
-              </TabsTrigger>
-              <TabsTrigger value="info" className="flex-1 gap-2 rounded px-2 py-1 text-xs">
-                Info
-              </TabsTrigger>
-              {/* <TabsTrigger value="snapshot" className="flex-1 gap-2 rounded px-2 py-1 text-xs">
-                Snapshot
-              </TabsTrigger> */}
-            </TabsList>
-          </div>
-
-          <div className="flex h-[245px] flex-col">
-            <TabsContent
-              value="image"
-              className="relative flex flex-col justify-center not-empty:flex-1">
-              <OGImage tab={tab} preload={preload} />
-            </TabsContent>
-            <TabsContent value="info" className="overflow-auto not-empty:flex-1">
-              <InfoDescription tab={tab} className="p-2 pb-3" preload={preload} />
-            </TabsContent>
-            {/* <TabsContent value="snapshot" className="overflow-auto not-empty:flex-1">
-              <SnapshotPreview url={tab.url} />
-            </TabsContent> */}
-          </div>
-        </Tabs>
+        <TabInfoPreview tab={tab} preload={preload} contentClassName="min-h-[245px]" />
       </div>
     </article>
   );
