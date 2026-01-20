@@ -36,7 +36,7 @@ export default function ShareTooltip({ list }: { list: PublicList }) {
       <DrawerContent className="border-border">
         <DrawerHeader>
           <DrawerTitle>Share list</DrawerTitle>
-          <DrawerDescription>Share this list with others</DrawerDescription>
+          <DrawerDescription className="sr-only">Share this list with others</DrawerDescription>
         </DrawerHeader>
         <Share list={list} />
       </DrawerContent>
@@ -51,8 +51,8 @@ export default function ShareTooltip({ list }: { list: PublicList }) {
       </DialogTrigger>
       <DialogContent className="border-border max-w-lg">
         <DialogHeader>
-          <DialogTitle>Share list</DialogTitle>
-          <DialogDescription>Share this list with others</DialogDescription>
+          <DialogTitle className="text-left">Share list</DialogTitle>
+          <DialogDescription className="sr-only">Share this list with others</DialogDescription>
         </DialogHeader>
         <Share list={list} />
       </DialogContent>

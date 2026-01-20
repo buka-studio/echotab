@@ -242,10 +242,10 @@ export default function ActiveCommand() {
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast.success(`Copied ${selectedLinks.length} links to clipboard!`);
+        toast.success(`${pluralize(selectedLinks.length, "link")} copied to clipboard`);
       })
       .catch(() => {
-        toast.error("Failed to copy links to clipboard!");
+        toast.error("Failed to copy links to clipboard");
       });
   };
 
@@ -686,16 +686,24 @@ export default function ActiveCommand() {
                         {pastedLinks.slice(0, pastedLinksVisible).map((link, i) => (
                           <li
                             key={i}
-                            className="text-muted-foreground justify-between flex items-center gap-2 truncate py-1 text-sm hover:bg-card/50 pl-4 pr-1">
+                            className="text-muted-foreground hover:bg-card/50 flex items-center justify-between gap-2 truncate py-1 pr-1 pl-4 text-sm">
                             <span className="truncate">{link}</span>
-                            <Button variant="ghost" size="icon-sm" className="size-6" onClick={() => handleRemovePastedLink(link)}>
-                              <XIcon className="text-muted-foreground " />
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="size-6"
+                              onClick={() => handleRemovePastedLink(link)}>
+                              <XIcon className="text-muted-foreground" />
                             </Button>
                           </li>
                         ))}
                       </ul>
                       {pastedLinks.length > 0 && (
-                        <Button onClick={() => setPastedLinksVisible(pastedLinks.length)} size="sm" variant="ghost" className="h-6 ml-1">
+                        <Button
+                          onClick={() => setPastedLinksVisible(pastedLinks.length)}
+                          size="sm"
+                          variant="ghost"
+                          className="ml-1 h-6">
                           <span className="truncate">
                             Show {pastedLinks.length - pastedLinksVisible} more
                           </span>

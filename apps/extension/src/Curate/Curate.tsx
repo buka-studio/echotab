@@ -308,11 +308,11 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                         filter: `blur(${remap(i, 0, maxCards, 0, 5)}px)`,
                         ...(result.unshifted &&
                           i === 0 && {
-                            filter: "blur(10px)",
-                            opacity: 0,
-                            y: -50,
-                            scale: 0.9,
-                          }),
+                          filter: "blur(10px)",
+                          opacity: 0,
+                          y: -50,
+                          scale: 0.9,
+                        }),
                       }}
                       active={i === 0}
                       i={i}
@@ -446,7 +446,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
         <AlertDialog open={confirmDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{left} links left</AlertDialogTitle>
+              <AlertDialogTitle>{pluralize(left, 'link')} left</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to finish curating?
               </AlertDialogDescription>

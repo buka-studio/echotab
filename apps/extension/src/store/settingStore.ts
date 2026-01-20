@@ -83,26 +83,30 @@ const disableAnimation = () => {
   };
 };
 
+export function setTheme(theme: Theme) {
+  const root = getRootElement();
+  const enable = disableAnimation();
+
+  root.classList.remove("light", "dark");
+
+  if (theme === "system") {
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+
+    root.classList.add(systemTheme);
+  } else {
+    root.classList.add(theme);
+  }
+
+  enable();
+}
+
 export function subscribeSettingStore() {
   useSettingStore.subscribe(
     (s) => s.settings.theme,
     (theme) => {
-      const root = getRootElement();
-      const enable = disableAnimation();
-
-      root.classList.remove("light", "dark");
-
-      if (theme === "system") {
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light";
-
-        root.classList.add(systemTheme);
-      } else {
-        root.classList.add(theme);
-      }
-
-      enable();
+      setTheme(theme);
     },
   );
 

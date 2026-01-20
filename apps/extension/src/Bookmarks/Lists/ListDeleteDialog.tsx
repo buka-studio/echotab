@@ -12,6 +12,7 @@ import {
 import { Checkbox } from "@echotab/ui/Checkbox";
 import { Label } from "@echotab/ui/Label";
 import { Spinner } from "@echotab/ui/Spinner";
+import { toast } from "@echotab/ui/Toast";
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useRef } from "react";
 
@@ -36,6 +37,8 @@ export default function ListDeleteDialog({ list, children, publicList }: Props) 
       }
 
       bookmarkStoreActions.removeList(list.id);
+
+      toast.success(`Collection deleted`);
     },
   });
 
@@ -52,10 +55,7 @@ export default function ListDeleteDialog({ list, children, publicList }: Props) 
             <form ref={formRef}>
               <div className="flex items-center space-x-2 pt-4">
                 <Checkbox id="unpublish" defaultChecked={true} />
-                <Label htmlFor="unpublish">Unpublish</Label>
-              </div>
-              <div className="text-muted-foreground text-xs">
-                If checked, the public list copy will also be deleted.
+                <Label htmlFor="unpublish">Unpublish and delete public copy</Label>
               </div>
             </form>
           )}

@@ -11,12 +11,14 @@ import {
 } from "@echotab/ui/Dialog";
 import { Separator } from "@echotab/ui/Separator";
 import { Spinner } from "@echotab/ui/Spinner";
-import { ArrowTopRightIcon, EyeOpenIcon } from "@radix-ui/react-icons";
-import { ComponentProps, ReactNode, useState } from "react";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { ComponentProps, CSSProperties, ReactNode, useState } from "react";
 
 import { List } from "~/models";
 
 import { formatDate } from "../../util/date";
+import Illustration from "./Illustration";
+import PublishIndicator from "./PublishIndicator";
 import { usePublishListMutation, useUnpublishMutation, useUpdateListMutation } from "./queries";
 import { getPublicListURL } from "./util";
 
@@ -48,7 +50,11 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
   };
 
   const unpublishMutation = useUnpublishMutation();
-  const publicListURL = publicList ? getPublicListURL(publicList.publicId) : null;
+
+  const isOutdated = useMemo(
+    () => publicList && publicList.content !== list.content,
+    [publicList, list],
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -56,44 +62,17 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Publish Collection</DialogTitle>
-          <DialogDescription>Publish this collection to share it with others.</DialogDescription>
+          <DialogDescription>
+            {isOutdated
+              ? "This collection has unpublished changes. Republish to make the latest updates visible."
+              : "Publish this collection to share it with others."}
+          </DialogDescription>
         </DialogHeader>
-        <Separator />
-        <div className="text-muted-foreground text-sm">
+        <div className="text-muted-foreground mb-4 text-sm">
           {!publicList ? (
-            <>
-              <div className="">The collection will be available publicly after sharing!</div>
-              <div>
-                We recommend removing any sensitive information and/or links you don&apos;t want
-                others to see.
-              </div>
-            </>
+            <UnpublishedListContent />
           ) : (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-5">
-                <div className="text-muted-foreground flex items-center gap-2">
-                  <EyeOpenIcon /> Views: {publicList?.viewCount}
-                </div>
-
-              </div>
-              <div className="bg-card flex gap-4 rounded-md p-2">
-                <div className="text-foreground text-sm">{publicList.title}</div>
-                <div className="group flex items-center gap-1">
-                  <a
-                    href={publicListURL ?? ""}
-                    target="_blank"
-                    className="hover:underline focus-visible:underline focus-visible:outline-none">
-                    {publicListURL}
-                  </a>{" "}
-                  <ArrowTopRightIcon className="h-4 w-4 opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100" />{" "}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">
-                  Last published: {formatDate(list.updatedAt)}
-                </div>
-              </div>
-            </div>
+            <PublishedListContent list={list} publicList={publicList} />
           )}
         </div>
 
@@ -101,7 +80,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
           {publicList?.published && (
             <Button
               variant="destructive"
-              className="mr-auto"
+              className="sm:mr-auto"
               onClick={() =>
                 unpublishMutation.mutate(list.id, {
                   onSuccess: () => {
@@ -113,7 +92,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
               {unpublishMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}Unpublish
             </Button>
           )}
-          <DialogClose asChild>
+          <DialogClose asChild className="-order-1 sm:order-[initial] sm:block">
             <Button variant="ghost">Cancel</Button>
           </DialogClose>
           {publicList ? (
@@ -135,5 +114,63 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function UnpublishedListContent() {
+  return (
+    <div className="relative mt-5 grid grid-cols-1 items-center justify-center justify-items-center gap-5 sm:grid-cols-[3fr_7fr]">
+      <Illustration
+        className="max-h-[100px]"
+        style={
+          {
+            "--background": "var(--background-base)",
+            "--dot": "var(--primary)",
+            "--foreground-muted": "var(--border)",
+            "--foreground": "var(--muted-foreground)",
+            "--skeleton": "var(--border-active)",
+            "--skeleton-muted": "var(--card)",
+          } as CSSProperties
+        }
+      />
+      <div className="relative z-1 text-left">
+        The collection will be available publicly after sharing. We recommend removing any sensitive
+        information and/or links you don&apos;t want others to see.
+      </div>
+    </div>
+  );
+}
+
+function PublishedListContent({ list, publicList }: { list: List; publicList: UserList }) {
+  const publicListURL = getPublicListURL(publicList.publicId);
+
+  return (
+    <div className="bg-card flex flex-col gap-2 rounded-md px-5 py-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <PublishIndicator list={list} publicList={publicList} disabled />
+          <div className="text-foreground text-sm">{publicList.title}</div>
+        </div>
+
+        {publicList.published && (
+          <Button variant="link" asChild>
+            <a
+              href={publicListURL ?? ""}
+              target="_blank"
+              className="hover:underline focus-visible:underline focus-visible:outline-none">
+              Visit link <ArrowTopRightIcon />
+            </a>
+          </Button>
+        )}
+      </div>
+      <Separator />
+      <div>
+        <div className="text-muted-foreground flex items-center gap-2">
+          Last published: {formatDate(publicList.updated_at)}{" "}
+          <span className="opacity-50"> | </span>
+          Views: {publicList.viewCount}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -24,8 +24,8 @@ export default function Stats() {
       <Tabs defaultValue={StatTab.Usage} className="flex-1">
         <TabsList>
           <TabsTrigger value={StatTab.Usage}>Tag Count</TabsTrigger>
-          <TabsTrigger value={StatTab.Relationships}>Tag Relationships</TabsTrigger>
-          <TabsTrigger value={StatTab.Curate}>Curated</TabsTrigger>
+          <TabsTrigger value={StatTab.Relationships}>Tag Pairs</TabsTrigger>
+          <TabsTrigger value={StatTab.Curate}>Curate Stats</TabsTrigger>
         </TabsList>
         <TabsContent value={StatTab.Usage} className="focus-visible:ring-0">
           <TagUsageGraph height={500} width={dimensions.width!} />

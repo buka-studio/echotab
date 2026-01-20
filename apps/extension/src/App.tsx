@@ -30,7 +30,12 @@ import Onboarding from "./Onboarding";
 import PulseLogo from "./PulseLogo";
 import { init, useStoresInitialized } from "./store";
 import { useCurateReminder } from "./store/curateStore";
-import { settingStoreActions, subscribeSettingStore, useSettingStore } from "./store/settingStore";
+import {
+  setTheme,
+  settingStoreActions,
+  subscribeSettingStore,
+  useSettingStore,
+} from "./store/settingStore";
 import { createLogger } from "./util/Logger";
 
 const logger = createLogger("App");
@@ -42,7 +47,7 @@ async function initStores() {
     await Promise.all([init.initCurateStore(), init.initRecentlyClosedStore()]);
   } catch (e) {
     logger.error("Failed to initialize application", e);
-    toast.error("Failed to initialize application. Please reload the page.");
+    toast.error("Failed to initialize application");
   }
 }
 
@@ -86,6 +91,8 @@ const handleAppError = (error: Error, info: { componentStack?: string | null }) 
   logger.error("App error", error, info);
 };
 
+setTheme(useSettingStore.getState().settings.theme);
+
 export default function App() {
   const activePanel = useSettingStore((s) => s.activePanel);
   const theme = useSettingStore((s) => s.settings.theme);
@@ -115,7 +122,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2">
                   <TabsList className="flex h-auto gap-2 rounded-full border bg-transparent p-0 dark:shadow-sm">
-                    <div className="bg-surface-2 rounded-full grid grid-cols-2">
+                    <div className="bg-surface-2 grid grid-cols-2 rounded-full">
                       <PanelTrigger
                         value={Panel.Tabs}
                         onClick={() => settingStoreActions.activatePanel(Panel.Tabs)}>

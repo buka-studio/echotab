@@ -255,7 +255,7 @@ export const removeTabs = (tabIds: string[]) => {
   }
   SelectionStore.selectedTabIds = proxySet(selectedTabIds);
 
-  toast.success(`Deleted ${pluralize(tabIds.length, "tab")}`, {
+  toast.success(`${pluralize(tabIds.length, "tab")} deleted`, {
     action: {
       label: "Undo",
       onClick: () => {

@@ -54,10 +54,10 @@ export function usePublishListMutation() {
       publishList({ ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
       logger.error("Failed to publish list", e);
-      toast.error("Failed to publish list. Please try again.");
+      toast.error("Failed to publish list");
     },
     onSuccess: (newList) => {
-      toast.success("List published successfully!");
+      toast.success("List published");
       queryClient.setQueryData(["lists"], (prev: UserList[]) => {
         return [...prev, newList];
       });
@@ -74,10 +74,10 @@ export function useUpdateListMutation() {
       updateList(list.id, { ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
       logger.error("Failed to update list", e);
-      toast.error("Failed to update list. Please try again.");
+      toast.error("Failed to update list");
     },
     onSuccess: (updatedList) => {
-      toast.success("Public list updated successfully!");
+      toast.success("Public list updated");
       queryClient.setQueryData(["lists"], (prev: UserList[]) => {
         return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
       });
@@ -95,7 +95,7 @@ export function useUnpublishAllListsMutation() {
         return [];
       });
 
-      toast.success("Lists unpublished successfully");
+      toast.success("Lists unpublished");
     },
   });
 }
@@ -107,14 +107,14 @@ export function useUnpublishMutation() {
     mutationFn: (listId: string) => updateList(listId, { published: false }),
     onError: (e) => {
       logger.error("Failed to unpublish list", e);
-      toast.error("Failed to unpublish list. Please try again.");
+      toast.error("Failed to unpublish list");
     },
     onSuccess: (updatedList) => {
       queryClient.setQueryData(["lists"], (prev: UserList[]) => {
         return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
       });
 
-      toast.success("List unpublished successfully");
+      toast.success("List unpublished");
     },
   });
 }

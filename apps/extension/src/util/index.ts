@@ -108,5 +108,5 @@ export function sortRecord<T>(
 }
 
 export function getModifierKey() {
-  return navigator.userAgent.includes("Mac") ? "meta" : "ctrl";
+  return navigator.userAgent.includes("Mac") ? "⌘" : "Ctrl";
 }

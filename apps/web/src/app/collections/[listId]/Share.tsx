@@ -2,7 +2,6 @@
 
 import { PublicList } from "@echotab/lists/models";
 import { Button } from "@echotab/ui/Button";
-import { Label } from "@echotab/ui/Label";
 import { XLogoIcon } from "@phosphor-icons/react";
 import { renderSVG } from "uqr";
 
@@ -26,12 +25,15 @@ export default function Share({ list }: { list: PublicList }) {
   });
 
   return (
-    <div className="flex flex-col gap-10 p-5">
-      <div className="mx-auto flex w-full max-w-[200px] flex-col items-center justify-center gap-2 *:w-full">
-        <CopyButton value={listUrl} variant="outline">
+    <div className="flex flex-col gap-10 p-5 sm:flex-row sm:p-0">
+      <div className="mx-auto flex w-full max-w-[200px] flex-col items-center justify-center gap-2 *:w-full sm:max-w-none">
+        <div className="text-muted-foreground text-left text-sm">
+          Scan code or use the link below to share this list.
+        </div>
+        <CopyButton value={listUrl} variant="secondary">
           Copy URL
         </CopyButton>
-        <Button variant="outline" asChild className="gap-1">
+        <Button variant="secondary" asChild className="gap-1">
           <a href={buildTwitterShareLink(list)} target="_blank" rel="noopener noreferrer">
             Share on <XLogoIcon />
           </a>
@@ -39,10 +41,9 @@ export default function Share({ list }: { list: PublicList }) {
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <Label className="text-muted-foreground">QR Code</Label>
         <div
           dangerouslySetInnerHTML={{ __html: qr }}
-          className="aspect-square w-full max-w-[200px] overflow-hidden rounded-lg sm:w-[200px]"
+          className="aspect-square w-full max-w-[200px] overflow-hidden rounded-lg sm:w-[150px]"
         />
       </div>
     </div>

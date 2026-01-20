@@ -148,13 +148,17 @@ export default function ListFormDialog({
       tabIds,
     });
 
-    setOpen(false);
-    onSubmit?.(result);
+    if (!result) {
+      return;
+    }
 
-    toast.success(`Collection ${list ? "updated" : "created"} succesfully!`);
+    setOpen(false);
+    onSubmit?.(result as List);
+
+    toast.success(`Collection ${list ? "updated" : "created"}`);
 
     if (list && list.sync) {
-      updateMutation.mutate(result);
+      updateMutation.mutate(result as List);
     }
   };
 

@@ -32,7 +32,7 @@ export default function ListLinkItem({ link }: { link: PublicLink }) {
           className="focus-visible:underline focus-visible:outline-none">
           {link.url}
         </a>
-        <ArrowTopRightIcon className="ml-2 inline-block opacity-0 transition-opacity group-hover:opacity-100" />
+        <ArrowTopRightIcon className="ml-2 inline-block opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100" />
       </span>
     </li>
   );

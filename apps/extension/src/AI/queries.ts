@@ -62,7 +62,7 @@ export function useLLMTagMutation() {
     },
     onError: (e) => {
       logger.error("Failed to suggest tags", e);
-      toast.error("Failed to suggest tags. Please try again.");
+      toast.error("Failed to suggest tags");
     },
   });
 }
@@ -103,7 +103,7 @@ export function useTestLLMMutation() {
     },
     onError: (e) => {
       logger.error("Failed to test connection", e);
-      toast.error("Failed to test connection. Please try again.");
+      toast.error("Failed to test connection");
     },
     onSuccess: (response) => {
       toast.success("Connection successful!");

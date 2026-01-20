@@ -96,11 +96,12 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           </div>
         </ListContextProvider>
       </article>
-      <div className="text-muted-foreground mt-2 flex flex-1 flex-col items-center justify-center gap-2 text-center text-xs sm:flex-row sm:gap-5">
-        <div className="">
+      <div className="text-muted-foreground mt-2 flex flex-1 items-center justify-center gap-2 text-center text-xs">
+        <span>
           Last updated at: <Date date={list.updated_at} />
-        </div>
-        <div>Views: {list.viewCount}</div>
+        </span>
+        <span className="opacity-50">|</span>
+        Views: {list.viewCount}{" "}
       </div>
     </div>
   );

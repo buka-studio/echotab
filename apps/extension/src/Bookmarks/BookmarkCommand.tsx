@@ -67,7 +67,7 @@ import { settingStoreActions, useSettingStore } from "../store/settingStore";
 import { tagStoreActions, unassignedTag, useTagsById, useTagStore } from "../store/tagStore";
 import { formatLinks } from "../util";
 import { toggle } from "../util/set";
-import { isAlphanumeric } from "../util/string";
+import { isAlphanumeric, pluralize } from "../util/string";
 import ListFormDialog from "./Lists/ListFormDialog";
 
 const pages = ["/", "tag", "search"] as const;
@@ -145,10 +145,10 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast.success(`Copied ${selectedLinks.length} links to clipboard!`);
+        toast.success(`${pluralize(selectedLinks.length, "link")} copied to clipboard`);
       })
       .catch(() => {
-        toast.error("Failed to copy links to clipboard!");
+        toast.error("Failed to copy links to clipboard");
       });
   };
 
@@ -448,7 +448,8 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                           Tag
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handleCreateListFromSelected)}>
-                          <FilePlusIcon className="text-muted-foreground mr-2" /> Create a collection
+                          <FilePlusIcon className="text-muted-foreground mr-2" /> Create a
+                          collection
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handlePinSelected)}>
                           <DrawingPinIcon className="text-muted-foreground mr-2" />

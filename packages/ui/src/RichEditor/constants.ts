@@ -7,7 +7,6 @@ import { ListItemNode, ListNode } from "@lexical/list";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 
-
 import { MentionNode } from "./plugins/MentionNode";
 
 export const defaultNodes = [

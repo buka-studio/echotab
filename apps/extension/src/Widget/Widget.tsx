@@ -11,7 +11,6 @@ import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "
 
 import { ActiveTab } from "~/store/schema";
 
-import { useHotkeys } from "react-hotkeys-hook";
 import TagChip from "../components/tag/TagChip";
 import { MessageBus } from "../messaging";
 import PulseLogo from "../PulseLogo";
@@ -96,6 +95,10 @@ function Widget({ onClose }: Props) {
   const handleSave = async () => {
     if (!tab || !tab.id || !tab.url) return;
 
+    if (!assignedTagIds.length) {
+      handleQuickSave();
+    }
+
     if (takeSnapshot) {
       await MessageBus.send("snapshot:save", { tabId: tab.id, url: tab.url });
     }
@@ -163,10 +166,6 @@ function Widget({ onClose }: Props) {
     }
   }, [settingsTheme]);
 
-  useHotkeys('mod+enter', () => {
-    handleSave();
-  }, { preventDefault: true });
-
   return (
     <motion.main
       className={cn("echotab-root rounded-xl", theme)}
@@ -197,6 +196,10 @@ function Widget({ onClose }: Props) {
             filter={exactMatchFilter}
             onKeyDown={(e) => {
               e.stopPropagation();
+              if (e.key === "Enter" && e.metaKey) {
+                e.preventDefault();
+                handleSave();
+              }
               if (e.key === "Enter" && !getValue() && search) {
                 e.preventDefault();
                 handleCreateTag();

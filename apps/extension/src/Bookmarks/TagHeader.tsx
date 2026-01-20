@@ -159,10 +159,10 @@ export default function TagHeader({
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast.success(`Copied ${affectedTabIds.size} links to clipboard!`);
+        toast.success(`${pluralize(affectedTabIds.size, "link")} copied to clipboard`);
       })
       .catch(() => {
-        toast.error("Failed to copy links to clipboard!");
+        toast.error("Failed to copy links to clipboard");
       });
   };
 

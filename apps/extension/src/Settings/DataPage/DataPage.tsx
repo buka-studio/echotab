@@ -79,7 +79,7 @@ export default function DataPage() {
     try {
       const importer = new EchotabImporter();
       await importer.importFromFile(file);
-      toast.success("Imported tabs & tags successfully!");
+      toast.success("Tabs & tags imported");
     } catch (e) {
       if (e instanceof EchotabImportError) {
         toast.error(e.message);
@@ -93,13 +93,13 @@ export default function DataPage() {
   const handleImportBookmarks = async () => {
     const importer = new BookmarksImporter();
     await importer.import();
-    toast.success("Imported bookmarks successfully!");
+    toast.success("Bookmarks imported");
   };
 
   const handleExport = () => {
     const exporter = new EchotabExporter();
     exporter.download();
-    toast.success("Exported data successfully!");
+    toast.success("Data exported");
   };
 
   const handleConfirmDelete = async () => {

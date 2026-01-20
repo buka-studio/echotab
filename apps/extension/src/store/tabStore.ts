@@ -283,7 +283,7 @@ export const removeTabsSeq = async (tabIds: number[], opts: RemoveTabOpts = {}) 
   }
 
   if (opts.notify && success.length) {
-    toast.success(`Closed ${pluralize(success.length, "tab")}`, {
+    toast.success(`${pluralize(success.length, "tab")} closed`, {
       action: {
         label: "Undo",
         onClick: () => {
@@ -298,7 +298,7 @@ export const removeTabsSeq = async (tabIds: number[], opts: RemoveTabOpts = {}) 
   }
 
   if (opts.notify && error.length) {
-    toast.error(`Failed to close ${pluralize(error.length, "tab")}. Please try again.`);
+    toast.error(`Failed to close ${pluralize(error.length, "tab")}`);
   }
 
   return { success, error };
@@ -334,7 +334,7 @@ export const removeTabsPar = async (tabIds: number[], opts: RemoveTabOpts = {}) 
       });
     }
   } catch (e) {
-    toast.error(`Failed to close ${pluralize(tabIds.length, "tab")}. Please try again.`);
+    toast.error(`Failed to close ${pluralize(tabIds.length, "tab")}`);
     logger.error("Failed to close tabs", e);
   }
 };
@@ -396,10 +396,10 @@ export const saveTabsSeq = async (tabs: (ActiveTab & { tagIds: number[] })[], re
   }
 
   if (results.success.length) {
-    toast.success(`Saved ${pluralize(results.success.length, "tab")}`);
+    toast.success(`${pluralize(results.success.length, "tab")} saved`);
   }
   if (results.error.tabs.length) {
-    toast.error(`Failed to save ${pluralize(results.error.tabs.length, "tab")}. Please try again.`);
+    toast.error(`Failed to save ${pluralize(results.error.tabs.length, "tab")}`);
   }
 
   return results;

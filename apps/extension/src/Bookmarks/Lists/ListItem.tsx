@@ -11,7 +11,6 @@ import {
 } from "@echotab/ui/DropdownMenu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@echotab/ui/HoverCard";
 import { RichTextRenderer } from "@echotab/ui/RichEditor";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import { ArrowTopRightIcon, DotsVerticalIcon } from "@radix-ui/react-icons";
 import { ComponentProps } from "react";
@@ -22,52 +21,8 @@ import { pluralize } from "../../util";
 import ListDeleteDialog from "./ListDeleteDialog";
 import ListFormDialog from "./ListFormDialog";
 import ListPublishDialog from "./ListPublishDialog";
+import PublishIndicator from "./PublishIndicator";
 import { getPublicListURL } from "./util";
-
-function PublishIndicator({
-  list,
-  publicList,
-  className,
-}: {
-  list: List;
-  publicList?: UserList;
-  className?: string;
-}) {
-  const isUpToDate = useMemo(
-    () => publicList && publicList.published && publicList.content === list.content,
-    [publicList, list],
-  );
-  const isOutdated = useMemo(
-    () => publicList && publicList.published && publicList.content !== list.content,
-    [publicList, list],
-  );
-  const isUnpublished = !publicList || !publicList.published;
-
-  const publishLabel = isUnpublished
-    ? "This collection is not published."
-    : isOutdated
-      ? "Published collection is outdated."
-      : "Published collection is up to date.";
-
-  return (
-    <Tooltip>
-      <TooltipTrigger className={cn("focus-ring rounded-full", className)}>
-        <div
-          className={cn(
-            "text-muted-foreground h-2 w-2 rounded-full bg-current transition-all duration-200",
-
-            {
-              "text-muted-foreground": isUnpublished,
-              "text-warning": isOutdated,
-              "text-success": isUpToDate,
-            },
-          )}
-        />
-      </TooltipTrigger>
-      <TooltipContent className="text-left">{publishLabel}</TooltipContent>
-    </Tooltip>
-  );
-}
 
 function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
   return (
@@ -89,7 +44,7 @@ function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
           </DialogTrigger>
         </ListPublishDialog>
         <DropdownMenuSeparator />
-        <ListDeleteDialog list={list}>
+        <ListDeleteDialog list={list} publicList={publicList}>
           <AlertDialogTrigger asChild>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
           </AlertDialogTrigger>
