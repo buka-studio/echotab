@@ -2,6 +2,7 @@ import { uuidv7 } from "uuidv7";
 
 import { MessageBus } from "~/messaging";
 import { SnapshotService, SnapshotStore } from "~/snapshot";
+import { cleanupValtioKeys, migrateFromValtio } from "~/store/migrate";
 import { MetadataParser } from "~/TabInfo/MetadataParser";
 import type { TabMetadataRequest } from "~/TabInfo/models";
 import { createLogger } from "~/util/Logger";
@@ -34,7 +35,19 @@ export default defineBackground({
   main() {
     const extensionUrl = chrome.runtime.getURL("home.html");
 
-    chrome.runtime.onInstalled.addListener(() => {
+    chrome.runtime.onInstalled.addListener(async (details) => {
+      try {
+        const migrated = await migrateFromValtio();
+        if (migrated) {
+          logger.info("Migration from old storage format completed");
+          setTimeout(() => {
+            cleanupValtioKeys().catch((e) => logger.error("Failed to cleanup old keys:", e));
+          }, 5000);
+        }
+      } catch (e) {
+        logger.error("Migration failed:", e);
+      }
+
       chrome.storage.local.get("userId", ({ userId }) => {
         if (!userId) {
           chrome.storage.local.set({ userId: uuidv7() });
@@ -55,6 +68,12 @@ export default defineBackground({
           }
         },
       );
+
+      if (details.reason === "update") {
+        logger.info(`Extension updated from ${details.previousVersion} to ${chrome.runtime.getManifest().version}`);
+      } else if (details.reason === "install") {
+        logger.info("Extension installed");
+      }
     });
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
