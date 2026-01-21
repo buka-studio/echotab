@@ -103,6 +103,28 @@ interface LexicalState {
   root: LexicalNode;
 }
 
+const CONTAINER_TYPES = new Set(["root", "paragraph", "list", "listitem"]);
+const VALID_LEAF_TYPES = new Set(["mention", "linebreak"]);
+
+function isLinkOnlyNode(node: LexicalNode): boolean {
+  if (VALID_LEAF_TYPES.has(node.type)) {
+    return true;
+  }
+
+  if (node.type === "text") {
+    return !node.text || node.text.trim() === "";
+  }
+
+  if (CONTAINER_TYPES.has(node.type)) {
+    if (!node.children?.length) {
+      return false;
+    }
+    return node.children.every(isLinkOnlyNode);
+  }
+
+  return false;
+}
+
 export function isLinkOnlyContent(content: string): boolean {
   try {
     const state: LexicalState = JSON.parse(content);
@@ -110,20 +132,7 @@ export function isLinkOnlyContent(content: string): boolean {
 
     if (!root?.children?.length) return false;
 
-    return root.children.every((child) => {
-      if (child.type !== "list") return false;
-
-      return child.children?.every((listItem) => {
-        if (listItem.type !== "listitem") return false;
-
-        return listItem.children?.every((node) => {
-          if (node.type === "mention") return true;
-          if (node.type === "text" && (!node.text || node.text.trim() === "")) return true;
-          if (node.type === "linebreak") return true;
-          return false;
-        });
-      });
-    });
+    return root.children.every(isLinkOnlyNode);
   } catch {
     return false;
   }
