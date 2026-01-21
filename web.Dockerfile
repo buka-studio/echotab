@@ -33,10 +33,8 @@ COPY apps/web/package.json ./apps/web/package.json
 RUN pnpm install --frozen-lockfile
 
 # Copy application code
-
 COPY --link . .
 
-# Build args for Next.js public env vars
 ARG NEXT_PUBLIC_EXTENSION_ID
 ARG NEXT_PUBLIC_HOST
 ARG NEXT_PUBLIC_WEB_HOST
@@ -48,7 +46,7 @@ ENV NEXT_PUBLIC_WEB_HOST=$NEXT_PUBLIC_WEB_HOST
 RUN turbo run build --filter=@echotab/web
 
 # Remove development dependencies
-RUN pnpm prune --prod
+RUN CI=true pnpm prune --prod
 
 # Final stage for app image
 FROM base
