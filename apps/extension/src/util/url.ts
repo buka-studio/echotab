@@ -55,3 +55,20 @@ export function getDomain(url: string) {
     return url;
   }
 }
+
+export function openLinksInLLM(
+  links: { title: string; url: string }[],
+  provider: "chatgpt" | "claude",
+) {
+  const linksText = links.map((tab) => `[${tab.title}](${tab.url})`).join("\n");
+  const prompt = `Open the following links and analyze the content. Tell me when you're done and ready to answer questions about them. ${linksText}`;
+
+  const searchParams = new URLSearchParams();
+  searchParams.set("q", prompt);
+
+  if (provider === "chatgpt") {
+    chrome.tabs.create({ url: `https://chatgpt.com/?${searchParams.toString()}` });
+  } else if (provider === "claude") {
+    chrome.tabs.create({ url: `https://claude.ai/new?${searchParams.toString()}` });
+  }
+}
