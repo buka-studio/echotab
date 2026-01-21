@@ -28,6 +28,7 @@
     "./ButtonWithTooltip": "./src/ButtonWithTooltip.tsx",
     "./Command": "./src/Command.tsx",
     "./Checkbox": "./src/Checkbox.tsx",
+    "./Collapsible": "./src/Collapsible.tsx",
     "./Dialog": "./src/Dialog.tsx",
     "./Drawer": "./src/Drawer.tsx",
     "./DropdownMenu": "./src/DropdownMenu.tsx",
