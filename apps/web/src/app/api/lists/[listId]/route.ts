@@ -14,7 +14,7 @@ export async function GET(req: Request, context: Context) {
 
   const { error } = validators.listId.safeParse(listId);
   if (error) {
-    return Response.json({ error: error.message }, { status: 400 });
+    return Response.json({ error: "Invalid listId format" }, { status: 400 });
   }
 
   try {
@@ -32,24 +32,32 @@ export async function GET(req: Request, context: Context) {
 export async function PATCH(req: Request, context: Context) {
   const userId = req.headers.get("X-EchoTab-userId");
 
+  if (!userId) {
+    return Response.json({ error: "Missing required header: X-EchoTab-userId" }, { status: 401 });
+  }
+
+  const { error: userIdError } = validators.userId.safeParse(userId);
+  if (userIdError) {
+    return Response.json({ error: "Invalid userId format" }, { status: 400 });
+  }
+
   const { listId } = await context.params;
 
-  const { error } = validators.listId.safeParse(listId);
-  if (error) {
-    return Response.json({ error: error.message }, { status: 400 });
+  const { error: listIdError } = validators.listId.safeParse(listId);
+  if (listIdError) {
+    return Response.json({ error: "Invalid listId format" }, { status: 400 });
   }
 
   const data = await req.json();
   const { data: parsedData, error: dataError } = validators.list.partial().safeParse(data);
-  const { error: userIdError } = validators.userId.safeParse(userId);
-  if (dataError || userIdError) {
-    return Response.json({ error: (dataError || userIdError)!.message }, { status: 400 });
+  if (dataError) {
+    return Response.json({ error: "Invalid list data" }, { status: 400 });
   }
 
   try {
-    const list = await updateList(userId!, listId, parsedData as List);
+    const list = await updateList(userId, listId, parsedData as List);
     if (parsedData?.published) {
-      safeUpsertListOGImage(userId!, { ...list, linkCount: (parsedData.links || []).length });
+      safeUpsertListOGImage(userId, { ...list, linkCount: (parsedData.links || []).length });
     }
 
     return Response.json({ list });

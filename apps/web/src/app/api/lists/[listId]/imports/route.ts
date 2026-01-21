@@ -8,9 +8,9 @@ interface Context {
 export async function POST(req: Request, context: Context) {
   const { listId } = await context.params;
 
-  const { error } = validators.userId.safeParse(listId);
+  const { error } = validators.listId.safeParse(listId);
   if (error) {
-    return Response.json({ error: error.message }, { status: 400 });
+    return Response.json({ error: "Invalid listId format" }, { status: 400 });
   }
 
   try {
