@@ -418,6 +418,8 @@ export const upsertList = (list?: Partial<List>): List | undefined => {
       tabIds: list.tabIds || [],
       savedAt: getUtcISO(),
       updatedAt: getUtcISO(),
+      publicId: list.publicId || undefined,
+      published: list.published || false,
       ...list,
     };
 

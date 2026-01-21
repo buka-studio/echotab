@@ -6,7 +6,7 @@ import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { bookmarkStoreActions } from "../store/bookmarkStore";
 import { useTagsById, useTagStore } from "../store/tagStore";
 
-export default function TagList({ tagIds, tabId }: { tagIds: number[]; tabId: string }) {
+export default function TagList({ tagIds, tabId, maxTags = 3 }: { tagIds: number[]; tabId: string; maxTags?: number }) {
   const allTags = useTagStore((s) => s.tags);
   const tagsById = useTagsById();
 
@@ -19,7 +19,7 @@ export default function TagList({ tagIds, tabId }: { tagIds: number[]; tabId: st
   return (
     <motion.ul className="scrollbar-gray flex max-w-[80vw] flex-nowrap gap-2" layoutScroll>
       <AnimatePresence mode="popLayout">
-        {tagIds.map((id, i) => {
+        {tagIds.slice(0, maxTags).map((id, i) => {
           const tag = tagsById.get(id);
           return (
             <motion.div
@@ -37,6 +37,7 @@ export default function TagList({ tagIds, tabId }: { tagIds: number[]; tabId: st
             </motion.div>
           );
         })}
+        {tagIds.length > maxTags && <motion.span layout>+{tagIds.length - maxTags}</motion.span>}
       </AnimatePresence>
       <motion.div layout key="add_tag">
         <TagChipCombobox

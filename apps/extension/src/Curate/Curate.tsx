@@ -291,8 +291,10 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                 </CurateSummary>
               )}
               {!forceFinish &&
-                queue.map((result, i) => {
+                queue.map((result, i, all) => {
                   const tab = curateTabsById[result.tabId]!;
+                  const hideTab = all.length > 2 && i > 1;
+
                   return (
                     <SwipeableCard
                       autoFocus={i === 0}
@@ -324,7 +326,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                       directions={["left", "right", "down"]}
                       onBeforeSwipe={(direction) => handleBeforeSwipe(tab, direction)}
                       onSwipe={(direction) => handleSwipe(tab, direction)}>
-                      <CurateCard tab={tab} index={i} visible={i === 0} />
+                      <CurateCard tab={tab} index={i} visible={i === 0} hidden={hideTab} />
                     </SwipeableCard>
                   );
                 })}

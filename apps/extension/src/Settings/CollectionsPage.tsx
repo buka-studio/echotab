@@ -8,7 +8,7 @@ import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 export default function CollectionsPage() {
   const handleProfileLinkUpdate = (value: string) => {
     settingStoreActions.updateSettings({
-      // profileLink: value,
+      profileLinkUrl: value,
     });
   };
 
@@ -28,6 +28,10 @@ export default function CollectionsPage() {
               placeholder="https://example.com"
               id="profile-link"
               onChange={(e) => handleProfileLinkUpdate(e.target.value)}
+              onBlur={(e) => {
+                console.log("blur", e.target.value);
+                handleProfileLinkUpdate(e.target.value);
+              }}
               className=""
             />
           </div>

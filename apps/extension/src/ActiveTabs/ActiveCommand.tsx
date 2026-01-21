@@ -31,6 +31,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import { curateStoreActions } from "~/store/curateStore";
 
+import { openLinksInLLM } from "~/util/url";
 import FilterTagChips from "../components/FilterTagChips";
 import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
 import {
@@ -358,16 +359,9 @@ export default function ActiveCommand() {
   const handleOpenInLLM = (provider: "chatgpt" | "claude") => () => {
     const selectedIdsSet = new Set(selectionStore.selectedTabIds);
     const selectedLinks = tabs.filter((tab) => selectedIdsSet.has(tab.id));
-    const linksText = selectedLinks.map((tab) => `[${tab.title}](${tab.url})`).join("\n");
-    const prompt = `Open the following links and analyze the content. Tell me when you're done and ready to answer questions about them. ${linksText}`;
-    const promptQuery = `q=${encodeURIComponent(prompt)}`;
 
-    if (provider === "chatgpt") {
-      chrome.tabs.create({ url: `https://chatgpt.com/chat?${promptQuery}` });
-    } else if (provider === "claude") {
-      chrome.tabs.create({ url: `https://claude.ai/chat?${promptQuery}` });
-    }
-  };
+    openLinksInLLM(selectedLinks, provider);
+  }
 
   const handlePaste = (e: React.ClipboardEvent) => {
     if (activePage !== "paste") return;

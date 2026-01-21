@@ -84,10 +84,12 @@ export default function CurateCard({
   tab,
   index,
   visible,
+  hidden,
 }: {
   tab: SavedTab;
   index: number;
   visible: boolean;
+  hidden: boolean;
 }) {
   const preload = index < 2;
 
@@ -110,10 +112,12 @@ export default function CurateCard({
           </a>
         </HeaderUrl>
       </Header>
-      <div className="flex flex-1 flex-col gap-3 p-3 pt-3">
-        <Jumbo tab={tab} className="" />
-        <TabInfoPreview tab={tab} preload={preload} contentClassName="min-h-[245px]" />
-      </div>
+      {hidden ? <div className="min-h-[368px]" />
+        :
+        <div className="flex flex-1 flex-col gap-3 p-3 pt-3">
+          <Jumbo tab={tab} className="" />
+          <TabInfoPreview tab={tab} preload={preload} contentClassName="min-h-[245px] max-h-[245px]" className="gap-2" />
+        </div>}
     </article>
   );
 }

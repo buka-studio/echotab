@@ -75,6 +75,8 @@ export const ListSchema = z.object({
   tabIds: z.array(z.string()),
   savedAt: z.string(),
   updatedAt: z.string(),
+  publicId: z.string().optional(),
+  published: z.boolean().default(false),
 });
 
 export const accentColors = {

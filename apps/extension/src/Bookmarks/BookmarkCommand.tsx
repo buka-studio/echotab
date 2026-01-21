@@ -40,6 +40,7 @@ import { useDebounceValue } from "usehooks-ts";
 
 import { curateStoreActions } from "~/store/curateStore";
 
+import { openLinksInLLM } from "~/util/url";
 import FilterTagChips from "../components/FilterTagChips";
 import {
   CommandPagination,
@@ -328,15 +329,8 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
 
   const handleOpenInLLM = (provider: "chatgpt" | "claude") => () => {
     const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
-    const linksText = selectedLinks.map((tab) => `[${tab.title}](${tab.url})`).join("\n");
-    const prompt = `Open the following links and analyze the content. Tell me when you're done and ready to answer questions about them. ${linksText}`;
-    const promptQuery = `q=${encodeURIComponent(prompt)}`;
 
-    if (provider === "chatgpt") {
-      chrome.tabs.create({ url: `https://chatgpt.com/chat?${promptQuery}` });
-    } else if (provider === "claude") {
-      chrome.tabs.create({ url: `https://claude.ai/chat?${promptQuery}` });
-    }
+    openLinksInLLM(selectedLinks, provider);
   };
 
   return (

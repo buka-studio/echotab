@@ -84,7 +84,7 @@ function TabItem({
             <ArrowTopRightIcon className="icon h-4 w-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
             <HoverCardContent className="w-[375px] overflow-hidden p-0">
               {typeof linkPreview === "boolean" ? (
-                <TabInfoPreview tab={tab} contentClassName="min-h-[196px]" />
+                <TabInfoPreview tab={tab} contentClassName="min-h-[196px] max-h-[196px]" />
               ) : (
                 linkPreview
               )}
