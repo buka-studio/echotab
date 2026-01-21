@@ -30,8 +30,8 @@ import { useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { curateStoreActions } from "~/store/curateStore";
-
 import { openLinksInLLM } from "~/util/url";
+
 import FilterTagChips from "../components/FilterTagChips";
 import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
 import {
@@ -361,7 +361,7 @@ export default function ActiveCommand() {
     const selectedLinks = tabs.filter((tab) => selectedIdsSet.has(tab.id));
 
     openLinksInLLM(selectedLinks, provider);
-  }
+  };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     if (activePage !== "paste") return;
@@ -462,7 +462,7 @@ export default function ActiveCommand() {
             )}
           </div>
         </div>
-        <div className="bg-popover/70 text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 pb-0 shadow-lg backdrop-blur-lg">
+        <div className="bg-popover/80 text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 pb-0 shadow-lg backdrop-blur-lg">
           <CommandList className={cn("scrollbar-gray scroll-fade overscroll-contain")}>
             {activePage === "/" && (
               <>
@@ -692,7 +692,7 @@ export default function ActiveCommand() {
                           </li>
                         ))}
                       </ul>
-                      {pastedLinks.length > 0 && (
+                      {pastedLinks.length > pastedLinksVisible && (
                         <Button
                           onClick={() => setPastedLinksVisible(pastedLinks.length)}
                           size="sm"

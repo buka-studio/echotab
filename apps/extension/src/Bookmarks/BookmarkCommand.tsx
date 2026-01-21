@@ -39,8 +39,8 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useDebounceValue } from "usehooks-ts";
 
 import { curateStoreActions } from "~/store/curateStore";
-
 import { openLinksInLLM } from "~/util/url";
+
 import FilterTagChips from "../components/FilterTagChips";
 import {
   CommandPagination,
@@ -406,7 +406,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
               )}
             </div>
           </div>
-          <div className="bg-popover/70 text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 pb-0 shadow-lg backdrop-blur-lg">
+          <div className="bg-popover/80 text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 pb-0 shadow-lg backdrop-blur-lg">
             <CommandList className={cn("scrollbar-gray scroll-fade overscroll-contain")}>
               {activePage === "/" && (
                 <>
