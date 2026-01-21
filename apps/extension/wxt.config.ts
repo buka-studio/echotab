@@ -1,6 +1,5 @@
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
-// import { postcss } from "tailwindcss";
 import { defineConfig } from "wxt";
 
 export default defineConfig({
