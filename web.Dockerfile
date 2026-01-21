@@ -28,9 +28,9 @@ RUN apk add --no-cache libc6-compat
 RUN apk add g++ make py3-pip
 
 # Install node modules
-COPY --link package.json package-lock.json ./
+COPY --link package.json pnpm-lock.yaml ./
 COPY apps/web/package.json ./apps/web/package.json
-RUN pnpm ci --include=dev
+RUN pnpm install --frozen-lockfile
 
 # Copy application code
 

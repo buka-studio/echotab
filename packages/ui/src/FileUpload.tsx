@@ -1,8 +1,8 @@
 "use client";
 
 import { FileIcon } from "@phosphor-icons/react";
-import { Slot, Slottable } from "@radix-ui/react-slot";
 import { motion, useAnimationFrame, useMotionValue } from "framer-motion";
+import { Slot as SlotPrimitive } from "radix-ui";
 import {
   createContext,
   useCallback,
@@ -485,7 +485,7 @@ const FileUploadDropzone = ({
     [inputRef, setIsDragOver, disabled],
   );
 
-  const Comp = asChild ? Slot : "div";
+  const Comp = asChild ? SlotPrimitive.Slot : "div";
 
   return (
     <Comp
@@ -518,7 +518,7 @@ const FileUploadDropzone = ({
           "text-border": !isDragOver,
         })}
       />
-      <Slottable>{children}</Slottable>
+      <SlotPrimitive.Slottable>{children}</SlotPrimitive.Slottable>
     </Comp>
   );
 };
@@ -544,7 +544,7 @@ const FileUploadTrigger = (props: FileUploadTriggerProps) => {
     [context.inputRef, onClick],
   );
 
-  const TriggerPrimitive = asChild ? Slot : "button";
+  const TriggerPrimitive = asChild ? SlotPrimitive.Slot : "button";
 
   return (
     <TriggerPrimitive
@@ -578,7 +578,7 @@ const FileUploadList = ({
   asChild,
   ...props
 }: React.ComponentPropsWithoutRef<"ul"> & { asChild?: boolean }) => {
-  const Comp = asChild ? Slot : "ul";
+  const Comp = asChild ? SlotPrimitive.Slot : "ul";
 
   return (
     <Comp
@@ -607,7 +607,7 @@ const FileUploadItem = ({
     [file],
   );
 
-  const Comp = asChild ? Slot : "li";
+  const Comp = asChild ? SlotPrimitive.Slot : "li";
 
   return (
     <FileUploadItemContext.Provider value={value}>
@@ -709,7 +709,7 @@ const FileUploadItemDelete = ({
     [context, itemContext],
   );
 
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? SlotPrimitive.Slot : "button";
 
   return (
     <Comp
@@ -733,5 +733,6 @@ export {
   FileUploadList,
   FileUploadTrigger,
   useFileUploadContext,
-  useFileUploadItemContext,
+  useFileUploadItemContext
 };
+

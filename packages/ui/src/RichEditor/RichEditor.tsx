@@ -185,9 +185,10 @@ function RichEditor({
                   className,
                 )}
                 {...props}
+                placeholder={<Placeholder>{placeholder}</Placeholder>}
+                aria-placeholder={'Enter some rich text...'}
               />
             }
-            placeholder={<Placeholder>{placeholder}</Placeholder>}
             ErrorBoundary={LexicalErrorBoundary}
           />
           <HistoryPlugin />

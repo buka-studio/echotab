@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, ChevronRightIcon, CircleIcon } from "@radix-ui/react-icons";
+import { CaretRightIcon, CheckIcon, CircleIcon } from "@phosphor-icons/react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
@@ -191,7 +191,7 @@ function DropdownMenuSubTrigger({
       )}
       {...props}>
       {children}
-      <ChevronRightIcon className="ml-auto size-4" />
+      <CaretRightIcon className="ml-auto size-4" />
     </DropdownMenuPrimitive.SubTrigger>
   );
 }
@@ -227,5 +227,6 @@ export {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 };
+
