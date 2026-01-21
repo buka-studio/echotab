@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
     "migrate": "npx tsx src/scripts/migrate.ts",
-    "gen-types": "npx kysely-codegen --include-pattern=\"public.*\"",
+    "gen-types": "npx kysely-codegen --include-pattern=\"public.*\" --out-file src/types.ts",
     "build": "tsc"
   },
   "private": true,

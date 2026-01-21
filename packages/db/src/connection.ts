@@ -1,6 +1,7 @@
 import { Kysely, PostgresDialect } from "kysely";
-import { DB } from "kysely-codegen";
 import { Pool } from "pg";
+
+import { DB } from "./types";
 
 export function createConnection() {
   const db = new Kysely<DB>({
