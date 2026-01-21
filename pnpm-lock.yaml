@@ -361,6 +361,9 @@ importers:
       '@tailwindcss/line-clamp':
         specifier: ^0.4.4
         version: 0.4.4(tailwindcss@4.1.18)
+      '@tailwindcss/postcss':
+        specifier: ~4.1.17
+        version: 4.1.18
       '@types/jsdom':
         specifier: ^27.0.0
         version: 27.0.0

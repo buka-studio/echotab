@@ -7,11 +7,10 @@ app = 'www-echotab'
 primary_region = 'ams'
 
 [build]
-
-[env]
-NEXT_PUBLIC_EXTENSION_ID = 'cnhamlcjfdekdinhkfmllfdjamcncbkl'
-NEXT_PUBLIC_HOST = 'http://localhost:3000'
-NEXT_PUBLIC_WEB_HOST = 'https://echotab.buka.studio'
+[build.args]
+NEXT_PUBLIC_EXTENSION_ID = "cnhamlcjfdekdinhkfmllfdjamcncbkl"
+NEXT_PUBLIC_HOST = "https://echotab.buka.studio"
+NEXT_PUBLIC_WEB_HOST = "https://echotab.buka.studio"
 
 [http_service]
 internal_port = 3000
