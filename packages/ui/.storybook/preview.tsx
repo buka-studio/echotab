@@ -29,6 +29,4 @@ export const decorators = [
   ),
 ];
 
-
-
 export default preview;
