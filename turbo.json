@@ -1,8 +1,10 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "ui": "stream",
   "tasks": {
     "build": {
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "dependsOn": ["^build"]
     },
     "dev": {
       "cache": false,
@@ -11,7 +13,18 @@
     "clean": {
       "cache": false
     },
+    "start": {
+      "cache": false
+    },
     "test": {
+      "dependsOn": ["^build"]
+    },
+    "storybook": {
+      "cache": false,
+      "persistent": true
+    },
+    "build-storybook": {
+      "outputs": ["storybook-static/**"],
       "dependsOn": ["^build"]
     }
   }

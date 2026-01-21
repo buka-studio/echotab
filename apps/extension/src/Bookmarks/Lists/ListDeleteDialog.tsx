@@ -11,12 +11,13 @@ import {
 } from "@echotab/ui/AlertDialog";
 import { Checkbox } from "@echotab/ui/Checkbox";
 import { Label } from "@echotab/ui/Label";
-import Spinner from "@echotab/ui/Spinner";
+import { Spinner } from "@echotab/ui/Spinner";
+import { toast } from "@echotab/ui/Toast";
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useRef } from "react";
 
 import { List } from "../../models";
-import BookmarkStore from "../BookmarkStore";
+import { bookmarkStoreActions } from "../../store/bookmarkStore";
 import { updateList } from "./api";
 
 interface Props {
@@ -35,7 +36,9 @@ export default function ListDeleteDialog({ list, children, publicList }: Props) 
         await updateList(list.id, { published: false });
       }
 
-      BookmarkStore.removeList(list.id);
+      bookmarkStoreActions.removeList(list.id);
+
+      toast.success(`Collection deleted`);
     },
   });
 
@@ -45,15 +48,14 @@ export default function ListDeleteDialog({ list, children, publicList }: Props) 
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>This will permanently delete the list.</AlertDialogDescription>
+          <AlertDialogDescription>
+            This will permanently delete the collection.
+          </AlertDialogDescription>
           {publicList?.published && (
             <form ref={formRef}>
               <div className="flex items-center space-x-2 pt-4">
                 <Checkbox id="unpublish" defaultChecked={true} />
-                <Label htmlFor="unpublish">Unpublish</Label>
-              </div>
-              <div className="text-muted-foreground text-xs">
-                If checked, the public list copy will also be deleted.
+                <Label htmlFor="unpublish">Unpublish and delete public copy</Label>
               </div>
             </form>
           )}

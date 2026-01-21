@@ -5,12 +5,24 @@ import { z } from "zod";
 import { getApiURL } from "./util";
 
 async function getUserId() {
-  return chrome.storage.local.get("userId").then(({ userId }) => userId);
+  return chrome.storage.local.get("userId").then(({ userId }) => userId as string);
+}
+
+class ListApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ListApiError";
+  }
 }
 
 export async function getPublicList(publicId: string): Promise<PublicListView> {
   return fetch(getApiURL(`/lists/${publicId}`))
-    .then((res) => res.json())
+    .then((res) =>
+      res.ok ? res.json() : Promise.reject(new ListApiError("Failed to fetch list", res.status)),
+    )
     .then(({ list }) => list);
 }
 
@@ -21,7 +33,9 @@ export async function getLists(): Promise<UserList[]> {
       "X-EchoTab-userId": userId,
     },
   })
-    .then((res) => res.json())
+    .then((res) =>
+      res.ok ? res.json() : Promise.reject(new ListApiError("Failed to fetch lists", res.status)),
+    )
     .then(({ lists }) => lists);
 }
 
@@ -32,7 +46,9 @@ export async function unpublishLists() {
     headers: {
       "X-EchoTab-userId": userId,
     },
-  });
+  }).then((res) =>
+    res.ok ? res.json() : Promise.reject(new ListApiError("Failed to unpublish lists", res.status)),
+  );
 }
 
 const partialList = validators.list.partial();
@@ -50,7 +66,9 @@ export async function updateList(
       "Content-Type": "application/json",
     },
   })
-    .then((res) => res.json())
+    .then((res) =>
+      res.ok ? res.json() : Promise.reject(new ListApiError("Failed to update list", res.status)),
+    )
     .then(({ list }) => list);
 }
 
@@ -64,6 +82,8 @@ export async function publishList(list: z.infer<typeof validators.list>): Promis
       "Content-Type": "application/json",
     },
   })
-    .then((res) => res.json())
+    .then((res) =>
+      res.ok ? res.json() : Promise.reject(new ListApiError("Failed to publish list", res.status)),
+    )
     .then(({ list }) => list);
 }

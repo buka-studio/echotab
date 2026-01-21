@@ -1,8 +1,15 @@
+import {
+  $isListNode,
+  INSERT_UNORDERED_LIST_COMMAND,
+  ListNode,
+  REMOVE_LIST_COMMAND,
+} from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { mergeRegister } from "@lexical/utils";
+import { $findMatchingParent, mergeRegister } from "@lexical/utils";
 import {
   FontBoldIcon,
   FontItalicIcon,
+  ListBulletIcon,
   LockClosedIcon,
   LockOpen1Icon,
   ResetIcon,
@@ -22,7 +29,7 @@ import {
 } from "lexical";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
 
-import Button from "../../Button";
+import { Button } from "../../Button";
 import { cn } from "../../util";
 
 function ToolbarButton(props: ComponentProps<typeof Button>) {
@@ -46,6 +53,7 @@ export default function ToolbarPlugin() {
   const [isItalic, setIsItalic] = useState(false);
   const [isStrikethrough, setIsStrikethrough] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
+  const [isBulletList, setIsBulletList] = useState(false);
 
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
@@ -55,6 +63,10 @@ export default function ToolbarPlugin() {
       setIsItalic(selection.hasFormat("italic"));
       setIsStrikethrough(selection.hasFormat("strikethrough"));
       setIsUnderline(selection.hasFormat("underline"));
+
+      const anchorNode = selection.anchor.getNode();
+      const parent = $findMatchingParent(anchorNode, $isListNode);
+      setIsBulletList(parent instanceof ListNode && parent.getListType() === "bullet");
     }
   }, [editor]);
 
@@ -109,7 +121,21 @@ export default function ToolbarPlugin() {
           <UnderlineIcon className="text-foreground h-5 w-5" />
         </ToolbarButton>
 
-        <span className="bg-border block h-6 w-[1px]"></span>
+        <span className="bg-border mx-1 block h-6 w-px"></span>
+
+        <ToolbarButton
+          className={cn(isBulletList ? "bg-muted" : "bg-transparent")}
+          onClick={() => {
+            if (isBulletList) {
+              editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+            } else {
+              editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+            }
+          }}>
+          <ListBulletIcon className="text-foreground h-5 w-5" />
+        </ToolbarButton>
+
+        <span className="bg-border mx-1 block h-6 w-px"></span>
 
         <ToolbarButton
           onClick={() => {
@@ -141,7 +167,7 @@ export default function ToolbarPlugin() {
           onClick={() => {
             editor.dispatchCommand(REDO_COMMAND, undefined);
           }}>
-          <ResetIcon className="text-foreground h-5 w-5 [transform:rotateY(180deg)]" />
+          <ResetIcon className="text-foreground h-5 w-5 transform-[rotateY(180deg)]" />
         </ToolbarButton>
       </div>
       <ToolbarButton

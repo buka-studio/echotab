@@ -1,8 +1,7 @@
 import { Badge } from "@echotab/ui/Badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
-import { ScrollArea, ScrollBar } from "@echotab/ui/ScrollArea";
 
-import { Tag } from "~/src/models";
+import { Tag } from "~/models";
 
 import TagChip from "./TagChip";
 
@@ -25,21 +24,19 @@ export default function TagChipList({
   const excess = tags.length - max;
 
   return (
-    <div className="flex items-center gap-2 overflow-hidden">
-      <ScrollArea className="w-full">
-        <div className="flex items-center gap-2">
-          {visibleTags.map((tag) => (
-            <TagChip key={tag.id} color={tag.color} onRemove={onRemove && (() => onRemove?.(tag))}>
-              {tag.name}
-            </TagChip>
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+    <div className="scrollbar-gray flex items-center gap-2 overflow-auto">
+      <div className="flex items-center gap-2">
+        {visibleTags.map((tag) => (
+          <TagChip key={tag.id} color={tag.color} onRemove={onRemove && (() => onRemove?.(tag))}>
+            {tag.name}
+          </TagChip>
+        ))}
+      </div>
+
       {excess > 0 && (
         <Popover>
           <PopoverTrigger asChild disabled={!expandable}>
-            <button className="focus-ring m-[1px] rounded">
+            <button className="focus-ring m-px rounded">
               <Badge variant="secondary" className="whitespace-nowrap">
                 + {tags.length - max}
               </Badge>

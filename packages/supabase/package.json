@@ -9,17 +9,21 @@
   },
   "private": true,
   "sideEffects": false,
-  "files": [],
+  "files": [
+    "src"
+  ],
   "exports": {
     "./client": "./src/client.ts",
     "./util": "./src/util.ts",
     "./constants": "./src/constants.ts"
   },
-  "devDependencies": {
-    "supabase": "~1.183.5"
-  },
   "dependencies": {
-    "@supabase/ssr": "~0.4.0",
-    "@supabase/supabase-js": "~2.44.3"
+    "@supabase/ssr": "~0.8.0",
+    "@supabase/supabase-js": "~2.86.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "@echotab/tsconfig": "workspace:*",
+    "supabase": "~2.65.6"
   }
 }

@@ -2,15 +2,15 @@ import { incrementImportCount } from "@echotab/lists/ListService";
 import * as validators from "@echotab/lists/validators";
 
 interface Context {
-  params: { listId: string };
+  params: Promise<{ listId: string }>;
 }
 
 export async function POST(req: Request, context: Context) {
-  const listId = context.params.listId;
+  const { listId } = await context.params;
 
-  const { error } = validators.userId.safeParse(listId);
+  const { error } = validators.listId.safeParse(listId);
   if (error) {
-    return Response.json({ error: error.message }, { status: 400 });
+    return Response.json({ error: "Invalid listId format" }, { status: 400 });
   }
 
   try {

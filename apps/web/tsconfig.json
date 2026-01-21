@@ -1,6 +1,11 @@
 {
   "extends": "@echotab/tsconfig/nextjs.json",
   "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"]

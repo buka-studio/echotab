@@ -1,5 +1,5 @@
 import { UserList } from "@echotab/lists/models";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   Dialog,
   DialogClose,
@@ -9,21 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@echotab/ui/Dialog";
-import { Label } from "@echotab/ui/Label";
-import Spinner from "@echotab/ui/Spinner";
-import Switch from "@echotab/ui/Switch";
-import {
-  ArrowTopRightIcon,
-  BookmarkIcon,
-  EyeOpenIcon,
-  InfoCircledIcon,
-} from "@radix-ui/react-icons";
-import { ComponentProps, ReactNode, useRef, useState } from "react";
+import { Separator } from "@echotab/ui/Separator";
+import { Spinner } from "@echotab/ui/Spinner";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { ComponentProps, CSSProperties, ReactNode, useState } from "react";
 
-import { List } from "~/src/models";
+import { List } from "~/models";
 
 import { formatDate } from "../../util/date";
-import BookmarkStore from "../BookmarkStore";
+import Illustration from "./Illustration";
+import PublishIndicator from "./PublishIndicator";
 import { usePublishListMutation, useUnpublishMutation, useUpdateListMutation } from "./queries";
 import { getPublicListURL } from "./util";
 
@@ -34,8 +29,6 @@ type Props = {
 } & ComponentProps<typeof Dialog>;
 
 export default function ListPublishDialog({ list, children, publicList }: Props) {
-  const formRef = useRef<HTMLFormElement>(null);
-
   const [open, setOpen] = useState(false);
 
   const publishMutation = usePublishListMutation();
@@ -58,70 +51,36 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
 
   const unpublishMutation = useUnpublishMutation();
 
-  const handleFormChange = () => {
-    const formData = new FormData(formRef.current!);
-    const sync = formData.get("sync") === "on";
-
-    BookmarkStore.upsertList({ ...list, sync });
-  };
+  const isOutdated = useMemo(
+    () => publicList && publicList.content !== list.content,
+    [publicList, list],
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Publish List</DialogTitle>
-          <DialogDescription>Publish this list to share it with others.</DialogDescription>
+          <DialogTitle>Publish Collection</DialogTitle>
+          <DialogDescription>
+            {isOutdated
+              ? "This collection has unpublished changes. Republish to make the latest updates visible."
+              : "Publish this collection to share it with others."}
+          </DialogDescription>
         </DialogHeader>
-        <div>
-          <div className="border-border text-muted-foreground rounded border border-dashed p-4">
-            <InfoCircledIcon className="mr-1 inline text-balance" /> Note: the list will be
-            available publicly after sharing. We recommend removing any sensitive information and/or
-            links you don&apos;t want others to see.
-          </div>
-          <form ref={formRef} onChange={handleFormChange}>
-            <div className="mt-3 flex items-center space-x-2">
-              <Switch id="sync" name="sync" defaultChecked={list.sync} />
-              <Label htmlFor="sync">Sync updates</Label>
-            </div>
-            <div className="text-muted-foreground mt-2 text-xs">
-              If checked, the published list will be updated automatically when you make changes.
-            </div>
-          </form>
-
-          {publicList && (
-            <div className="mt-4 flex items-start justify-between border-t pt-4">
-              <div>
-                <div className="text-muted-foreground">
-                  Last published: {formatDate(list.updatedAt)}
-                </div>
-                <div className="flex items-center gap-5">
-                  <div className="text-muted-foreground flex items-center gap-2">
-                    <EyeOpenIcon /> Views: {publicList?.viewCount}
-                  </div>
-                  <div className="text-muted-foreground flex items-center gap-2">
-                    <BookmarkIcon />
-                    Imports: {publicList?.importCount}
-                  </div>
-                </div>
-              </div>
-              <Button asChild variant="link">
-                <a
-                  className="flex items-center text-base"
-                  target="_blank"
-                  href={getPublicListURL(publicList.publicId)}>
-                  Visit <ArrowTopRightIcon className="ml-2 h-4 w-4" />{" "}
-                </a>
-              </Button>
-            </div>
+        <div className="text-muted-foreground mb-4 text-sm">
+          {!publicList ? (
+            <UnpublishedListContent />
+          ) : (
+            <PublishedListContent list={list} publicList={publicList} />
           )}
         </div>
 
         <DialogFooter>
           {publicList?.published && (
             <Button
-              variant="ghost"
-              className="mr-auto"
+              variant="destructive"
+              className="sm:mr-auto"
               onClick={() =>
                 unpublishMutation.mutate(list.id, {
                   onSuccess: () => {
@@ -133,7 +92,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
               {unpublishMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}Unpublish
             </Button>
           )}
-          <DialogClose asChild>
+          <DialogClose asChild className="-order-1 sm:order-[initial] sm:block">
             <Button variant="ghost">Cancel</Button>
           </DialogClose>
           {publicList ? (
@@ -146,7 +105,7 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
             </Button>
           ) : (
             <Button
-              variant="outline"
+              variant="default"
               onClick={handlePublishList}
               disabled={publishMutation.isPending}>
               {publishMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}Publish
@@ -155,5 +114,63 @@ export default function ListPublishDialog({ list, children, publicList }: Props)
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function UnpublishedListContent() {
+  return (
+    <div className="relative mt-5 grid grid-cols-1 items-center justify-center justify-items-center gap-5 sm:grid-cols-[3fr_7fr]">
+      <Illustration
+        className="max-h-[100px]"
+        style={
+          {
+            "--background": "var(--background-base)",
+            "--dot": "var(--primary)",
+            "--foreground-muted": "var(--border)",
+            "--foreground": "var(--muted-foreground)",
+            "--skeleton": "var(--border-active)",
+            "--skeleton-muted": "var(--card)",
+          } as CSSProperties
+        }
+      />
+      <div className="relative z-1 text-left">
+        The collection will be available publicly after sharing. We recommend removing any sensitive
+        information and/or links you don&apos;t want others to see.
+      </div>
+    </div>
+  );
+}
+
+function PublishedListContent({ list, publicList }: { list: List; publicList: UserList }) {
+  const publicListURL = getPublicListURL(publicList.publicId);
+
+  return (
+    <div className="bg-card flex flex-col gap-2 rounded-md px-5 py-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <PublishIndicator list={list} publicList={publicList} disabled />
+          <div className="text-foreground text-sm">{publicList.title}</div>
+        </div>
+
+        {publicList.published && (
+          <Button variant="link" asChild>
+            <a
+              href={publicListURL ?? ""}
+              target="_blank"
+              className="hover:underline focus-visible:underline focus-visible:outline-none">
+              Visit link <ArrowTopRightIcon />
+            </a>
+          </Button>
+        )}
+      </div>
+      <Separator />
+      <div>
+        <div className="text-muted-foreground flex items-center gap-2">
+          Last published: {formatDate(publicList.updated_at)}{" "}
+          <span className="opacity-50"> | </span>
+          Views: {publicList.viewCount}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,8 +1,7 @@
-import type { Preview } from "@storybook/react";
+import type { Preview } from "@storybook/react-vite";
 import React from "react";
 
 import "../src/globals.css";
-import "./preview.css";
 
 const preview: Preview = {
   parameters: {
@@ -14,6 +13,7 @@ const preview: Preview = {
     },
   },
 };
+
 
 export const decorators = [
   (Story) => (

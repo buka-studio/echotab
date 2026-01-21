@@ -24,7 +24,7 @@ You can install the extension in a couple of ways:
 After downloading the code, run the following commands:
 
 ```bash
-npm install
+pnpm install
 npx turbo build
 ```
 

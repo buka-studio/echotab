@@ -48,10 +48,10 @@ export default function Ruler({
   return (
     <div
       className={cn(
-        "ruler border-border pointer-events-none fixed left-0 top-1/2 z-[100] h-[calc(var(--step-size)*var(--steps)*1px)] -translate-y-1/2",
+        "ruler dark:border-muted border-border-active pointer-events-none fixed top-1/2 left-0 z-100 h-[calc(var(--step-size)*var(--steps)*1px)] -translate-y-1/2",
         {
-          "left-2 border-l": isLeft,
-          "right-2 border-r": isRight,
+          "left-2 border-l-2": isLeft,
+          "right-2 border-r-2": isRight,
         },
         className,
       )}
@@ -67,7 +67,7 @@ export default function Ruler({
             key={i}
             style={{ "--offset": i * stepSize } as CSSProperties}
             className={cn(
-              "ruler-step outline-border absolute top-[calc(var(--offset)*1px)] w-1 outline outline-1",
+              "ruler-step dark:outline-muted outline-border-active absolute top-[calc(var(--offset)*1px)] w-1 outline",
               {
                 "w-3": i % 5 === 0,
                 "w-5": i % 10 === 0,
@@ -78,7 +78,7 @@ export default function Ruler({
             {isValue && (
               <motion.div
                 layoutId={`ruler-value-${id}`}
-                className={cn("outline-border absolute top-0 w-[100px] outline-dashed outline-1", {
+                className={cn("outline-border absolute top-0 w-[100px] outline-1 outline-dashed", {
                   "left-0": isLeft,
                   "right-0": isRight,
                 })}>

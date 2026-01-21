@@ -1,5 +1,5 @@
 import { Slot } from "@radix-ui/react-slot";
-import SelectionArea, { SelectionEvent } from "@viselect/react";
+import { SelectionArea, SelectionEvent } from "@viselect/react";
 import { ComponentProps } from "react";
 
 import { equals } from "../util/set";
@@ -9,6 +9,24 @@ interface Props {
   getSelected: () => Set<number | string>;
   onSelectionChange: (ids: Set<number | string>) => void;
 }
+
+const isAncestorInteractive = (event: MouseEvent) => {
+  const el = event.target
+    ? (event.target as Element).closest("button, input, a, select, textarea, option, label")
+    : null;
+
+  if (!el) {
+    return false;
+  }
+
+  const isSelectable = el.classList.contains("selectable");
+
+  if (isSelectable) {
+    return false;
+  }
+
+  return true;
+};
 
 export function SelectableList({
   onResetSelection,
@@ -54,6 +72,9 @@ export function SelectableList({
   };
 
   const onBeforeStart = ({ event, ...rest }: SelectionEvent) => {
+    if (event && isAncestorInteractive(event as MouseEvent)) {
+      return false;
+    }
     if (event && "buttons" in event) {
       const allowedButtons = [
         1, // left click

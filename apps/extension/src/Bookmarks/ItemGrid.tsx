@@ -19,22 +19,30 @@ interface Props<T> {
   items: T[];
   children: (props: { item: T; index: number }) => React.ReactNode;
   label?: ReactNode;
+  className?: string;
 }
 
-export default function ItemGrid<T extends string | number>({ items, children }: Props<T>) {
+export default function ItemGrid<T extends string | number>({
+  items,
+  className,
+  children,
+}: Props<T>) {
   const { gridRefCallback, edgeIndices, placeholderCount } = useGridLayoutInfo(items.length);
 
   return (
     <div
-      className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] [&>*]:ml-[-1px] [&>*]:mt-[-1px]"
+      className={cn(
+        "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] rounded-lg *:-mt-px *:-ml-px empty:hidden",
+        className,
+      )}
       ref={gridRefCallback}>
       {items.map((item, i) => (
         <div
-          className={cn("@container relative focus-within:z-[1] hover:z-[1]", {
-            "[&>*]:rounded-tr-lg": i === edgeIndices.topRight,
-            "[&>*]:rounded-tl-lg": i === edgeIndices.topLeft,
-            "[&>*]:rounded-br-lg": i === edgeIndices.bottomRight,
-            "[&>*]:rounded-bl-lg": i === edgeIndices.bottomLeft,
+          className={cn("@container relative focus-within:z-1 hover:z-1", {
+            "*:rounded-tr-lg": i === edgeIndices.topRight,
+            "*:rounded-tl-lg": i === edgeIndices.topLeft,
+            "*:rounded-br-lg": i === edgeIndices.bottomRight,
+            "*:rounded-bl-lg": i === edgeIndices.bottomLeft,
           })}
           key={item}>
           {children({ item, index: i })}

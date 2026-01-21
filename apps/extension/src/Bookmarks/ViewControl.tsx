@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,10 +8,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@echotab/ui/DropdownMenu";
+import { cn } from "@echotab/ui/util";
 import { ArrowDownIcon, ArrowUpIcon, CheckIcon, MixerVerticalIcon } from "@radix-ui/react-icons";
 
+import {
+  bookmarkStoreViewActions,
+  TabGrouping,
+  TabSortProp,
+  useBookmarkViewStore,
+} from "../store/bookmarkStore";
 import { SortDir } from "../util/sort";
-import { TabGrouping, TabSortProp, useBookmarkStore } from "./BookmarkStore";
 
 const tagViewSortOptions = [
   { value: TabSortProp.TagName, label: "Tag Name" },
@@ -35,21 +41,21 @@ const sortOptionsByView = {
 };
 
 export default function ViewControl() {
-  const tabStore = useBookmarkStore();
+  const view = useBookmarkViewStore();
 
   function handleToggleSort(prop: TabSortProp) {
-    tabStore.setView({
+    bookmarkStoreViewActions.setView({
       sort: {
         prop,
-        dir: tabStore.view.sort.dir === SortDir.Asc ? SortDir.Desc : SortDir.Asc,
+        dir: view.sort.dir === SortDir.Asc ? SortDir.Desc : SortDir.Asc,
       },
     });
   }
 
   function handleSetGrouping(grouping: TabGrouping) {
-    tabStore.setView({
+    bookmarkStoreViewActions.setView({
       grouping,
-      sort: { prop: sortOptionsByView[grouping][0].value, dir: SortDir.Asc },
+      sort: { prop: sortOptionsByView[grouping]![0]!.value, dir: SortDir.Asc },
     });
   }
 
@@ -57,7 +63,7 @@ export default function ViewControl() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost">
-          <MixerVerticalIcon className="mr-3 h-4 w-4" /> View
+          <MixerVerticalIcon className="mr-2 h-4 w-4" /> View
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -71,28 +77,32 @@ export default function ViewControl() {
               key={value}
               className="gap-2">
               {label}
-              {tabStore.view.grouping === value && <CheckIcon className="ml-auto h-4 w-4" />}
+              {view.grouping === value && <CheckIcon className="ml-auto h-4 w-4" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-          {sortOptionsByView[tabStore.view.grouping].map(({ value, label }) => {
-            const active = tabStore.view.sort.prop === value;
+          {sortOptionsByView[view.grouping].map(({ value, label }) => {
+            const active = view.sort.prop === value;
             return (
               <DropdownMenuItem
                 key={value}
                 keepOpen
                 onClick={() => handleToggleSort(value)}
-                className="gap-2">
+                className="justify-between gap-2">
                 {label}
-                {active &&
-                  (tabStore.view.sort.dir === SortDir.Asc ? (
+                <div
+                  className={cn({
+                    "opacity-0": !active,
+                  })}>
+                  {view.sort.dir === SortDir.Asc ? (
                     <ArrowUpIcon className="ml-auto h-4 w-4" />
                   ) : (
                     <ArrowDownIcon className="ml-auto h-4 w-4" />
-                  ))}
+                  )}
+                </div>
               </DropdownMenuItem>
             );
           })}

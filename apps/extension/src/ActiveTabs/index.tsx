@@ -1,2 +1,2 @@
-export { default as ActiveStore, useActiveTabStore } from "./ActiveStore";
+export { useTabStore } from "../store/tabStore";
 export { default } from "./ActiveTabs";

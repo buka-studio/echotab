@@ -8,8 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@echotab/ui/AlertDialog";
-import Button from "@echotab/ui/Button";
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import {
   Dialog,
   DialogContent,
@@ -20,26 +20,36 @@ import {
   DialogTrigger,
 } from "@echotab/ui/Dialog";
 import { NumberFlow } from "@echotab/ui/NumberFlow";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import {
-  ArrowLineUpRight as ArrowLineUpRightIcon,
-  FastForward as FastForwardIcon,
-  HeartStraight as HeartIcon,
-  X as XIcon,
+  ArrowLineUpRightIcon,
+  FastForwardIcon,
+  HeartIcon,
+  RewindIcon,
+  SparkleIcon,
+  TagIcon,
+  XIcon,
 } from "@phosphor-icons/react";
+import { ClockIcon, LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
-import { remap } from "~/src/util/math";
-
-import { CurateStore } from ".";
-import { useBookmarkStore } from "../Bookmarks";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { SavedTab } from "../models";
+import { bookmarkStoreActions, useBookmarkStore } from "../store/bookmarkStore";
+import {
+  curateStoreActions,
+  InclusionReason,
+  InclusionResult,
+  useCurateStore,
+} from "../store/curateStore";
+import { pluralize } from "../util";
 import { getUtcISO } from "../util/date";
-import CurateCard from "./CurateCard";
+import { remap } from "../util/math";
+import { CurateCard } from "./CurateCard";
 import CurateDock, { DockAction } from "./CurateDock";
-import { InclusionResult, useCurateStore } from "./CurateStore";
 import CurateSummary from "./CurateSummary";
 import Ruler from "./Ruler";
 import SwipeableCard, { Direction, SwipeableRef } from "./SwipeableCard";
@@ -48,27 +58,32 @@ import TagList from "./TagList";
 interface Props {
   children?: ReactNode;
   maxCards?: number;
+  curateQueueItems: InclusionResult[];
 }
 
-const useCurateQueue = (maxCards: number) => {
-  const curateStore = useCurateStore();
+const useCurateQueue = (maxCards: number, curateQueueItems: InclusionResult[]) => {
+  const open = useCurateStore((s) => s.open);
   const [queue, setQueue] = useState<InclusionResult[]>([]);
   const [initialized, setInitialized] = useState(false);
   const total = useRef(0);
 
   useEffect(() => {
-    setInitialized(curateStore.open);
-    if (curateStore.open) {
-      setQueue(curateStore.queue);
-      total.current = curateStore.queue.length;
+    setInitialized(open);
+    if (open) {
+      setQueue(curateQueueItems);
+      total.current = curateQueueItems.length;
     }
-  }, [curateStore.open]);
+  }, [open, curateQueueItems]);
 
   const [kept, setKept] = useState<InclusionResult[]>([]);
   const [deleted, setDeleted] = useState<InclusionResult[]>([]);
 
   const dequeue = (choice: "keep" | "delete" | "skip") => {
     const [item, ...wipQueue] = queue;
+
+    if (!item) {
+      return;
+    }
 
     if (choice === "keep") {
       setKept((prev) => [...prev, item]);
@@ -77,8 +92,21 @@ const useCurateQueue = (maxCards: number) => {
       setDeleted((prev) => [...prev, item]);
       setQueue(wipQueue);
     } else if (choice === "skip") {
-      setQueue([...wipQueue, item]);
+      setQueue([...wipQueue, { ...item, skipped: true, unshifted: false }]);
     }
+  };
+
+  const unshift = () => {
+    if (queue.length < 2) return;
+
+    setQueue((prev) => {
+      const lastItem = prev.at(-1);
+      if (!lastItem || !lastItem.skipped) {
+        return prev;
+      }
+      const rest = prev.slice(0, -1).map((item) => ({ ...item, unshifted: false }));
+      return [{ ...lastItem, unshifted: true }, ...rest];
+    });
   };
 
   const visibleQueue = queue.slice(0, maxCards);
@@ -87,6 +115,7 @@ const useCurateQueue = (maxCards: number) => {
     total: total.current,
     queue: visibleQueue,
     dequeue,
+    unshift,
     left: queue.length,
     kept,
     deleted,
@@ -98,36 +127,66 @@ export function CurateTrigger({ children }: { children: ReactNode }) {
   return <DialogTrigger asChild>{children}</DialogTrigger>;
 }
 
-export default function Curate({ children, maxCards = 5 }: Props) {
-  const curateStore = useCurateStore();
-  const bookmarkStore = useBookmarkStore();
+export default function Curate({ children, maxCards = 5, curateQueueItems }: Props) {
+  const open = useCurateStore((s) => s.open);
+  const settings = useCurateStore((s) => s.settings);
+  const tabs = useBookmarkStore((s) => s.tabs);
+  // const curateQueueItems = useCurateQueueHook({ manualIds: [] });
 
-  const { initialized, total, queue, kept, deleted, left, dequeue } = useCurateQueue(maxCards);
+  const { initialized, total, queue, kept, deleted, left, dequeue, unshift } = useCurateQueue(
+    maxCards,
+    curateQueueItems,
+  );
 
   const curateTabsById = useMemo(() => {
-    const curateTabIds = new Set(curateStore.queue.map((result) => result.tabId));
+    const curateTabIds = new Set(curateQueueItems.map((result) => result.tabId));
 
     return Object.fromEntries(
-      bookmarkStore.tabs.filter((tab) => curateTabIds.has(tab.id)).map((tab) => [tab.id, tab]),
+      tabs.filter((tab) => curateTabIds.has(tab.id)).map((tab) => [tab.id, tab]),
     );
-  }, [bookmarkStore.tabs, queue]);
+  }, [tabs, curateQueueItems]);
 
   const swipeableRef = useRef<SwipeableRef | null>(null);
+
+  const [pressAction, setPressAction] = useState<string | null>(null);
+  const pressActionTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleSwipe = (tab: SavedTab, direction?: Direction) => {
     if (direction === "left") {
       dequeue("delete");
     } else if (direction === "right") {
       dequeue("keep");
-    } else if (direction === "up") {
+    } else if (direction === "down") {
       dequeue("skip");
       setSkipCount((prev) => ({ ...prev, [tab.id]: (prev[tab.id] || 0) + 1 }));
+    } else if (direction === "up") {
+      setSkipCount((prev) => {
+        const count = prev[tab.id] || 0;
+        return { ...prev, [tab.id]: count - 1 };
+      });
+      unshift();
     }
+  };
+
+  const handleBeforeSwipe = (tab: SavedTab, direction?: Direction) => {
+    if (direction === "left") {
+      setPressAction("delete");
+    } else if (direction === "right") {
+      setPressAction("keep");
+    }
+
+    if (pressActionTimeout.current) {
+      clearTimeout(pressActionTimeout.current);
+    }
+
+    pressActionTimeout.current = setTimeout(() => {
+      setPressAction(null);
+    }, 150);
   };
 
   const handleFinish = () => {
     if (kept.length + deleted.length !== 0) {
-      CurateStore.saveSession({
+      curateStoreActions.saveCurateSession({
         kept: kept.length,
         deleted: deleted.length,
         keptIds: kept.map((result) => result.tabId),
@@ -135,19 +194,20 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
       if (deleted.length) {
         const deletedIds = deleted.map((result) => result.tabId);
-        bookmarkStore.removeTabs(deletedIds);
+        bookmarkStoreActions.removeTabs(deletedIds);
       }
 
       if (kept.length) {
         const keptIds = kept.map((result) => result.tabId);
-        bookmarkStore.updateTabs(keptIds, { lastCuratedAt: getUtcISO() });
+        bookmarkStoreActions.updateTabs(keptIds, { lastCuratedAt: getUtcISO() });
       }
     }
 
-    curateStore.setOpen(false);
+    curateStoreActions.setCurateOpen(false);
   };
 
-  const currentTab = curateTabsById[queue[0]?.tabId];
+  const tabId = queue[0]?.tabId;
+  const currentTab = tabId ? curateTabsById[tabId] : null;
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [forceFinish, setForceFinish] = useState(false);
@@ -156,17 +216,25 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
   const [skipCount, setSkipCount] = useState<Record<string, number>>({});
 
+  const applicableReasons = Object.entries(queue[0]?.reasons || {})
+    .filter(([_, value]) => value)
+    .map(([reason]) => reason);
+
+  useHotkeys("up", () => unshift());
+
+  const hasSkipped = Object.values(skipCount).some((count) => count > 0);
+
   return (
     <Dialog
-      open={curateStore.open}
+      open={open}
       onOpenChange={(state) => {
         if (state) {
-          curateStore.setOpen(true);
+          curateStoreActions.setCurateOpen(true);
         } else {
           if (left > 0 && !forceFinish) {
             setConfirmDialogOpen(true);
           } else {
-            curateStore.setOpen(false);
+            curateStoreActions.setCurateOpen(false);
           }
         }
       }}>
@@ -177,10 +245,10 @@ export default function Curate({ children, maxCards = 5 }: Props) {
           e.preventDefault();
         }}
         className={cn(
-          "flex h-full max-h-[100vh] max-w-[100vw] flex-col overflow-hidden border-none bg-transparent p-0",
+          "flex h-full max-h-screen flex-col overflow-hidden border-none bg-transparent p-0 md:max-w-[100vw]",
         )}
         overlay={
-          <DialogOverlay className="bg-background dark:bg-background-base dark:brightness-90" />
+          <DialogOverlay className="bg-background-base dark:bg-background-base dark:brightness-90" />
         }>
         <Ruler value={deleted.length} side="left">
           <AnimatedNumberBadge value={deleted.length} />
@@ -191,14 +259,14 @@ export default function Curate({ children, maxCards = 5 }: Props) {
 
         <DialogHeader
           className={cn(
-            "border-border fixed left-0 right-0 top-0 z-50 mx-auto w-full max-w-[calc(100vw-200px)] border-b p-8 pb-2 text-center backdrop-blur-md transition-all duration-300 ease-in-out",
+            "border-border fixed top-0 right-0 left-0 z-50 mx-auto w-full max-w-[calc(100vw-200px)] border-b p-8 pb-2 text-center backdrop-blur-md transition-all duration-300 ease-in-out",
             {
               "translate-y-[-200px] opacity-0": ended,
             },
           )}>
           <DialogTitle className="sr-only">Curate</DialogTitle>
           <DialogDescription className="flex items-center text-sm">
-            <span className="hidden md:block">Swipe left to remove</span>
+            <span className="hidden md:block">Swipe left to delete</span>
             <span
               className={cn("mx-auto flex items-center gap-2", {
                 "opacity-0": left === 0,
@@ -223,19 +291,30 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                 </CurateSummary>
               )}
               {!forceFinish &&
-                queue.map((result, i) => {
-                  const tab = curateTabsById[result.tabId];
+                queue.map((result, i, all) => {
+                  const tab = curateTabsById[result.tabId]!;
+                  const hideTab = all.length > 2 && i > 1;
+
                   return (
                     <SwipeableCard
                       autoFocus={i === 0}
                       key={tab.id + skipCount[tab.id]}
                       constrained
-                      className={cn("focus-ring absolute rounded-2xl")}
+                      className={cn(
+                        "focus-ring absolute rounded-2xl perspective-dramatic transform-3d",
+                      )}
                       style={{
                         zIndex: remap(i, 0, maxCards, maxCards, 0),
                         y: remap(i, 0, maxCards, 0, -200),
                         scale: remap(i, 0, maxCards, 1, 0.6),
                         filter: `blur(${remap(i, 0, maxCards, 0, 5)}px)`,
+                        ...(result.unshifted &&
+                          i === 0 && {
+                          filter: "blur(10px)",
+                          opacity: 0,
+                          y: -50,
+                          scale: 0.9,
+                        }),
                       }}
                       active={i === 0}
                       i={i}
@@ -244,9 +323,10 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                           swipeableRef.current = e;
                         }
                       }}
-                      directions={left > 1 ? ["left", "right", "up"] : ["left", "right"]}
-                      onSwiped={(direction) => handleSwipe(tab, direction)}>
-                      <CurateCard tab={tab} visible={i === 0} />
+                      directions={["left", "right", "down"]}
+                      onBeforeSwipe={(direction) => handleBeforeSwipe(tab, direction)}
+                      onSwipe={(direction) => handleSwipe(tab, direction)}>
+                      <CurateCard tab={tab} index={i} visible={i === 0} hidden={hideTab} />
                     </SwipeableCard>
                   );
                 })}
@@ -255,9 +335,9 @@ export default function Curate({ children, maxCards = 5 }: Props) {
         </div>
         <div
           className={cn(
-            "border-border bg-surface-1 fixed bottom-0 z-50 flex min-h-[170px] w-full flex-col items-center justify-center border-t pb-5 backdrop-blur-md transition-all duration-300 ease-in-out",
+            "border-border bg-surface-1 fixed bottom-0 z-50 flex min-h-[170px] w-full flex-col items-center justify-center border-t pb-3 backdrop-blur-md transition-all duration-300 ease-in-out",
           )}>
-          <div className="flex flex-col items-center justify-center gap-5">
+          <div className="flex flex-col items-center justify-center gap-3">
             {!ended && <TagList tagIds={currentTab?.tagIds || []} tabId={currentTab?.id || ""} />}
             <AnimatePresence mode="popLayout">
               {!ended && (
@@ -268,13 +348,27 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                   <CurateDock>
                     <DockAction
                       onClick={() => swipeableRef.current?.swipe("left")}
-                      tooltipText="Delete">
+                      tooltipText="Delete"
+                      className={cn({
+                        "scale-90": pressAction === "delete",
+                      })}>
                       <XIcon
-                        className="h-6 w-6 text-[#F05B5D] shadow-current [filter:drop-shadow(0_0_4px_#D9282B)]"
+                        className="h-6 w-6 text-[#F05B5D] shadow-current dark:filter-[drop-shadow(0_0_4px_#D9282B)]"
                         weight="bold"
                       />
                     </DockAction>
                     <div className="flex items-center gap-2">
+                      <ButtonWithTooltip
+                        variant="outline"
+                        size="icon"
+                        className="bg-card"
+                        tooltipText="Rewind"
+                        disabled={hasSkipped}
+                        onClick={() => {
+                          unshift();
+                        }}>
+                        <RewindIcon className="text-muted-foreground/60 h-5 w-5" />
+                      </ButtonWithTooltip>
                       <ButtonWithTooltip
                         variant="outline"
                         size="icon"
@@ -299,9 +393,12 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                     </div>
                     <DockAction
                       onClick={() => swipeableRef.current?.swipe("right")}
-                      tooltipText="Keep">
+                      tooltipText="Keep"
+                      className={cn({
+                        "scale-90": pressAction === "keep",
+                      })}>
                       <HeartIcon
-                        className="h-6 w-6 text-[#F05BF0] shadow-current [filter:drop-shadow(0_0_4px_#D328D9)]"
+                        className="h-6 w-6 text-[#F05BF0] shadow-current dark:filter-[drop-shadow(0_0_4px_#D328D9)]"
                         weight="bold"
                       />
                     </DockAction>
@@ -309,12 +406,49 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                 </motion.div>
               )}
             </AnimatePresence>
+            {!ended && (
+              <ul className="flex items-center gap-2">
+                <AnimatePresence mode="popLayout">
+                  {applicableReasons.map((r) => {
+                    const reason = r as keyof InclusionReason;
+                    const threshold = settings.reminder.value;
+                    const unit = settings.reminder.unit;
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: 0 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}>
+                        <Tooltip>
+                          <TooltipTrigger className="text-muted-foreground">
+                            {reason === "hasUnassignedTags" && <TagIcon />}
+                            {reason === "hasAITags" && <SparkleIcon />}
+                            {reason === "hasQuickTags" && <LightningBoltIcon />}
+                            {reason === "olderThanThreshold" && <ClockIcon />}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {reason === "hasUnassignedTags" && (
+                              <span>This tab has unassigned tags</span>
+                            )}
+                            {reason === "hasAITags" && <span>This tab has AI tags</span>}
+                            {reason === "hasQuickTags" && <span>This tab has quick tags</span>}
+                            {reason === "olderThanThreshold" && (
+                              <span>This bookmark is older than {pluralize(threshold, unit)}</span>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </ul>
+            )}
           </div>
         </div>
         <AlertDialog open={confirmDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{left} links left</AlertDialogTitle>
+              <AlertDialogTitle>{pluralize(left, 'link')} left</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to finish curating?
               </AlertDialogDescription>
@@ -328,7 +462,7 @@ export default function Curate({ children, maxCards = 5 }: Props) {
                   setForceFinish(true);
                   setConfirmDialogOpen(false);
                 }}
-                variant="destructive">
+                variant="default">
                 Finish
               </AlertDialogAction>
             </AlertDialogFooter>

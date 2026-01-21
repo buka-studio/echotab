@@ -1,25 +1,26 @@
 import { AnimatePresence, motion } from "framer-motion";
 
-import TagChip from "~/src/components/tag/TagChip";
-import { useTagStore } from "~/src/TagStore";
+import TagChip from "~/components/tag/TagChip";
 
-import { BookmarkStore } from "../Bookmarks";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
+import { bookmarkStoreActions } from "../store/bookmarkStore";
+import { useTagsById, useTagStore } from "../store/tagStore";
 
-export default function TagList({ tagIds, tabId }: { tagIds: number[]; tabId: string }) {
-  const tagStore = useTagStore();
+export default function TagList({ tagIds, tabId, maxTags = 3 }: { tagIds: number[]; tabId: string; maxTags?: number }) {
+  const allTags = useTagStore((s) => s.tags);
+  const tagsById = useTagsById();
 
-  const tags = Array.from(tagStore.tags.values()).filter((tag) => tagIds.includes(tag.id));
+  const tags = allTags.filter((tag) => tagIds.includes(tag.id));
 
   const handleSetTags = (tagIds: number[]) => {
-    BookmarkStore.tagTabs([tabId], tagIds, true);
+    bookmarkStoreActions.tagTabs([tabId], tagIds, true);
   };
 
   return (
     <motion.ul className="scrollbar-gray flex max-w-[80vw] flex-nowrap gap-2" layoutScroll>
       <AnimatePresence mode="popLayout">
-        {tagIds.map((id, i) => {
-          const tag = tagStore.tags.get(id);
+        {tagIds.slice(0, maxTags).map((id, i) => {
+          const tag = tagsById.get(id);
           return (
             <motion.div
               layout
@@ -36,6 +37,7 @@ export default function TagList({ tagIds, tabId }: { tagIds: number[]; tabId: st
             </motion.div>
           );
         })}
+        {tagIds.length > maxTags && <motion.span layout>+{tagIds.length - maxTags}</motion.span>}
       </AnimatePresence>
       <motion.div layout key="add_tag">
         <TagChipCombobox

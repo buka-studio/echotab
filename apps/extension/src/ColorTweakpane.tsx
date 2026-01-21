@@ -31,31 +31,30 @@ const colorVariables = [
   "--surface-4",
 ];
 
-const round2 = (num: number) => Math.round(num * 100) / 100;
+const round3 = (num: number) => Math.round(num * 1000) / 1000;
 
-const hslToHex = (h: number, s: number, l: number) => chroma(h, s / 100, l / 100, "hsl").hex();
-const chromaFromHsl = (color: string) => {
-  const [h, s, l] = color.replaceAll("%", "").split(" ").map(Number);
-
-  return chroma(h, s / 100, l / 100, "hsl");
+const formatOklch = (l: number, c: number, h: number): string => {
+  return `oklch(${round3(l * 100)}% ${round3(c)} ${round3(h)})`;
 };
 
 const initTweakpane = () => {
-  const style = window.getComputedStyle(document.documentElement);
+  const root = document.querySelector(".echotab-root") ?? document.documentElement;
+  const style = window.getComputedStyle(root);
 
   const initialValues = Object.fromEntries(
     colorVariables.map((v) => {
-      const color = style.getPropertyValue(v);
-
+      const color = style.getPropertyValue(v).trim();
       return [v, color];
     }),
   );
 
-  let params = Object.fromEntries(
+  const params = Object.fromEntries(
     colorVariables.map((v) => {
-      const color = style.getPropertyValue(v);
-      const [h, s, l] = color.replaceAll("%", "").split(" ").map(Number);
-      const [r, g, b] = chroma(h, s / 100, l / 100, "hsl").rgb();
+      const color = style.getPropertyValue(v).trim();
+      if (!color) {
+        return [v, { r: 128, g: 128, b: 128 }];
+      }
+      const [r, g, b] = chroma(color).rgb();
 
       return [v, { r, g, b }];
     }),
@@ -72,12 +71,9 @@ const initTweakpane = () => {
       })
       .on("change", (e) => {
         const { r, g, b } = e.value;
-        const [h, s, l] = chroma(r, g, b, "rgb").hsl();
+        const [l, c, h] = chroma(r, g, b, "rgb").oklch();
 
-        document.documentElement.style.setProperty(
-          v,
-          `${round2(h || 0)} ${round2(s * 100)}% ${round2(l * 100)}%`,
-        );
+        (root as HTMLElement).style.setProperty(v, formatOklch(l, c, h || 0));
       });
   }
 
@@ -85,31 +81,20 @@ const initTweakpane = () => {
 
   pane.addButton({ title: "Reset Colors" }).on("click", () => {
     for (const v of colorVariables) {
-      document.documentElement.style.setProperty(v, initialValues[v]);
+      (root as HTMLElement).style.setProperty(v, initialValues[v] ?? null);
     }
 
     pane.importState(initState);
   });
 
   pane.addButton({ title: "Export Colors" }).on("click", () => {
-    const css = `:root {\n${colorVariables
-      .flatMap((v) => {
-        if (!window.getComputedStyle(document.documentElement).getPropertyValue(v)) {
+    const w3cJson = Object.fromEntries(
+      colorVariables.flatMap((v) => {
+        const rawColor = window.getComputedStyle(root).getPropertyValue(v).trim();
+        if (!rawColor) {
           return [];
         }
-        const chroma = chromaFromHsl(
-          window.getComputedStyle(document.documentElement).getPropertyValue(v),
-        );
-        return [`${v}: ${chroma.hex()};`];
-      })
-      .join("\n")}\n}`;
-
-    const w3cJson = Object.fromEntries(
-      colorVariables.map((v) => {
-        const chroma = chromaFromHsl(
-          window.getComputedStyle(document.documentElement).getPropertyValue(v),
-        );
-        return [v.slice(2), { $value: chroma.hex(), $type: "color" }];
+        return [[v.slice(2), { $value: chroma(rawColor).hex(), $type: "color" }]];
       }),
     );
 
@@ -122,24 +107,6 @@ const initTweakpane = () => {
     a.href = url;
     a.download = name;
     a.click();
-
-    // w3c color token format
-    // {
-    //   "token name": {
-    //     "$value": "#fff000",
-    //     "$type": "color"
-    //   }
-    // }
-
-    // const blob = new Blob([css], { type: "text/css" });
-    // const url = URL.createObjectURL(blob);
-
-    // const a = document.createElement("a");
-    // const name = "echotab-colors.css";
-
-    // a.href = url;
-    // a.download = name;
-    // a.click();
   });
 
   return pane;

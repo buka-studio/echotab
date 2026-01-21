@@ -1,0 +1,28 @@
+:root {
+    --background-base: #202020FF;
+    --background: #252525FF;
+    --foreground: #DBDBDBFF;
+    --card: #2A2A2AFF;
+    --card-active: #343434FF;
+    --card-foreground: #DEDEDEFF;
+    --popover: #1F1F1FFF;
+    --popover-foreground: #DEDEDEFF;
+    --primary: #E13C00FF;
+    --primary-foreground: #DEDEDEFF;
+    --secondary: #2C2C2CFF;
+    --secondary-foreground: #DBDBDBFF;
+    --muted: #2D2D2DFF;
+    --muted-foreground: #979797FF;
+    --accent: #2B2B2BFF;
+    --accent-foreground: #DEDEDEFF;
+    --destructive: #D40924FF;
+    --destructive-foreground: #FF7972FF;
+    --border: #313131FF;
+    --border-active: #464646FF;
+    --input: #3B3B3BFF;
+    --ring: #5D5D5DFF;
+    --surface-1: #1F1F1FFF;
+    --surface-2: #242424FF;
+    --surface-3: #2A2A2AFF;
+    --surface-4: #2F2F2FFF;
+  }

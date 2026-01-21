@@ -1,6 +1,8 @@
-import { Dialog, DialogContent, DialogTitle } from "@echotab/ui/Dialog";
+import { CommandGroup, CommandItem } from "@echotab/ui/Command";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@echotab/ui/Dialog";
 import GlowOutline from "@echotab/ui/GlowOutline";
 import { cn } from "@echotab/ui/util";
+import { useCommandState } from "cmdk";
 import {
   ComponentProps,
   createContext,
@@ -10,7 +12,7 @@ import {
   useState,
 } from "react";
 
-import { capitalize } from "../util";
+import { capitalize, pluralize } from "../util";
 
 const DialogStateContext = createContext<{
   open: boolean;
@@ -39,7 +41,7 @@ export function OnClose({ callback }: { callback: () => void }) {
 export function useTabCommand<T extends string>() {
   const [pages, setPages] = useState<T[]>(["/"] as T[]);
   const [search, setSearch] = useState("");
-  const activePage = pages[pages.length - 1];
+  const activePage = pages.at(-1)!;
 
   const goToPage = (page: T) => {
     const idx = pages.findIndex((p) => p === page);
@@ -82,6 +84,67 @@ export function useTabCommand<T extends string>() {
   };
 }
 
+export function TabCommandItem({
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof CommandItem>) {
+  return (
+    <CommandItem
+      variant="primary"
+      className={cn("min-h-10 rounded-none pl-5", "", className)}
+      {...props}>
+      {children}
+    </CommandItem>
+  );
+}
+
+export function TabCommandFooter({
+  pages,
+  resultsCount: overrideResultsCount = undefined,
+  className,
+}: {
+  pages: string[];
+  resultsCount?: number;
+  className?: string;
+}) {
+  const resultsCount = useCommandState((state) => state.filtered.count);
+
+  return (
+    <div
+      className={cn(
+        "text-muted-foreground bg-accent/50 flex justify-between rounded-b-[calc(var(--radius)-1px)] border-t-[0.5px] p-2 text-xs",
+        className,
+      )}>
+      {pages.length > 1 ? (
+        <span>
+          <kbd className="keyboard-shortcut small text-[0.625rem]!">Backspace</kbd> to go back
+        </span>
+      ) : (
+        <span>
+          Use <kbd className="keyboard-shortcut small">↑</kbd>{" "}
+          <kbd className="keyboard-shortcut small">↓</kbd> to navigate
+        </span>
+      )}
+      <span className="ml-auto">
+        {pluralize(overrideResultsCount ?? resultsCount, "result", "s")}
+      </span>
+    </div>
+  );
+}
+
+export function TabCommandGroup({
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof CommandGroup>) {
+  return (
+    <CommandGroup className={cn("px-0 py-0 [&_[cmdk-group-heading]]:px-5", className)} {...props}>
+      {children}
+    </CommandGroup>
+  );
+}
+
 export function CommandPagination<T extends string>({
   className,
   pages,
@@ -89,8 +152,11 @@ export function CommandPagination<T extends string>({
   ...props
 }: ComponentProps<"div"> & { pages: T[]; goToPage: (page: T) => void }) {
   return (
-    <div className={cn("pages flex items-center gap-1 px-1", className)} {...props}>
+    <div className={cn("pages flex items-center empty:hidden", className)} {...props}>
       {pages.flatMap((p, i) => {
+        if (p === "/") {
+          return [];
+        }
         const path = [
           <button
             className={cn("focus-ring rounded-md", {
@@ -102,9 +168,9 @@ export function CommandPagination<T extends string>({
             {capitalize(p)}
           </button>,
         ];
-        if (i < pages.length - 1 && i > 0) {
+        if (i < pages.length) {
           path.push(
-            <span className="" key={p + i}>
+            <span className="ml-2 font-bold opacity-50 not-last:mr-2" key={p + i}>
               /
             </span>,
           );
@@ -160,12 +226,12 @@ export function TabCommandDialog({
   const [commandContainer, setCommandContainer] = useState<HTMLDivElement | null>(null);
 
   return (
-    <div ref={setCommandContainer} className={cn("relative flex w-full")}>
+    <div ref={setCommandContainer} className={cn("relative flex w-full rounded-lg dark:shadow-sm")}>
       <button
         className={cn(
-          "focus-ring bg-card/40 flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-200",
+          "focus-ring hover:bg-card-active bg-card flex flex-1 items-center justify-between rounded-lg border p-3 text-base shadow-[0_0_0_2px_hsl(var(--border))] backdrop-blur-lg transition-all duration-0",
           {
-            "opacity-0": open,
+            "opacity-0 duration-200": open,
           },
         )}
         onClick={openDialog}>
@@ -180,11 +246,12 @@ export function TabCommandDialog({
       <GlowOutline className="rounded-lg" />
       <Dialog scrollLock={false} open={open} onOpenChange={closeDialog}>
         <DialogTitle className="sr-only">{label}</DialogTitle>
+        <DialogDescription className="sr-only"></DialogDescription>
         <DialogContent
           container={commandContainer!}
           overlay={false}
           close={false}
-          className="data-[state=closed]:slide-out-to-top-[10px] data-[state=open]:slide-in-from-top-[10px] absolute top-[-1px] max-w-[57rem] translate-y-0 overflow-visible p-0 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none">
+          className="data-[state=open]:zoom-in-[96%] data-[state=closed]:zoom-out-[100%] absolute -top-px max-w-none translate-y-0 transform-gpu overflow-visible p-0 duration-100 data-[state=open]:border-transparent data-[state=open]:bg-transparent data-[state=open]:shadow-none md:max-w-[57rem]">
           <DialogStateContext.Provider value={{ open, setOpen }}>
             {children}
           </DialogStateContext.Provider>

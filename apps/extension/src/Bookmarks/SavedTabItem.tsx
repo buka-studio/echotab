@@ -1,15 +1,15 @@
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
+import { TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
-import { ComponentProps, ComponentRef, forwardRef } from "react";
+import { ComponentProps } from "react";
 
-import SnapshotPreview from "../components/SnapshotPreview";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { SavedTab, Tag } from "../models";
-import { useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
-import BookmarkStore, { useBookmarkStore, useIsTabSelected } from "./BookmarkStore";
+import { bookmarkStoreActions, useIsTabSelected } from "../store/bookmarkStore";
+import { useSettingStore } from "../store/settingStore";
+import { unassignedTag, useTagsById } from "../store/tagStore";
 
 function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagId?: number) {
   if (!currentTagId) {
@@ -24,39 +24,36 @@ function currentTagFirstComparator(a: Partial<Tag>, b: Partial<Tag>, currentTagI
   return 0;
 }
 
-type Props = ComponentProps<typeof TabItem> & { tab: SavedTab; currentGroupTagId?: number };
-type Ref = ComponentRef<typeof TabItem>;
+type Props = Omit<ComponentProps<typeof TabItem>, "tab"> & {
+  tab: SavedTab;
+  currentGroupTagId?: number;
+};
 
-const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
-  { tab, currentGroupTagId, ...rest },
-  ref,
-) {
-  const { assignedTagIds } = useBookmarkStore();
-  const { tags } = useTagStore();
-  const {
-    settings: { hideBookmarkFavicons },
-  } = useUIStore();
+function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
+  const tagsById = useTagsById();
+  const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
 
-  const selected = useIsTabSelected(tab.id);
+  const selected = useIsTabSelected(tab?.id);
 
   const combinedTags = Array.from(tab.tagIds)
-    .concat(selected ? Array.from(assignedTagIds) : [])
-    .map((id) => tags.get(id)!)
+    .map((id) => tagsById.get(id)!)
     .filter((t) => Number.isFinite(t?.id));
 
   const handleSetTags = (tagIds: number[]) => {
-    BookmarkStore.tagTabs([tab.id], tagIds, true);
+    bookmarkStoreActions.tagTabs([tab.id], tagIds, true);
   };
+
+  const isInTagGroup = Boolean(currentGroupTagId && currentGroupTagId !== unassignedTag.id);
+
+  const currentGroupTag = tagsById.get(currentGroupTagId!);
 
   return (
     <TabItem
       data-selected={selected}
-      ref={ref}
       className={cn({
         "border-border-active bg-card-active": selected,
       })}
-      hideFavicon={hideBookmarkFavicons}
-      linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} />}
+      hideFavicon={hideFavicons}
       icon={
         <Favicon
           src={tab.url}
@@ -65,7 +62,7 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
       }
       link={
         <a
-          className="overflow-hidden text-ellipsis whitespace-nowrap rounded-sm focus-visible:underline focus-visible:outline-none"
+          className="cursor-pointer overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline focus-visible:underline focus-visible:outline-none"
           target="_blank"
           href={tab.url}>
           {tab.url}
@@ -73,14 +70,18 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
       }
       tab={tab}
       actions={
-        <div className="@[200px]:flex-row @[200px]:gap-2 flex flex-row-reverse items-center">
+        <div className="flex flex-row-reverse items-center @[200px]:flex-row @[200px]:gap-2">
+          <TagChipCombobox
+            tags={combinedTags.sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
+            onSetTags={handleSetTags}
+          />
           <ButtonWithTooltip
             variant="ghost"
             size="icon-sm"
             side="top"
             tooltipText={tab.pinned ? "Unpin" : "Pin"}
             onClick={(e) => {
-              BookmarkStore.togglePinTab(tab.id);
+              bookmarkStoreActions.togglePinTab(tab.id);
             }}>
             {tab.pinned ? (
               <DrawingPinFilledIcon className="h-5 w-5" />
@@ -88,25 +89,33 @@ const SavedTabItem = forwardRef<Ref, Props>(function SavedTabItem(
               <DrawingPinIcon className="h-5 w-5" />
             )}
           </ButtonWithTooltip>
-          <TagChipCombobox
-            tags={combinedTags.sort((a, b) => currentTagFirstComparator(a, b, currentGroupTagId))}
-            onSetTags={handleSetTags}
-          />
           {!tab.pinned && (
-            <ButtonWithTooltip
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => BookmarkStore.removeTab(tab.id)}
-              side="top"
-              tooltipText="Remove">
-              <TrashIcon className="h-5 w-5" />
-            </ButtonWithTooltip>
+            <>
+              {isInTagGroup && (
+                <ButtonWithTooltip
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => bookmarkStoreActions.removeTabTag(tab.id, currentGroupTagId!)}
+                  side="top"
+                  tooltipText={currentGroupTag ? `Untag "${currentGroupTag.name}"` : "Untag"}>
+                  <TagIcon className="h-5 w-5" weight="fill" />
+                </ButtonWithTooltip>
+              )}
+              <ButtonWithTooltip
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => bookmarkStoreActions.removeTab(tab.id)}
+                side="top"
+                tooltipText="Remove">
+                <TrashIcon className="h-5 w-5" />
+              </ButtonWithTooltip>
+            </>
           )}
         </div>
       }
       {...rest}
     />
   );
-});
+}
 
 export default SavedTabItem;

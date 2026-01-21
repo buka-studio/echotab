@@ -10,34 +10,36 @@ import {
   AlertDialogTrigger,
 } from "@echotab/ui/AlertDialog";
 import { Badge } from "@echotab/ui/Badge";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
   CommandSeparator,
 } from "@echotab/ui/Command";
-import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { Broom as BroomIcon, Browser as BrowserIcon, Tag as TagIcon } from "@phosphor-icons/react";
+import { BroomIcon, BrowserIcon, OpenAiLogoIcon, TagIcon } from "@phosphor-icons/react";
 import {
   CheckCircledIcon,
   ClipboardIcon,
   DrawingPinIcon,
   ExternalLinkIcon,
   FilePlusIcon,
+  GearIcon,
   MagnifyingGlassIcon,
   MinusCircledIcon,
   OpenInNewWindowIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useDebounceValue } from "usehooks-ts";
+
+import { curateStoreActions } from "~/store/curateStore";
+import { openLinksInLLM } from "~/util/url";
 
 import FilterTagChips from "../components/FilterTagChips";
 import {
@@ -45,20 +47,31 @@ import {
   OnClose,
   TabCommandDialog,
   TabCommandDialogRef,
+  TabCommandFooter,
+  TabCommandGroup,
+  TabCommandItem,
   useTabCommand,
 } from "../components/TabCommand";
 import TagChip from "../components/tag/TagChip";
 import TagChipList from "../components/tag/TagChipList";
 import { Panel, SavedTab } from "../models";
-import { unassignedTag, useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
+import {
+  bookmarkStoreActions,
+  bookmarkStoreSelectionActions,
+  bookmarkStoreViewActions,
+  useBookmarkSelectionStore,
+  useBookmarkStore,
+  useBookmarkViewStore,
+  useViewTabIds as useBookmarkViewTabIds,
+} from "../store/bookmarkStore";
+import { settingStoreActions, useSettingStore } from "../store/settingStore";
+import { tagStoreActions, unassignedTag, useTagsById, useTagStore } from "../store/tagStore";
 import { formatLinks } from "../util";
 import { toggle } from "../util/set";
-import { isAlphanumeric } from "../util/string";
-import BookmarkStore, { useBookmarkSelectionStore, useBookmarkStore } from "./BookmarkStore";
+import { isAlphanumeric, pluralize } from "../util/string";
 import ListFormDialog from "./Lists/ListFormDialog";
 
-const pages = ["/", "tag", "find"] as const;
+const pages = ["/", "tag", "search"] as const;
 
 type Page = (typeof pages)[number];
 
@@ -71,11 +84,11 @@ const CommandLabel = ({ page }: { page: string }) => {
       </span>
     );
   }
-  if (page === "find") {
+  if (page === "search") {
     return (
       <span className="text-muted-foreground flex items-center gap-2">
         <MagnifyingGlassIcon className="animate-pulse" />
-        Finding...
+        Searching...
       </span>
     );
   }
@@ -83,10 +96,13 @@ const CommandLabel = ({ page }: { page: string }) => {
 };
 
 export default function BookmarkCommand({ onCurate }: { onCurate?: () => void }) {
-  const bookmarkStore = useBookmarkStore();
-  const tagStore = useTagStore();
-  const uiStore = useUIStore();
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const tags = useTagStore((s) => s.tags);
+  const tagsById = useTagsById();
+  const settings = useSettingStore((s) => s.settings);
   const selectionStore = useBookmarkSelectionStore();
+  const view = useBookmarkViewStore();
+  const viewTabIds = useBookmarkViewTabIds();
 
   const { pages, goToPage, search, setSearch, activePage, setPages, pushPage, goToPrevPage } =
     useTabCommand<Page>();
@@ -101,44 +117,44 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     }
   };
 
+  const [assignedTagIds, setAssignedTagIds] = useState<Set<number>>(new Set());
+
   const handleSaveAssignedTags = async () => {
-    bookmarkStore.tagTabs(
-      Array.from(selectionStore.selectedItemIds),
-      Array.from(BookmarkStore.assignedTagIds),
+    bookmarkStoreActions.tagTabs(
+      Array.from(selectionStore.selectedTabIds),
+      Array.from(assignedTagIds),
     );
-    bookmarkStore.clearAssignedTagIds();
+    setAssignedTagIds(new Set());
 
     setSearch("");
     setPages(["/"]);
   };
 
   const handleCopyToClipboard = () => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
-      selectionStore.selectedItemIds.has(tab.id),
-    );
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
 
     const linksWithTags = selectedLinks.map((tab) => ({
       title: tab.title,
       url: tab.url,
-      tags: tab.tagIds.map((tagId) => tagStore.tags.get(tagId)!.name),
+      tags: tab.tagIds.map((tagId) => tagsById.get(tagId)?.name ?? ""),
     }));
 
-    const formatted = formatLinks(linksWithTags, uiStore.settings.clipboardFormat);
+    const formatted = formatLinks(linksWithTags, settings.clipboardFormat);
+
+    if (!formatted) return;
 
     navigator.clipboard
       .writeText(formatted)
       .then(() => {
-        toast(`Copied ${selectedLinks.length} links to clipboard!`);
+        toast.success(`${pluralize(selectedLinks.length, "link")} copied to clipboard`);
       })
       .catch(() => {
-        toast("Failed to copy links to clipboard!");
+        toast.error("Failed to copy links to clipboard");
       });
   };
 
   const handleOpenSelected = (newWindow?: boolean) => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
-      selectionStore.selectedItemIds.has(tab.id),
-    );
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
     const urls = selectedLinks.map((tab) => tab.url);
     if (newWindow) {
       chrome.windows.create({
@@ -159,53 +175,67 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const handleRemoveSelected = () => {
-    bookmarkStore.removeTabs(Array.from(selectionStore.selectedItemIds));
+    bookmarkStoreActions.removeTabs(Array.from(selectionStore.selectedTabIds));
   };
 
   const handleCreateTag = () => {
-    const newTag = tagStore.createTag({ name: search });
-    bookmarkStore.toggleAssignedTagId(newTag.id);
+    const [newTag] = tagStoreActions.createTags([{ name: search }]);
+    if (newTag) {
+      setAssignedTagIds((prev) => new Set([...prev, newTag.id]));
+    }
     setSearch("");
   };
 
+  const toggleAssignedTagId = (tagId: number) => {
+    setAssignedTagIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(tagId)) {
+        newSet.delete(tagId);
+      } else {
+        newSet.add(tagId);
+      }
+      return newSet;
+    });
+  };
+
   const handleToggleFilterTag = (id: number) => {
-    let filterTags = new Set(BookmarkStore.view.filter.tags);
+    let filterTags = new Set(view.filter.tags);
     toggle(filterTags, id);
 
-    bookmarkStore.updateFilter({
+    bookmarkStoreViewActions.updateFilter({
       tags: Array.from(filterTags),
     });
   };
 
   const [quickSearch, setQuickSearch] = useState("");
-  const quickDeferredSearch = useDeferredValue(quickSearch);
+  const [debouncedQuickSearch, setValue] = useDebounceValue(quickSearch, 300);
 
   useEffect(() => {
     if (!quickSearch) {
       return;
     }
     handleToggleFilterKeyword(quickSearch, true);
-  }, [quickDeferredSearch]);
+  }, [debouncedQuickSearch]);
 
   const runningSearchRef = useRef<string>(search);
   const handleToggleFilterKeyword = (keyword: string, isQuick = false) => {
     if (isQuick) {
-      const keywords = [...BookmarkStore.view.filter.keywords];
+      const keywords = [...view.filter.keywords];
       if (keywords.at(-1) === runningSearchRef.current) {
         keywords.pop();
       }
 
       keywords.push(keyword);
 
-      bookmarkStore.updateFilter({
+      bookmarkStoreViewActions.updateFilter({
         keywords,
       });
       runningSearchRef.current = keyword;
     } else {
-      const filterKeywords = new Set(BookmarkStore.view.filter.keywords);
+      const filterKeywords = new Set(view.filter.keywords);
       filterKeywords.add(keyword.trim());
 
-      bookmarkStore.updateFilter({
+      bookmarkStoreViewActions.updateFilter({
         keywords: Array.from(filterKeywords),
       });
 
@@ -215,10 +245,10 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   };
 
   const handleRemoveFilterKeyword = (keyword: string) => {
-    const filterKeywords = new Set(BookmarkStore.view.filter.keywords);
+    const filterKeywords = new Set(view.filter.keywords);
     filterKeywords.delete(keyword.trim());
 
-    bookmarkStore.updateFilter({
+    bookmarkStoreViewActions.updateFilter({
       keywords: Array.from(filterKeywords),
     });
   };
@@ -235,9 +265,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   });
 
   const handleCreateListFromSelected = () => {
-    const selectedLinks = bookmarkStore.tabs.filter((tab) =>
-      selectionStore.selectedItemIds.has(tab.id),
-    );
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
 
     setListDialog({ open: true, defaultLinks: selectedLinks });
   };
@@ -247,10 +275,10 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   };
 
   const handlePinSelected = () => {
-    BookmarkStore.pinTabs(Array.from(selectionStore.selectedItemIds));
+    bookmarkStoreActions.pinTabs(Array.from(selectionStore.selectedTabIds));
   };
 
-  const customLabel = ["tag", "find"].includes(activePage);
+  const customLabel = ["tag", "search"].includes(activePage);
 
   const withClear = (fn: () => void) => {
     return () => {
@@ -259,26 +287,50 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
     };
   };
 
-  const selectedCount = selectionStore.selectedItemIds.size;
+  const withClose = (fn: () => void) => {
+    return () => {
+      fn();
+      dialogRef.current?.close();
+    };
+  };
+
+  const selectedCount = selectionStore.selectedTabIds.size;
 
   const dialogRef = useRef<TabCommandDialogRef>(null);
 
   useHotkeys(
-    "meta+f",
+    "mod+f",
     () => {
       dialogRef.current?.open();
-      setPages(["/", "find"]);
+      setPages(["/", "search"]);
       inputRef.current?.focus();
     },
     { preventDefault: true },
   );
 
-  const enterToSearch = uiStore.settings.enterToSearch;
+  useHotkeys(
+    "alt+t",
+    () => {
+      dialogRef.current?.open();
+      setPages(["/", "tag"]);
+      inputRef.current?.focus();
+    },
+    { preventDefault: true, enabled: selectedCount > 0 },
+    [],
+  );
+
+  const enterToSearch = false;
 
   const handleLooseMatch = () => {
-    bookmarkStore.updateFilter({
+    bookmarkStoreViewActions.updateFilter({
       looseMatch: true,
     });
+  };
+
+  const handleOpenInLLM = (provider: "chatgpt" | "claude") => () => {
+    const selectedLinks = tabs.filter((tab) => selectionStore.selectedTabIds.has(tab.id));
+
+    openLinksInLLM(selectedLinks, provider);
   };
 
   return (
@@ -310,7 +362,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                 handleSaveAssignedTags();
               }
             }
-            if (activePage === "find") {
+            if (activePage === "search") {
               if (e.key === "Enter" && !getValue() && search) {
                 e.preventDefault();
                 handleToggleFilterKeyword(search);
@@ -319,6 +371,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
               if (!enterToSearch) {
                 if (isAlphanumeric(e.key) && !e.metaKey && !search.startsWith("#")) {
                   setQuickSearch(search + e.key);
+                  setValue(search + e.key);
                 }
               }
             }
@@ -338,7 +391,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                 <div className="flex items-center gap-1">
                   <button
                     onClick={handleApply}
-                    className="focus-ring whitespace-nowrap rounded px-2 text-sm">
+                    className="focus-ring rounded px-2 text-sm whitespace-nowrap">
                     Apply
                   </button>
                   <span className="flex items-center gap-1">
@@ -353,192 +406,206 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
               )}
             </div>
           </div>
-          <CommandList
-            className={cn(
-              "scrollbar-gray bg-popover/70 text-popover-foreground absolute top-[100%] block w-full rounded-lg rounded-t-none border border-t-0 p-2 shadow-lg backdrop-blur-lg",
-            )}>
-            {activePage === "/" && (
-              <>
-                <CommandGroup
-                  heading={
-                    <span>
-                      Selection{" "}
-                      <Badge
-                        variant="card"
-                        className={cn("ml-2", {
-                          "opacity-0": !selectedCount,
-                        })}>
-                        {selectedCount}
-                      </Badge>
-                    </span>
-                  }>
-                  {selectedCount === 0 ? (
-                    <CommandItem onSelect={withClear(selectionStore.selectAllTabs)}>
-                      <CheckCircledIcon className="text-muted-foreground mr-2" />
-                      Select All
-                    </CommandItem>
-                  ) : (
-                    <CommandItem onSelect={withClear(selectionStore.deselectAllTabs)}>
-                      <MinusCircledIcon className="text-muted-foreground mr-2" /> Deselect All
-                    </CommandItem>
-                  )}
-                  {Boolean(selectedCount) && (
-                    <>
-                      <CommandItem onSelect={() => pushPage("tag")}>
-                        <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                        Tag
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handleCreateListFromSelected)}>
-                        <FilePlusIcon className="text-muted-foreground mr-2" /> Create a list
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handlePinSelected)}>
-                        <DrawingPinIcon className="text-muted-foreground mr-2" />
-                        Pin
-                      </CommandItem>
-                      <CommandItem onSelect={() => setDeleteDialogOpen(true)}>
-                        <TrashIcon className="text-muted-foreground mr-2" /> Delete
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handleOpenSelected)}>
-                        <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in this
-                        window
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(() => handleOpenSelected(true))}>
-                        <OpenInNewWindowIcon className="text-muted-foreground mr-2" /> Open in new
-                        window
-                      </CommandItem>
-                      <CommandItem onSelect={withClear(handleCopyToClipboard)}>
-                        <ClipboardIcon className="text-muted-foreground mr-2" />
-                        Copy to clipboard
-                      </CommandItem>
-                    </>
-                  )}
-                </CommandGroup>
-                <CommandSeparator />
-                <CommandGroup heading="Bookmarks">
-                  <CommandItem onSelect={() => pushPage("find")}>
-                    <MagnifyingGlassIcon className="text-muted-foreground mr-2" /> Find
-                  </CommandItem>
-                </CommandGroup>
-                <CommandSeparator />
-                <CommandGroup heading="Other">
-                  {onCurate && (
-                    <CommandItem onSelect={withClear(onCurate)}>
+          <div className="bg-popover/80 text-popover-foreground absolute top-full block w-full rounded-lg rounded-t-none border border-t-0 p-2 px-0 pb-0 shadow-lg backdrop-blur-lg">
+            <CommandList className={cn("scrollbar-gray scroll-fade overscroll-contain")}>
+              {activePage === "/" && (
+                <>
+                  <TabCommandGroup
+                    heading={
+                      <span>
+                        Selection{" "}
+                        <Badge
+                          variant="card"
+                          className={cn("ml-2", {
+                            "opacity-0": !selectedCount,
+                          })}>
+                          {selectedCount}
+                        </Badge>
+                      </span>
+                    }>
+                    {selectedCount === 0 ? (
+                      <TabCommandItem
+                        onSelect={withClear(bookmarkStoreSelectionActions.selectAllTabs)}>
+                        <CheckCircledIcon className="text-muted-foreground mr-2" />
+                        Select All
+                      </TabCommandItem>
+                    ) : (
+                      <TabCommandItem
+                        onSelect={withClear(bookmarkStoreSelectionActions.deselectAllTabs)}>
+                        <MinusCircledIcon className="text-muted-foreground mr-2" /> Deselect All
+                      </TabCommandItem>
+                    )}
+                    {Boolean(selectedCount) && (
+                      <>
+                        <TabCommandItem onSelect={() => pushPage("tag")}>
+                          <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                          Tag
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handleCreateListFromSelected)}>
+                          <FilePlusIcon className="text-muted-foreground mr-2" /> Create a
+                          collection
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handlePinSelected)}>
+                          <DrawingPinIcon className="text-muted-foreground mr-2" />
+                          Pin
+                        </TabCommandItem>
+
+                        <TabCommandItem onSelect={withClear(handleOpenSelected)}>
+                          <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in this
+                          window
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(() => handleOpenSelected(true))}>
+                          <OpenInNewWindowIcon className="text-muted-foreground mr-2" /> Open in new
+                          window
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
+                          <ClipboardIcon className="text-muted-foreground mr-2" />
+                          Copy to clipboard
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
+                          <OpenAiLogoIcon className="text-muted-foreground mr-2" />
+                          Open in ChatGPT
+                        </TabCommandItem>
+                        <TabCommandItem onSelect={() => setDeleteDialogOpen(true)}>
+                          <TrashIcon className="text-muted-foreground mr-2" /> Delete
+                        </TabCommandItem>
+                      </>
+                    )}
+                  </TabCommandGroup>
+                  <CommandSeparator />
+                  <TabCommandGroup heading="Bookmarks">
+                    <TabCommandItem onSelect={() => pushPage("search")} value="Find Search">
+                      <MagnifyingGlassIcon className="text-muted-foreground mr-2" /> Search
+                    </TabCommandItem>
+                  </TabCommandGroup>
+                  <CommandSeparator />
+                  <TabCommandGroup heading="Other">
+                    {onCurate && (
+                      <TabCommandItem onSelect={withClear(onCurate)}>
+                        <BroomIcon className="text-muted-foreground mr-2" />
+                        Curate
+                      </TabCommandItem>
+                    )}
+                    <TabCommandItem onSelect={() => settingStoreActions.activatePanel(Panel.Tabs)}>
+                      <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+                      Go to Tabs
+                    </TabCommandItem>
+                    <TabCommandItem
+                      onSelect={withClose(() => settingStoreActions.setSettingsOpen(true))}>
+                      <GearIcon className="text-muted-foreground mr-2" />
+                      Open Settings
+                    </TabCommandItem>
+                    <TabCommandItem
+                      onSelect={withClose(() => curateStoreActions.setCurateOpen(true))}>
                       <BroomIcon className="text-muted-foreground mr-2" />
                       Curate
-                    </CommandItem>
+                    </TabCommandItem>
+                  </TabCommandGroup>
+                  <CommandEmpty>No Results</CommandEmpty>
+                </>
+              )}
+              {activePage === "tag" && (
+                <div className="flex flex-col gap-4">
+                  {assignedTagIds.size > 0 && (
+                    <div className="tags flex items-center gap-2 pl-2">
+                      <button
+                        className="focus-ring rounded px-2 text-sm whitespace-nowrap"
+                        onClick={() => setAssignedTagIds(new Set())}>
+                        Clear all
+                      </button>
+                      <TagChipList
+                        max={10}
+                        tags={Array.from(assignedTagIds).map((t) => tagsById.get(t)!)}
+                        onRemove={(tag) => {
+                          toggleAssignedTagId(tag.id!);
+                        }}
+                      />
+                    </div>
                   )}
-                  <CommandItem onSelect={() => uiStore.activatePanel(Panel.Tabs)}>
-                    <BrowserIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-                    Go to Tabs
-                  </CommandItem>
-                </CommandGroup>
-                <CommandEmpty>No Results</CommandEmpty>
-              </>
-            )}
-            {activePage === "tag" && (
-              <div className="flex flex-col gap-4">
-                {bookmarkStore.assignedTagIds.size > 0 && (
-                  <div className="tags flex items-center gap-2">
-                    <button
-                      className="focus-ring whitespace-nowrap rounded px-2 text-sm"
-                      onClick={bookmarkStore.clearAssignedTagIds}>
-                      Clear all
-                    </button>
-                    <TagChipList
-                      max={10}
-                      tags={Array.from(bookmarkStore.assignedTagIds).map(
-                        (t) => tagStore.tags.get(t)!,
-                      )}
-                      onRemove={(tag) => {
-                        bookmarkStore.toggleAssignedTagId(tag.id!);
-                      }}
+                  <TabCommandGroup>
+                    {tags
+                      .filter((t) => !assignedTagIds.has(t.id) && t.id !== unassignedTag.id)
+                      .map((t) => (
+                        <TabCommandItem
+                          key={t.id}
+                          value={t.name}
+                          onSelect={() => {
+                            toggleAssignedTagId(t.id);
+                            setSearch("");
+                          }}>
+                          <div className="flex items-center">
+                            {t.name}{" "}
+                            <div
+                              className="ml-2 h-3 w-3 rounded-full"
+                              style={{ background: t.color }}
+                            />
+                          </div>
+                        </TabCommandItem>
+                      ))}
+                  </TabCommandGroup>
+                  <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
+                    {search ? (
+                      <span className="inline-flex gap-2">
+                        Create{" "}
+                        <TagChip className="text-sm" color="#000">
+                          {search}
+                        </TagChip>
+                      </span>
+                    ) : (
+                      "Type to create a tag"
+                    )}
+                  </CommandEmpty>
+                </div>
+              )}
+              {activePage === "search" && (
+                <div>
+                  <div className="mb-2 px-2">
+                    <FilterTagChips
+                      filter={view.filter}
+                      onRemoveKeyword={handleRemoveFilterKeyword}
+                      onRemoveTag={handleToggleFilterTag}
                     />
                   </div>
-                )}
-                <CommandGroup>
-                  {Array.from(tagStore.tags.values())
-                    .filter(
-                      (t) => !bookmarkStore.assignedTagIds.has(t.id) && t.id !== unassignedTag.id,
-                    )
-                    .map((t) => (
-                      <CommandItem
-                        key={t.id}
-                        value={t.name}
-                        onSelect={() => {
-                          bookmarkStore.toggleAssignedTagId(t.id);
-                          setSearch("");
-                        }}>
-                        <div className="flex items-center">
-                          {t.name}{" "}
-                          <div
-                            className="ml-2 h-3 w-3 rounded-full"
-                            style={{ background: t.color }}
-                          />
-                        </div>
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-                <CommandEmpty className="cursor-pointer" onClick={handleCreateTag}>
-                  {search ? (
-                    <span className="inline-flex gap-2">
-                      Create{" "}
-                      <TagChip className="text-sm" color="#000">
-                        {search}
-                      </TagChip>
-                    </span>
-                  ) : (
-                    "Type to create a tag"
+                  {Boolean(hashtag) && (
+                    <div className="">
+                      <TabCommandGroup>
+                        {tags
+                          .filter((t) => !view.filter.tags.includes(t.id))
+                          .map((t) => (
+                            <TabCommandItem
+                              value={"#" + t.name}
+                              key={t.id}
+                              onSelect={() => {
+                                handleToggleFilterTag(t.id);
+                              }}>
+                              <div className="flex items-center">
+                                {t.name}{" "}
+                                <div
+                                  className="ml-2 h-3 w-3 rounded-full"
+                                  style={{ background: t.color }}
+                                />
+                              </div>
+                            </TabCommandItem>
+                          ))}
+                      </TabCommandGroup>
+                    </div>
                   )}
-                </CommandEmpty>
-              </div>
-            )}
-            {activePage === "find" && (
-              <div>
-                <div className="mb-2 px-2">
-                  <FilterTagChips
-                    filter={bookmarkStore.view.filter}
-                    onRemoveKeyword={handleRemoveFilterKeyword}
-                    onRemoveTag={handleToggleFilterTag}
-                  />
-                </div>
-                {Boolean(hashtag) && (
-                  <div className="">
-                    <CommandGroup>
-                      {Array.from(tagStore.tags.values())
-                        .filter((t) => !bookmarkStore.view.filter.tags.includes(t.id))
-                        .map((t) => (
-                          <CommandItem
-                            value={"#" + t.name}
-                            key={t.id}
-                            onSelect={() => {
-                              handleToggleFilterTag(t.id);
-                            }}>
-                            <div className="flex items-center">
-                              {t.name}{" "}
-                              <div
-                                className="ml-2 h-3 w-3 rounded-full"
-                                style={{ background: t.color }}
-                              />
-                            </div>
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </div>
-                )}
-                <CommandEmpty className="flex items-center justify-center gap-2">
-                  <div className="text-muted-foreground">
-                    {search && !Boolean(hashtag) ? (
-                      <span>
-                        Find by "<span className="text-foreground italic">{search}</span>"
-                      </span>
-                    ) : search ? (
-                      "No tags found"
-                    ) : (
-                      "Search by keyword or #tag"
-                    )}
-                  </div>
-                  {bookmarkStore.viewTabIds.length === 0 &&
-                    !bookmarkStore.view.filter.looseMatch && (
+                  <CommandEmpty className="flex items-center justify-center gap-2">
+                    <div className="text-muted-foreground">
+                      {search && !Boolean(hashtag) ? (
+                        <span>
+                          Search by "<span className="text-foreground italic">{search}</span>"
+                        </span>
+                      ) : search ? (
+                        "No tags found"
+                      ) : (
+                        <span>
+                          Type to search - <kbd className="keyboard-shortcut small">#</kbd> to
+                          search by tag
+                        </span>
+                      )}
+                    </div>
+                    {viewTabIds.length === 0 && !view.filter.looseMatch && search && (
                       <motion.div
                         className="flex items-center gap-2"
                         initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
@@ -555,16 +622,19 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                         </Button>
                       </motion.div>
                     )}
-                </CommandEmpty>
-                <div className="text-muted-foreground absolute bottom-2 right-3 overflow-hidden">
-                  Results: <NumberFlow value={bookmarkStore.viewTabIds.length} />
+                  </CommandEmpty>
                 </div>
-              </div>
-            )}
-          </CommandList>
+              )}
+            </CommandList>
+            <TabCommandFooter
+              className="mt-1"
+              pages={pages}
+              resultsCount={activePage === "search" ? viewTabIds.length : undefined}
+            />
+          </div>
         </Command>
       </TabCommandDialog>
-      {/* todo: figure out how to wrap CommandItem in Dialog and make it work that way */}
+      {/* todo: figure out how to wrap TabCommandItem in Dialog and make it work that way */}
       <ListFormDialog
         open={listDialog.open}
         defaultLinks={listDialog.defaultLinks}

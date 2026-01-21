@@ -1,4 +1,4 @@
-import { pickRandomTagColor } from "../TagStore";
+import { pickRandomTagColor } from "../store/tagStore";
 
 export const tagSuggestions = [
   "news",
@@ -22,11 +22,13 @@ export const tagSuggestions = [
   "lifestyle",
   "photography",
   "games",
-  "diy",
+  "DIY",
   "politics",
   "recipes",
   "fitness",
-].map((t) => ({
-  name: t,
-  color: pickRandomTagColor(),
-}));
+]
+  .map((t) => ({
+    name: t,
+    color: pickRandomTagColor(),
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));

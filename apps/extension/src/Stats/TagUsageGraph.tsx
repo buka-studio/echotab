@@ -8,10 +8,11 @@ import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
 import { ComponentProps, useMemo, useState } from "react";
 
-import { useBookmarkStore } from "../Bookmarks";
+import { useBookmarkStore, useFilteredTabsByTagId } from "~/store/bookmarkStore";
+import { unassignedTag, useTagsById, useTagStore } from "~/store/tagStore";
+
 import SortButton from "../components/SortButton";
 import TagChip from "../components/tag/TagChip";
-import { unassignedTag, useTagStore } from "../TagStore";
 import { numberComparator, SortDir } from "../util/sort";
 
 const defaultMargin = { top: 40, right: 40, bottom: 40, left: 40 };
@@ -97,25 +98,21 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
 
   const [sort, setSort] = useState<SortDir | undefined>(SortDir.Desc);
 
-  const tagStore = useTagStore();
-  const bookmarkStore = useBookmarkStore();
+  const allTags = useTagStore((s) => s.tags);
+  const tagsById = useTagsById();
+  const filteredTabsByTagId = useFilteredTabsByTagId();
+  const tabs = useBookmarkStore((s) => s.tabs);
 
-  const tags = useMemo(
-    () => Array.from(tagStore.tags.values()).filter((t) => t.id !== unassignedTag.id),
-    [tagStore.tags],
-  );
+  const tags = useMemo(() => allTags.filter((t) => t.id !== unassignedTag.id), [allTags]);
 
   const yScale = useMemo(
     () =>
       scaleLinear<number>({
         range: [yMax, 0],
         round: true,
-        domain: [
-          0,
-          Math.max(...Object.values(bookmarkStore.filteredTabsByTagId).map((t) => t.length), 0),
-        ],
+        domain: [0, Math.max(...Object.values(filteredTabsByTagId).map((t) => t.length), 0)],
       }),
-    [yMax, bookmarkStore.filteredTabsByTagId],
+    [yMax, filteredTabsByTagId],
   );
 
   const xScale = useMemo(
@@ -128,15 +125,15 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
           .sort((t1, t2) =>
             sort
               ? numberComparator(
-                  yScale(bookmarkStore.filteredTabsByTagId[t1]?.length ?? 0),
-                  yScale(bookmarkStore.filteredTabsByTagId[t2]?.length ?? 0),
+                  yScale(filteredTabsByTagId[t1]?.length ?? 0),
+                  yScale(filteredTabsByTagId[t2]?.length ?? 0),
                   sort,
                 )
               : 0,
           ),
         padding: 0.2,
       }),
-    [xMax, yScale, tags, sort, bookmarkStore.filteredTabsByTagId],
+    [xMax, yScale, tags, sort, filteredTabsByTagId],
   );
 
   const gradients = useMemo(
@@ -157,9 +154,9 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
     scroll: true,
   });
 
-  const activeTag = tagStore.tags.get(tooltip?.tooltipData?.id || -1);
+  const activeTag = tagsById.get(tooltip?.tooltipData?.id || -1);
 
-  const usedTags = new Set(bookmarkStore.tabs.flatMap((t) => t.tagIds));
+  const usedTags = new Set(tabs.flatMap((t) => t.tagIds));
 
   const noTaggedLinks =
     usedTags.size === 0 || (usedTags.size === 1 && usedTags.has(unassignedTag.id));
@@ -179,9 +176,9 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
   if (noTaggedLinks) {
     return (
       <div className="relative">
-        <div className="absolute left-1/2 top-1/2 z-[1] translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-balance text-lg">Currently, there are no tagged links.</div>
-          <div className="text-foreground/75 text-balance text-sm">
+        <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
+          <div className="text-lg text-balance">Currently, there are no tagged links.</div>
+          <div className="text-foreground/75 text-sm text-balance">
             Begin organizing by tagging tabs, and the tag count will be displayed here.
           </div>
         </div>
@@ -197,9 +194,10 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
 
   return (
     <div className="relative">
-      <span className="text-muted-foreground absolute right-2 top-2 z-10 flex items-center gap-1">
-        Sort:
-        <SortButton active={Boolean(sort)} dir={sort!} onClick={handleSort} />
+      <span className="text-muted-foreground absolute top-2 right-2 z-10 flex items-center gap-1">
+        <SortButton active={Boolean(sort)} dir={sort!} onClick={handleSort}>
+          Sort
+        </SortButton>
       </span>
       <svg width={width} height={height} ref={containerRef} className="relative">
         {gradients.map((g) => (
@@ -212,7 +210,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
             axisLineClassName="stroke-foreground/75"
             scale={xScale}
             top={yMax}
-            tickFormat={(id) => (tagStore.tags.size < 5 ? tagStore.tags.get(id)?.name : "")}
+            tickFormat={(id) => (tags.length < 5 ? tagsById.get(id)?.name : "")}
             hideTicks
           />
           <AxisLeft
@@ -225,7 +223,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
           {tags.map((t) => {
             const barWidth = xScale.bandwidth();
 
-            const barHeight = yMax - yScale(bookmarkStore.filteredTabsByTagId[t.id]?.length ?? 0);
+            const barHeight = yMax - yScale(filteredTabsByTagId[t.id]?.length ?? 0);
 
             const barX = xScale(t.id);
             const barY = yMax - barHeight;
@@ -283,10 +281,10 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
               color: undefined,
               padding: undefined,
             }}
-            className="border-border bg-popover text-popover-foreground z-[60] rounded-md border px-3 py-2 text-sm shadow-md">
+            className="border-border bg-popover text-popover-foreground z-60 rounded-md border px-3 py-2 text-sm shadow-md">
             <div className="flex items-center gap-2 p-1 text-sm">
               <TagChip color={activeTag.color}>{activeTag.name}</TagChip> -{" "}
-              {bookmarkStore.filteredTabsByTagId[activeTag.id]?.length ?? 0} tabs
+              {filteredTabsByTagId[activeTag.id]?.length ?? 0} tabs
             </div>
           </TooltipInPortal>
         )}

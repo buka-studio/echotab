@@ -1,3 +1,6 @@
+import "prismjs";
+import "prismjs/components/prism-javascript";
+
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";

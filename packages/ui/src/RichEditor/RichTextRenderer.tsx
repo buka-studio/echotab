@@ -4,7 +4,7 @@ import { InitialConfigType, LexicalComposer } from "@lexical/react/LexicalCompos
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { ComponentProps, forwardRef, ReactNode } from "react";
+import { ComponentProps, ReactNode } from "react";
 
 import { defaultNodes } from "./constants";
 import theme from "./theme";
@@ -31,9 +31,8 @@ type Props = Omit<ComponentProps<"div">, "onChange"> & {
   editorState: string;
 };
 
-const RichTextRenderer = forwardRef<HTMLDivElement, Props>(function RichTextRenderer(
-  { editorState, ...props },
-  ref,
+function RichTextRenderer(
+  { editorState, ref, ...props }: Props,
 ) {
   return (
     <LexicalComposer initialConfig={{ ...editorConfig, editorState }}>
@@ -43,14 +42,15 @@ const RichTextRenderer = forwardRef<HTMLDivElement, Props>(function RichTextRend
             <ContentEditable
               className="caret-muted-foreground relative resize-none space-x-1 rounded-b-lg text-sm outline-none"
               {...props}
+              aria-placeholder="No content"
+              placeholder={<Placeholder>No content</Placeholder>}
             />
           }
-          placeholder={<Placeholder>No Content</Placeholder>}
           ErrorBoundary={LexicalErrorBoundary}
         />
       </div>
     </LexicalComposer>
   );
-});
+}
 
 export default RichTextRenderer;

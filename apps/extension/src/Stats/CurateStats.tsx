@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import { Session, useCurateStore } from "../Curate/CurateStore";
+import { Session, useCurateStore } from "../store/curateStore";
 
 function Counter({ value, className }: { value: number; className?: string }) {
   return (
@@ -85,7 +85,7 @@ export function SessionNavigation({
   activeSession?: Session;
   onSessionClick: (session?: Session) => void;
 }) {
-  const curateStore = useCurateStore();
+  const sessions = useCurateStore((s) => s.sessions);
 
   return (
     <motion.ul
@@ -96,22 +96,24 @@ export function SessionNavigation({
       variants={container}
       initial="hidden"
       animate="show">
-      <AnimatePresence mode="popLayout">
-        <motion.li
-          className={cn("text-foreground/50 mb-5 text-sm leading-4", {
-            "text-foreground": !activeSession,
-          })}
-          variants={item}
-          custom={!activeSession}
-          layout
-          exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}>
-          <button
-            className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none"
-            onClick={() => onSessionClick(undefined)}>
-            Total
-          </button>
-        </motion.li>
-        {curateStore.sessions.map((s, i) => {
+      <AnimatePresence mode="popLayout" initial={false}>
+        {sessions.length > 1 && (
+          <motion.li
+            className={cn("text-foreground/50 mb-5 text-sm leading-4", {
+              "text-foreground": !activeSession,
+            })}
+            variants={item}
+            custom={!activeSession}
+            layout
+            exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}>
+            <button
+              className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none"
+              onClick={() => onSessionClick(undefined)}>
+              Total
+            </button>
+          </motion.li>
+        )}
+        {sessions.map((s, i) => {
           const isActive = activeSession?.date === s.date;
           return (
             <motion.li
@@ -124,7 +126,7 @@ export function SessionNavigation({
                 "text-foreground": isActive,
               })}>
               <button
-                className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none"
+                className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none"
                 onClick={() => onSessionClick(s)}>
                 {dayjs(s.date).format("D MMM")}
               </button>
@@ -137,10 +139,10 @@ export function SessionNavigation({
 }
 
 export default function CuratedStats({ className }: { className?: string }) {
-  const curateStore = useCurateStore();
-  const [session, setSession] = useState<Session | undefined>(curateStore.sessions[0]);
+  const sessions = useCurateStore((s) => s.sessions);
+  const [session, setSession] = useState<Session | undefined>(sessions[0]);
 
-  const allTime = curateStore.sessions.reduce(
+  const allTime = sessions.reduce(
     (acc, session) => {
       acc.kept += session.kept;
       acc.deleted += session.deleted;
@@ -152,22 +154,22 @@ export default function CuratedStats({ className }: { className?: string }) {
     },
   );
 
-  const noCurateSessions = curateStore.sessions.length === 0;
+  const noCurateSessions = sessions.length === 0;
 
   if (noCurateSessions) {
     return (
       <div className={cn("relative flex flex-col items-center justify-center", className)}>
-        <div className="absolute left-1/2 top-1/2 z-[1] translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-balance text-lg">Currently, there are no curate sessions.</div>
-          <div className="text-foreground/75 text-balance text-sm">
-            Begin curating by clicking the Curate button, and your stats will be displayed here.
+        <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
+          <div className="text-lg text-balance">Currently, there are no curate sessions.</div>
+          <div className="text-foreground/75 text-sm text-balance">
+            Once you finish a curate session, your stats will be displayed here.
           </div>
         </div>
         <div className="pointer-events-none flex h-full w-full items-center opacity-50 blur-sm">
           <ul className={cn("flex flex-col gap-2 py-1 pl-2")}>
             {Array.from({ length: 5 }).map((_, i) => (
               <li key={i}>
-                <button className="flex w-full select-none items-center gap-1 truncate rounded text-left focus-visible:underline focus-visible:outline-none">
+                <button className="flex w-full items-center gap-1 truncate rounded text-left select-none focus-visible:underline focus-visible:outline-none">
                   {dayjs()
                     .subtract(i + 2, "day")
                     .format("D MMM")}
@@ -185,8 +187,8 @@ export default function CuratedStats({ className }: { className?: string }) {
     <div className={cn("flex h-full w-full items-center justify-around", className)}>
       <SessionNavigation activeSession={session} onSessionClick={setSession} />
       <Counters
-        kept={session?.kept || allTime.kept}
-        deleted={session?.deleted || allTime.deleted}
+        kept={session?.kept ?? allTime.kept}
+        deleted={session?.deleted ?? allTime.deleted}
       />
     </div>
   );

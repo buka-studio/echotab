@@ -1,0 +1,28 @@
+:root {
+    --background-base: #F3F3F3FF;
+    --background: #FFFFFFFF;
+    --foreground: #1D1D1DFF;
+    --card: #FDFDFDFF;
+    --card-active: #EEEEEEFF;
+    --card-foreground: #1D1D1DFF;
+    --popover: #FCFCFCFF;
+    --popover-foreground: #1D1D1DFF;
+    --primary: #FA4600FF;
+    --primary-foreground: #F8F8F8FF;
+    --secondary: #DEDEDEFF;
+    --secondary-foreground: #1D1D1DFF;
+    --muted: #F0EDEDFF;
+    --muted-foreground: #737373FF;
+    --accent: #EEEEEEFF;
+    --accent-foreground: #1D1D1DFF;
+    --destructive: #F9052BFF;
+    --destructive-foreground: #A93A38FF;
+    --border: #DFDFDFFF;
+    --border-active: #DFDFDFFF;
+    --input: #E4E4E4FF;
+    --ring: #C7C7C7FF;
+    --surface-1: #FCFCFCFF;
+    --surface-2: #F9F9F9FF;
+    --surface-3: #F7F7F7FF;
+    --surface-4: #F5F5F5FF;
+  }

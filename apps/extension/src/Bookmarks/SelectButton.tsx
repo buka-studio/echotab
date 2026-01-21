@@ -1,23 +1,27 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 
-import { SelectionStore, useBookmarkSelectionStore, useBookmarkStore } from "./BookmarkStore";
+import {
+  bookmarkStoreSelectionActions,
+  useBookmarkSelectionStore,
+  useFilteredTabIds,
+} from "../store/bookmarkStore";
 
 export default function SelectButton() {
-  const { filteredTabIds } = useBookmarkStore();
-  const { selectedItemIds } = useBookmarkSelectionStore();
+  const filteredTabIds = useFilteredTabIds();
+  const selectionStore = useBookmarkSelectionStore();
 
   const hasTabs = filteredTabIds.size > 0;
-  const hasSelectedTabs = selectedItemIds.size > 0;
+  const hasSelectedTabs = selectionStore.selectedTabIds.size > 0;
 
   return (
     <>
       {hasSelectedTabs ? (
-        <Button variant="ghost" onClick={SelectionStore.deselectAllTabs}>
+        <Button variant="ghost" onClick={bookmarkStoreSelectionActions.deselectAllTabs}>
           Deselect All
         </Button>
       ) : (
         hasTabs && (
-          <Button variant="ghost" onClick={SelectionStore.selectAllTabs}>
+          <Button variant="ghost" onClick={bookmarkStoreSelectionActions.selectAllTabs}>
             Select All
           </Button>
         )

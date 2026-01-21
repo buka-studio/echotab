@@ -6,18 +6,25 @@ import { safeUpsertListOGImage } from "./util";
 export async function POST(req: Request) {
   const userId = req.headers.get("X-EchoTab-userId");
 
-  const data = await req.json();
+  if (!userId) {
+    return Response.json({ error: "Missing required header: X-EchoTab-userId" }, { status: 401 });
+  }
 
-  const { error: dataError } = validators.list.safeParse(data);
   const { error: userIdError } = validators.userId.safeParse(userId);
-  if (dataError || userIdError) {
-    return Response.json({ error: (dataError || userIdError)!.message }, { status: 400 });
+  if (userIdError) {
+    return Response.json({ error: "Invalid userId format" }, { status: 400 });
+  }
+
+  const data = await req.json();
+  const { error: dataError } = validators.list.safeParse(data);
+  if (dataError) {
+    return Response.json({ error: "Invalid list data" }, { status: 400 });
   }
 
   try {
-    const list = await createList(userId!, data);
+    const list = await createList(userId, data);
 
-    safeUpsertListOGImage(userId!, { ...list, linkCount: data.links.length });
+    safeUpsertListOGImage(userId, { ...list, linkCount: data.links.length });
 
     return Response.json({ list }, { status: 201 });
   } catch (e) {

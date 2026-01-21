@@ -9,6 +9,7 @@
 }
 
 .carousel-shadow {
-  background: linear-gradient(90deg, hsl(var(--background-base)) 10%, transparent 40%),
-    linear-gradient(90deg, transparent 60%, hsl(var(--background-base)));
+  background:
+    linear-gradient(90deg, var(--background-base) 10%, transparent 40%),
+    linear-gradient(90deg, transparent 60%, var(--background-base));
 }

@@ -1,0 +1,105 @@
+import "@echotab/ui/globals.css";
+import "../../app.css";
+import "./content.css";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { snapdom } from "@zumer/snapdom";
+import ReactDOM from "react-dom/client";
+
+import { MessageBus } from "../../messaging";
+import { init as storeInit } from "../../store";
+import { createLogger } from "../../util/Logger";
+import Widget from "../../Widget";
+
+const logger = createLogger("content");
+
+export default defineContentScript({
+  matches: ["<all_urls>"],
+  cssInjectionMode: "ui",
+  async main(ctx) {
+    let ui: Awaited<ReturnType<typeof createShadowRootUi>> | null = null;
+    let isMounted = false;
+    let root: ReactDOM.Root | null = null;
+
+    async function initStores() {
+      try {
+        await Promise.all([storeInit.initSettingStore(), storeInit.initTagStore()]);
+        await Promise.all([storeInit.initBookmarkStore(), storeInit.initTabStore()]);
+      } catch (e) {
+        logger.error("Failed to initialize stores", e);
+      }
+    }
+
+    const listener = MessageBus.createListener({
+      "snapshot:capture": async () => {
+        try {
+          const img = await snapdom.toPng(document.body, {
+            scale: 1,
+            quality: 0.8,
+            cache: "soft",
+            exclude: [".echotab-root"],
+          });
+          return { success: true, dataUrl: img.src };
+        } catch (error: unknown) {
+          logger.warn("Snapshot failed:", error);
+          return { success: false, error: error instanceof Error ? error.message : String(error) };
+        }
+      },
+
+      "widget:toggle": () => {
+        if (ui) {
+          if (isMounted) {
+            ui.remove();
+            isMounted = false;
+          } else {
+            ui.mount();
+          }
+        }
+      },
+    });
+
+    chrome.runtime.onMessage.addListener(listener);
+
+    const queryClient = new QueryClient();
+
+    ui = await createShadowRootUi(ctx, {
+      name: "echotab-widget",
+      position: "overlay",
+      anchor: "body",
+      onMount: async (container) => {
+        await initStores();
+
+        container.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          width: min(400px, 90vw);
+          z-index: 2147483647;
+        `;
+
+        root = ReactDOM.createRoot(container);
+        root.render(
+          <QueryClientProvider client={queryClient}>
+            <Widget
+              onClose={() => {
+                if (ui && isMounted) {
+                  ui.remove();
+                  isMounted = false;
+                }
+              }}
+            />
+          </QueryClientProvider>,
+        );
+
+        isMounted = true;
+      },
+      onRemove: () => {
+        if (root) {
+          root.unmount();
+          root = null;
+        }
+        isMounted = false;
+      },
+    });
+  },
+});

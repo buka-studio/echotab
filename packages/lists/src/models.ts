@@ -2,6 +2,7 @@ export interface PublicList {
   publicId: string;
   title: string | null;
   content: string;
+  profileLinkUrl?: string | null;
   viewCount: string;
   importCount: string;
   created_at: Date;

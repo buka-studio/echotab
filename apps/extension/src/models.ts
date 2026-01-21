@@ -53,10 +53,7 @@ export interface List {
   updatedAt: string;
 }
 
-export type Message = {
-  type: "snapshot_tmp";
-  tabId: number;
-  url: string;
-};
-
-export type MessageType = Message["type"];
+export interface Serializable<T> {
+  serialize(): string;
+  deserialize(serialized: string): T | undefined;
+}

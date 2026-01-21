@@ -1,10 +1,21 @@
+import { cn } from "@echotab/ui/util";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 
-export default function MobileBottomBar({ children }: { children?: React.ReactNode }) {
+export default function MobileBottomBar({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="mobile-bottom-bar fixed bottom-0 left-0 right-0 mx-auto h-[100px] w-full max-w-4xl">
-      <div className="absolute inset-0 z-0 backdrop-blur-md transition-opacity duration-500 [mask-image:linear-gradient(0deg,black_35%,transparent_70%)] only:opacity-0" />
+    <div
+      className={cn(
+        "mobile-bottom-bar fixed right-0 bottom-0 left-0 mx-auto h-[100px] w-full max-w-[calc(56rem-2px)]",
+        className,
+      )}>
+      <div className="absolute inset-0 z-0 mask-[linear-gradient(0deg,black_35%,transparent_70%)] backdrop-blur-md transition-opacity duration-500 only:opacity-0" />
       {children}
     </div>
   );

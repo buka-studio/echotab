@@ -1,0 +1,7 @@
+fly.toml
+Dockerfile
+fly.web.toml
+web.Dockerfile
+.dockerignore
+node_modules
+.git

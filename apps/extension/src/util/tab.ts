@@ -1,3 +1,19 @@
 export function isValidActiveTab(tab?: Partial<chrome.tabs.Tab>) {
-  return tab && tab.url && tab.id && tab.title;
+  if (!tab || !tab.url || !tab.id || !tab.title) {
+    return false;
+  }
+
+  try {
+    const url = new URL(tab.url);
+    if (url.protocol === "chrome-extension:") {
+      return false;
+    }
+    if (url.protocol === "chrome:") {
+      return false;
+    }
+  } catch {
+    // pass
+  }
+
+  return true;
 }

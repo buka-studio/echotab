@@ -1,9 +1,11 @@
 import { Badge } from "@echotab/ui/Badge";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
+import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -22,52 +24,60 @@ import {
 } from "@radix-ui/react-icons";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
-import { ComponentProps, ComponentRef, forwardRef } from "react";
+import { ComponentProps } from "react";
 
-import SnapshotPreview from "../components/SnapshotPreview";
 import { SortableHandle } from "../components/SortableList";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { Waveform } from "../components/Waveform";
 import { ActiveTab } from "../models";
-import { useTagStore } from "../TagStore";
-import { useUIStore } from "../UIStore";
-import ActiveStore, { SelectionStore, useActiveTabStore, useTabInfo } from "./ActiveStore";
+import { useSettingStore } from "../store/settingStore";
+import {
+  tabStoreActions,
+  tabStoreSelectionActions,
+  useTabInfo,
+  useTabStore,
+  useViewTabIdsByWindowId,
+} from "../store/tabStore";
+import { useTagsById } from "../store/tagStore";
 
 function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
-  const getTabIndex = () =>
-    ActiveStore.viewTabIdsByWindowId[tab.windowId].findIndex((id) => id === tab.id);
+  const viewTabIdsByWindowId = useViewTabIdsByWindowId();
+
+  const windowTabs = viewTabIdsByWindowId[tab.windowId] || [];
+
+  const tabIndex = windowTabs.findIndex((id) => id === tab.id);
 
   const handleCloseBefore = () => {
-    ActiveStore.removeTabs(ActiveStore.viewTabIdsByWindowId[tab.windowId].slice(0, getTabIndex()));
+    if (tabIndex === -1) return;
+    tabStoreActions.removeTabs(windowTabs.slice(0, tabIndex));
   };
 
   const handleCloseAfter = () => {
-    ActiveStore.removeTabs(ActiveStore.viewTabIdsByWindowId[tab.windowId].slice(getTabIndex() + 1));
+    if (tabIndex === -1) return;
+    tabStoreActions.removeTabs(windowTabs.slice(tabIndex + 1));
   };
 
   const handleCloseOthers = () => {
-    ActiveStore.removeTabs(
-      ActiveStore.viewTabIdsByWindowId[tab.windowId].filter((id) => id !== tab.id),
-    );
+    tabStoreActions.removeTabs(windowTabs.filter((id) => id !== tab.id));
   };
 
   const handleTabSelection = () => {
-    SelectionStore.toggleSelected(tab.id);
+    tabStoreSelectionActions.toggleSelected(tab.id);
   };
 
   const handlePinTab = () => {
-    ActiveStore.updateTab(tab.id, {
+    tabStoreActions.updateTab(tab.id, {
       pinned: !tab.pinned,
     });
   };
 
   const handleReloadTab = () => {
-    ActiveStore.reloadTab(tab.id);
+    tabStoreActions.reloadTab(tab.id);
   };
 
   const handleMuteTab = () => {
-    ActiveStore.updateTab(tab.id, {
+    tabStoreActions.updateTab(tab.id, {
       muted: !tab.muted,
     });
   };
@@ -80,20 +90,23 @@ function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <p className="text-muted-foreground p-2 text-xs">
-          Last opened {formatLastAccessed(tab.lastAccessed)} ago.
-        </p>
+        <DropdownMenuLabel>
+          Last opened:{" "}
+          <span className="text-xs tracking-normal [text-transform:initial]">
+            {formatLastAccessed(tab.lastAccessed)} ago.
+          </span>
+        </DropdownMenuLabel>
         <DropdownMenuItem onClick={handlePinTab}>{tab.pinned ? "Unpin" : "Pin"}</DropdownMenuItem>
         <DropdownMenuItem onClick={handleTabSelection}>
           {selected ? "Deselect" : "Select"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Close</DropdownMenuSubTrigger>
+          <DropdownMenuSubTrigger>Close tabs</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuItem onClick={handleCloseBefore}>Close before</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCloseAfter}>Close after</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCloseOthers}>Close others</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseBefore}>Close tabs before</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseAfter}>Close tabs after</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCloseOthers}>Close other tabs</DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
@@ -117,22 +130,22 @@ function formatLastAccessed(lastAccessed: number | undefined) {
   return formatDistanceToNow(new Date(lastAccessed));
 }
 
-const ActiveTabItem = forwardRef<
-  ComponentRef<typeof TabItem>,
-  ComponentProps<typeof TabItem> & { tab: ActiveTab }
->(function ActiveTabItem({ tab, className, ...rest }, ref) {
-  const { assignedTagIds } = useActiveTabStore();
-  const { tags } = useTagStore();
-  const {
-    settings: { hideTabsFavicons },
-  } = useUIStore();
+type Props = Omit<ComponentProps<typeof TabItem>, "tab"> & {
+  tab: ActiveTab;
+  currentGroupTagId?: number;
+};
+
+function ActiveTabItem({ className, tab, ...rest }: Props) {
+  const assignedTagIds = useTabStore((s) => s.assignedTagIds);
+  const tags = useTagsById();
+  const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
 
   const { selected, duplicate, stale } = useTabInfo(tab.id);
 
   const assignedTags = selected
     ? Array.from(assignedTagIds)
-        .map((id) => tags.get(id)!)
-        .filter(Boolean)
+      .map((id) => tags.get(id)!)
+      .filter(Boolean)
     : [];
 
   const handleFocusTab = async () => {
@@ -141,26 +154,24 @@ const ActiveTabItem = forwardRef<
   };
 
   const handleUnpinTab = () => {
-    ActiveStore.updateTab(tab.id, {
+    tabStoreActions.updateTab(tab.id, {
       pinned: !tab.pinned,
     });
   };
 
   const handleCloseTab = () => {
-    ActiveStore.removeTab(tab.id);
+    tabStoreActions.removeTab(tab.id, { notify: true });
   };
 
   return (
     <TabItem
       {...rest}
-      ref={ref}
       className={cn({ "border-border-active bg-card-active": selected }, className)}
-      linkPreview={<SnapshotPreview tab={{ id: tab.id, url: tab.url }} />}
       icon={
         // todo: clean up
         tab.pinned ? (
           <button className={cn("focus-ring group relative rounded")} onClick={handleUnpinTab}>
-            {!hideTabsFavicons && (
+            {!hideFavicons && (
               <Favicon
                 src={tab.url}
                 className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
@@ -168,10 +179,9 @@ const ActiveTabItem = forwardRef<
             )}
             <DrawingPinFilledIcon
               className={cn(
-                "absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
+                "absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
                 {
-                  "text-muted-foreground hover:text-foreground relative opacity-100":
-                    hideTabsFavicons,
+                  "text-muted-foreground hover:text-foreground relative opacity-100": hideFavicons,
                 },
               )}
             />
@@ -179,7 +189,7 @@ const ActiveTabItem = forwardRef<
         ) : (
           <SortableHandle asChild>
             <button className={cn("handle focus-ring group relative cursor-grab rounded")}>
-              {!hideTabsFavicons && (
+              {!hideFavicons && (
                 <Favicon
                   src={tab.url}
                   className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
@@ -187,10 +197,10 @@ const ActiveTabItem = forwardRef<
               )}
               <DragHandleDots2Icon
                 className={cn(
-                  "absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
+                  "absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
                   {
                     "text-muted-foreground hover:text-foreground relative opacity-100":
-                      hideTabsFavicons,
+                      hideFavicons,
                   },
                 )}
               />
@@ -201,7 +211,7 @@ const ActiveTabItem = forwardRef<
       tab={tab}
       link={
         <button
-          className="focus-ring overflow-hidden text-ellipsis whitespace-nowrap rounded-sm"
+          className="focus-ring cursor-pointer overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline"
           onClick={handleFocusTab}>
           {tab.url}
         </button>
@@ -210,9 +220,13 @@ const ActiveTabItem = forwardRef<
         <div className="flex items-center gap-2">
           <TagChipCombobox tags={assignedTags} />
           <TabMenu tab={tab} selected={selected} />
-          <Button size="icon-sm" variant="ghost" aria-label="Close Tab" onClick={handleCloseTab}>
+          <ButtonWithTooltip
+            size="icon-sm"
+            variant="ghost"
+            tooltipText="Close Tab"
+            onClick={handleCloseTab}>
             <Cross2Icon className="h-5 w-5" />
-          </Button>
+          </ButtonWithTooltip>
         </div>
       }>
       <div className="flex items-center gap-1">
@@ -243,6 +257,6 @@ const ActiveTabItem = forwardRef<
       </div>
     </TabItem>
   );
-});
+}
 
 export default ActiveTabItem;

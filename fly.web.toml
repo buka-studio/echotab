@@ -1,10 +1,23 @@
-app = "www-echotab"
-primary_region = "ams"
+# fly.toml app configuration file generated for www-echotab on 2024-08-25T22:06:04+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'www-echotab'
+primary_region = 'ams'
+
+[build]
+[build.args]
+NEXT_PUBLIC_EXTENSION_ID = "cnhamlcjfdekdinhkfmllfdjamcncbkl"
+NEXT_PUBLIC_HOST = "https://echotab.buka.studio"
+NEXT_PUBLIC_WEB_HOST = "https://echotab.buka.studio"
 
 [http_service]
 internal_port = 3000
 force_https = true
 min_machines_running = 0
 
-[env]
-NEXT_PUBLIC_HOST = "http://localhost:3000"
+[[vm]]
+memory = "512mb"
+cpu_kind = 'shared'
+cpus = 1

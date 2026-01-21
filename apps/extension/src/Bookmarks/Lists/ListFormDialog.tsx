@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   Dialog,
   DialogClose,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@echotab/ui/Dialog";
-import Input from "@echotab/ui/Input";
+import { Input } from "@echotab/ui/Input";
 import { Label } from "@echotab/ui/Label";
 import { PopoverContent } from "@echotab/ui/Popover";
 import RichEditor, {
@@ -19,27 +19,30 @@ import RichEditor, {
 import { toast } from "@echotab/ui/Toast";
 import { ComponentProps, ReactNode, useMemo, useRef, useState } from "react";
 
-import TabItem, { Favicon } from "~/src/components/TabItem";
-import TagChipCombobox from "~/src/components/tag/TagChipCombobox";
-import TagStore from "~/src/TagStore";
-import { useUIStore } from "~/src/UIStore";
+import TabItem, { Favicon } from "~/components/TabItem";
+import TagChipCombobox from "~/components/tag/TagChipCombobox";
 
 import { List, SavedTab } from "../../models";
+import { bookmarkStoreActions, filterTabs, useBookmarkStore } from "../../store/bookmarkStore";
+import { useTagsById } from "../../store/tagStore";
 import { formatDate } from "../../util/date";
-import BookmarkStore, { filterTabs, useBookmarkStore } from "../BookmarkStore";
 import { useUpdateListMutation } from "./queries";
 
 function useItemLookupService() {
-  const bookmarkStore = useBookmarkStore();
+  const tabs = useBookmarkStore((s) => s.tabs);
 
   const ItemLookupService = useMemo(() => {
-    const tabsById = new Map(bookmarkStore.tabs.map((t) => [t.id, t]));
+    const tabsById = new Map(tabs.map((t) => [t.id, t]));
 
     return {
       search: (query: string, cb: (results: { value: string; label: string }[]) => void) => {
-        const results = filterTabs(bookmarkStore.tabs, { keywords: [query], tags: [] });
+        const results = filterTabs(tabs, {
+          keywords: [query],
+          tags: [],
+          looseMatch: false,
+        });
 
-        const tabs = Array.from(results).map((id) => {
+        const tabResults = Array.from(results).map((id) => {
           const tab = tabsById.get(id) as SavedTab;
           return {
             value: tab!.id,
@@ -48,12 +51,52 @@ function useItemLookupService() {
           };
         });
 
-        cb(tabs);
+        cb(tabResults);
       },
     };
-  }, [bookmarkStore.tabs]);
+  }, [tabs]);
 
   return ItemLookupService;
+}
+
+function TabMentionPopover({ mention }: { mention: string }) {
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const tagsById = useTagsById();
+
+  const tab = tabs.find((t) => t.id === mention);
+  if (!tab) {
+    return null;
+  }
+
+  const tags = tab.tagIds.flatMap((t) => {
+    const tag = tagsById.get(t);
+    return tag ? [tag] : [];
+  });
+
+  return (
+    <PopoverContent className="max-w-[200px] border-none p-0">
+      <TabItem
+        className="rounded-lg"
+        tab={tab}
+        icon={
+          <Favicon
+            src={tab.url}
+            className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
+          />
+        }
+        link={
+          <a
+            className="overflow-hidden rounded-sm text-ellipsis whitespace-nowrap focus-visible:underline focus-visible:outline-none"
+            target="_blank"
+            href={tab.url}>
+            {tab.url}
+          </a>
+        }
+        linkPreview={false}
+        actions={<TagChipCombobox editable={false} tags={tags} />}
+      />
+    </PopoverContent>
+  );
 }
 
 type Props = {
@@ -78,10 +121,6 @@ export default function ListFormDialog({
   const editorRef = useRef<RichEditorRef>(null);
   const [open, setOpen] = useState(false);
 
-  const {
-    settings: { disableListSharing },
-  } = useUIStore();
-
   const ItemLookupService = useItemLookupService();
 
   const updateMutation = useUpdateListMutation();
@@ -102,20 +141,24 @@ export default function ListFormDialog({
 
     const tabIds = editorRef.current!.getMentions();
 
-    const result = BookmarkStore.upsertList({
+    const result = bookmarkStoreActions.upsertList({
       ...list,
       title,
       content,
       tabIds,
     });
 
+    if (!result) {
+      return;
+    }
+
     setOpen(false);
-    onSubmit?.(result);
+    onSubmit?.(result as List);
 
-    toast.success(`List ${list ? "updated" : "created"} succesfully!`);
+    toast.success(`Collection ${list ? "updated" : "created"}`);
 
-    if (list && list.sync && !disableListSharing) {
-      updateMutation.mutate(result);
+    if (list && list.sync) {
+      updateMutation.mutate(result as List);
     }
   };
 
@@ -124,8 +167,10 @@ export default function ListFormDialog({
       {children}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{list ? "Edit" : "New"} List</DialogTitle>
-          <DialogDescription>Add tabs to a list to keep them organized.</DialogDescription>
+          <DialogTitle>{list ? "Edit" : "New"} Collection</DialogTitle>
+          <DialogDescription>
+            Add bookmarks to a collection to keep them organized.
+          </DialogDescription>
         </DialogHeader>
         <div>
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -158,42 +203,7 @@ export default function ListFormDialog({
                   plugins={
                     <>
                       <MentionsPopoverPlugin>
-                        {({ mention }) => {
-                          const tab = BookmarkStore.tabs.find((t) => t.id === mention);
-                          if (!tab) {
-                            return null;
-                          }
-
-                          const tags = tab.tagIds.flatMap((t) => {
-                            const tag = TagStore.tags.get(t);
-                            return tag ? [tag] : [];
-                          });
-
-                          return (
-                            <PopoverContent className="max-w-[200px] border-none p-0">
-                              <TabItem
-                                className="rounded-lg"
-                                tab={tab}
-                                icon={
-                                  <Favicon
-                                    src={tab.url}
-                                    className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
-                                  />
-                                }
-                                link={
-                                  <a
-                                    className="overflow-hidden text-ellipsis whitespace-nowrap rounded-sm focus-visible:underline focus-visible:outline-none"
-                                    target="_blank"
-                                    href={tab.url}>
-                                    {tab.url}
-                                  </a>
-                                }
-                                linkPreview={false}
-                                actions={<TagChipCombobox editable={false} tags={tags} />}
-                              />
-                            </PopoverContent>
-                          );
-                        }}
+                        {({ mention }) => <TabMentionPopover mention={mention} />}
                       </MentionsPopoverPlugin>
                     </>
                   }
@@ -205,9 +215,9 @@ export default function ListFormDialog({
                     Last updated: {formatDate(list.updatedAt)}
                   </div>
                 )}
-                {list?.sync && !disableListSharing && (
+                {list?.sync && (
                   <div className="text-muted-foreground">
-                    Updates to this list are published automatically.
+                    Updates to this collection are published automatically.
                   </div>
                 )}
               </div>
@@ -218,9 +228,7 @@ export default function ListFormDialog({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button variant="outline" type="submit">
-                Save
-              </Button>
+              <Button type="submit">Save</Button>
             </DialogFooter>
           </form>
         </div>

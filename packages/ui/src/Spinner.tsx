@@ -1,6 +1,6 @@
 import { cn } from "./util";
 
-export default function Spinner({ className }: { className?: string }) {
+function Spinner({ className }: { className?: string }) {
   return (
     <div role="status" className={cn("text-muted-foreground flex h-8 w-8", className)}>
       <svg
@@ -27,3 +27,5 @@ export default function Spinner({ className }: { className?: string }) {
     </div>
   );
 }
+
+export { Spinner };

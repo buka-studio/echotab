@@ -1,4 +1,4 @@
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import {
   Dialog,
   DialogClose,
@@ -9,18 +9,17 @@ import {
   DialogTitle,
 } from "@echotab/ui/Dialog";
 import { Toggle } from "@echotab/ui/Toggle";
+import { cn } from "@echotab/ui/util";
 import { useState } from "react";
 
 import TagChip from "../components/tag/TagChip";
-import TagStore from "../TagStore";
-import UIStore, { useUIStore } from "../UIStore";
+import { settingStoreActions, useSettingStore } from "../store/settingStore";
+import { tagStoreActions } from "../store/tagStore";
 import { toggle } from "../util/set";
 import { tagSuggestions } from "./constants";
 
 export default function OnboardingDialog() {
-  const {
-    settings: { showOnboarding },
-  } = useUIStore();
+  const { showOnboarding } = useSettingStore((s) => s.settings);
 
   const [selectedTagIndices, setSelectedTagIndices] = useState(new Set<number>());
 
@@ -38,16 +37,16 @@ export default function OnboardingDialog() {
   }
 
   const handleConfirmTags = () => {
-    TagStore.createTags(Array.from(selectedTagIndices).map((i) => tagSuggestions[i]));
-    UIStore.updateSettings({ showOnboarding: false });
-  };
-
-  const handleClearAll = () => {
-    setSelectedTagIndices(new Set());
+    tagStoreActions.createTags(
+      Array.from(selectedTagIndices)
+        .map((i) => tagSuggestions[i]!)
+        .filter(Boolean),
+    );
+    settingStoreActions.updateSettings({ showOnboarding: false });
   };
 
   const handleSkip = () => {
-    UIStore.updateSettings({ showOnboarding: false });
+    settingStoreActions.updateSettings({ showOnboarding: false });
   };
 
   return (
@@ -56,13 +55,14 @@ export default function OnboardingDialog() {
         <DialogHeader>
           <DialogTitle>Welcome to EchoTab!</DialogTitle>
           <DialogDescription>
-            EchoTab is a Chrome extensions that helps you manage your tabs.
+            EchoTab is a Chrome extension that helps you manage your tabs.
           </DialogDescription>
         </DialogHeader>
         <div>
           <p className="text-sm">
             To get started, pick some tags from our suggestions to help you find your bookmarks
-            fast. You can always add or remove tags later in Settings.
+            fast. You can always add or remove tags later in{" "}
+            <span className="font-semibold">Settings</span>.
           </p>
           <div className="my-5 flex flex-wrap gap-2">
             {tagSuggestions.map(({ name, color }, i) => (
@@ -73,19 +73,20 @@ export default function OnboardingDialog() {
                 className="h-auto rounded-full p-0 px-0"
                 onPressedChange={() => handleToggleTag(i)}>
                 <button>
-                  <TagChip color={selectedTagIndices.has(i) ? color : "hsl(var(--muted))"}>
+                  <TagChip
+                    className={cn({
+                      "border-dashed bg-transparent": !selectedTagIndices.has(i),
+                    })}
+                    color={color}
+                    indicatorClassName={cn({
+                      "opacity-100": selectedTagIndices.has(i),
+                      "opacity-60": !selectedTagIndices.has(i),
+                    })}>
                     {name}
                   </TagChip>
                 </button>
               </Toggle>
             ))}
-            {/* <Button
-              disabled={selectedTagIndices.size === 0}
-              className="mr-auto"
-              variant="ghost"
-              onClick={handleClearAll}>
-              Clear all
-            </Button> */}
           </div>
         </div>
         <DialogFooter className="gap-1">
@@ -95,9 +96,7 @@ export default function OnboardingDialog() {
             </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button onClick={handleConfirmTags} variant="outline">
-              Get Started
-            </Button>
+            <Button onClick={handleConfirmTags}>Get Started</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

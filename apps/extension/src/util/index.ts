@@ -1,4 +1,4 @@
-import { ClipboardFormat } from "../UIStore";
+import { ClipboardFormat } from "~/store/schema";
 
 export function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,7 +17,8 @@ export function downloadJSON(obj: Record<string, unknown>, name: string) {
 }
 
 export function capitalize(s: string) {
-  return s[0].toUpperCase() + s.slice(1);
+  if (!s) return "";
+  return s[0]!.toUpperCase() + s.slice(1);
 }
 
 export function pluralize(count: number, singular: string, suffix = "s", includeCount = true) {
@@ -104,4 +105,8 @@ export function sortRecord<T>(
       )
       .map(([key, value]) => [key, valueComparator ? value.sort(valueComparator) : value]),
   );
+}
+
+export function getModifierKey() {
+  return navigator.userAgent.includes("Mac") ? "⌘" : "Ctrl";
 }

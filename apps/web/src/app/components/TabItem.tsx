@@ -15,7 +15,7 @@ export default function TabItem({
         className,
       )}
       {...props}>
-      <div className="border-border flex-shrink-0 rounded border p-1 shadow-sm">
+      <div className="border-border shrink-0 rounded border p-1 dark:shadow-sm">
         {tab.favicon ? (
           <div className="overflow-hidden rounded">
             <img src={tab?.favicon} alt="" className="h-6 w-6 object-cover object-center" />

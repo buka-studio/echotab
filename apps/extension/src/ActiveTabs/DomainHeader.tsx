@@ -9,32 +9,47 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@echotab/ui/AlertDialog";
-import Button from "@echotab/ui/Button";
+import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 import { ReactNode, useMemo } from "react";
 
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { Favicon } from "../components/TabItem";
+import {
+  tabStoreActions,
+  useTabStore,
+  useViewTabIdsByDomain,
+  useViewTabsById,
+} from "../store/tabStore";
 import { pluralize } from "../util";
 import { getDomain } from "../util/url";
-import { useActiveTabStore } from "./ActiveStore";
 
-export default function DomainHeader({ domain, actions }: { domain: string; actions?: ReactNode }) {
-  const tabStore = useActiveTabStore();
+export default function DomainHeader({
+  domain,
+  actions,
+  className,
+}: {
+  domain: string;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  const tabs = useTabStore((s) => s.tabs);
+  const viewTabIdsByDomain = useViewTabIdsByDomain();
+  const viewTabsById = useViewTabsById();
 
   const domainTabIds = useMemo(() => {
-    return tabStore.tabs.filter((tab) => getDomain(tab.url) === domain).map((tab) => tab.id);
-  }, [tabStore.tabs, domain]);
+    return tabs.filter((tab) => getDomain(tab.url) === domain).map((tab) => tab.id);
+  }, [tabs, domain]);
 
-  const viewTabIds = tabStore.viewTabIdsByDomain[domain];
+  const viewTabIds = viewTabIdsByDomain[domain];
   const closeLabel = `This action will close ${pluralize(viewTabIds.length, "tab")}.`;
   const ctaLabel = viewTabIds.length < domainTabIds.length ? `Close` : "Close All";
 
   return (
-    <div className="flex justify-between px-1 pl-2 [&:not(:only-child)]:mb-4">
-      <div className="inline-flex select-none items-center">
+    <div className={cn("flex justify-between", className)}>
+      <div className="inline-flex items-center select-none">
         <span className="mr-2 inline-flex items-center gap-2">
-          {domain !== "Other" && <Favicon src={tabStore.viewTabsById[viewTabIds[0]].url} />}
+          <Favicon src={viewTabsById[viewTabIds[0]].url} />
           <span className={cn("text-muted-foreground text-sm transition-colors duration-300")}>
             {domain}
           </span>
@@ -54,7 +69,7 @@ export default function DomainHeader({ domain, actions }: { domain: string; acti
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => tabStore.removeTabs(viewTabIds)}
+              onClick={() => tabStoreActions.removeTabs(viewTabIds)}
               variant="destructive">
               {ctaLabel}
             </AlertDialogAction>

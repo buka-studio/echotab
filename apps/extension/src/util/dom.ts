@@ -37,3 +37,7 @@ export function focusSiblingItem(e: React.KeyboardEvent, selector: string) {
     }
   }
 }
+
+export function getRootElement() {
+  return document.querySelector(".echotab-root") as HTMLElement;
+}

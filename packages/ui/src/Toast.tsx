@@ -1,27 +1,39 @@
 "use client";
 
-import { toast as SonnerToast, Toaster as SonnerToaster } from "sonner";
+import {
+  CheckCircleIcon,
+  InfoIcon,
+  SpinnerIcon,
+  WarningIcon,
+  WarningOctagonIcon,
+} from "@phosphor-icons/react";
+import { Toaster as Sonner, toast, type ToasterProps } from "sonner";
 
-export const toast = SonnerToast;
-
-type ToasterProps = React.ComponentProps<typeof SonnerToaster>;
-
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ theme, ...props }: ToasterProps) => {
   return (
-    <SonnerToaster
+    <Sonner
+      theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      toastOptions={{
-        classNames: {
-          toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg select-none",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-        },
+      icons={{
+        success: <CheckCircleIcon className="text-success-foreground size-4.5" weight="fill" />,
+        info: <InfoIcon className="text-info-foreground size-4.5" weight="fill" />,
+        warning: <WarningIcon className="text-warning-foreground size-4.5" weight="fill" />,
+        error: (
+          <WarningOctagonIcon className="text-destructive-foreground size-4.5" weight="fill" />
+        ),
+        loading: <SpinnerIcon className="text-primary size-4.5 animate-spin" />,
       }}
+      style={
+        {
+          "--normal-bg": "var(--popover)",
+          "--normal-text": "var(--popover-foreground)",
+          "--normal-border": "var(--border)",
+          "--border-radius": "var(--radius)",
+        } as React.CSSProperties
+      }
       {...props}
     />
   );
 };
 
-export default Toaster;
+export { toast, Toaster };

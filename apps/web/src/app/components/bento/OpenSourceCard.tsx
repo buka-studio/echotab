@@ -17,7 +17,7 @@ export default function OpenSourceCard({ className, ...props }: ComponentProps<"
       illustration={
         <div
           ref={relativeRef}
-          className="illustration logo-illustration relative -top-8 [&_.logo]:transition-transform [&_.logo]:duration-300 [&_.logo]:[transform-origin:center] group-hover:[&_.logo]:scale-[1.03]">
+          className="illustration logo-illustration relative -top-8 [&_.logo]:[transform-origin:center] [&_.logo]:transition-transform [&_.logo]:duration-300 group-hover:[&_.logo]:scale-[1.03]">
           <Base className="absolute inset-0 left-[50%] translate-x-[-50%]" />
           <Active className="active absolute inset-0 left-[50%] translate-x-[-50%] transition-opacity duration-500 [&]:[mask-image:radial-gradient(40%_40%_at_var(--mouse-x,9999px)_var(--mouse-y,9999px),black_45%,transparent)]" />
         </div>
@@ -26,8 +26,8 @@ export default function OpenSourceCard({ className, ...props }: ComponentProps<"
         <h3 className="mb-2 flex items-center gap-2 font-mono text-sm uppercase">
           <BoxIcon /> Open Source
         </h3>
-        <p className="text-balance text-left text-neutral-400">
-          Fostering a collaborative environment where users can contribute to its development.
+        <p className="text-muted-foreground text-left text-balance">
+          Contribute to the development of Echotab.
         </p>
       </div>
     </BentoCard>

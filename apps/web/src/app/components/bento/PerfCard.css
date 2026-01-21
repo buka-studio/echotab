@@ -1,0 +1,34 @@
+.cylinder {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  position: absolute;
+  --pi: 3.14159265358979;
+  --cylinder-height: 300px;
+  --item-deg: calc(360 / var(--segments));
+  --item-offset: calc(var(--cylinder-height) / calc(var(--pi) / 2));
+
+  transform: rotateX(calc(var(--item-deg) * var(--index) * 1deg))
+    translateZ(calc(var(--item-offset) - 6px));
+}
+
+.segment {
+  position: absolute;
+  width: 100%;
+  top: 38%;
+  right: -150px;
+  transform: rotateX(calc(var(--item-deg) * var(--index) * 1deg))
+    translateZ(calc(var(--item-offset) - 6px));
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+}
+
+.overlay-mask {
+  background:
+    linear-gradient(0deg, transparent 90%, var(--background)),
+    linear-gradient(90deg, transparent 90%, var(--background)),
+    linear-gradient(180deg, transparent 90%, var(--background));
+}

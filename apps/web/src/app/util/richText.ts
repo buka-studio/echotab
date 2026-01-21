@@ -92,3 +92,48 @@ export async function getMarkdown(serializedEditorState: string) {
     });
   });
 }
+
+interface LexicalNode {
+  type: string;
+  children?: LexicalNode[];
+  text?: string;
+}
+
+interface LexicalState {
+  root: LexicalNode;
+}
+
+const CONTAINER_TYPES = new Set(["root", "paragraph", "list", "listitem"]);
+const VALID_LEAF_TYPES = new Set(["mention", "linebreak"]);
+
+function isLinkOnlyNode(node: LexicalNode): boolean {
+  if (VALID_LEAF_TYPES.has(node.type)) {
+    return true;
+  }
+
+  if (node.type === "text") {
+    return !node.text || node.text.trim() === "";
+  }
+
+  if (CONTAINER_TYPES.has(node.type)) {
+    if (!node.children?.length) {
+      return false;
+    }
+    return node.children.every(isLinkOnlyNode);
+  }
+
+  return false;
+}
+
+export function isLinkOnlyContent(content: string): boolean {
+  try {
+    const state: LexicalState = JSON.parse(content);
+    const root = state.root;
+
+    if (!root?.children?.length) return false;
+
+    return root.children.every(isLinkOnlyNode);
+  } catch {
+    return false;
+  }
+}

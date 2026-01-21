@@ -1,5 +1,6 @@
 "use client";
 
+import { $createListItemNode, $createListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { InitialConfigType, LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -11,31 +12,26 @@ import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { $createParagraphNode, $getRoot, $nodesOfType, EditorState, LexicalEditor } from "lexical";
-import {
-  ComponentProps,
-  forwardRef,
-  ReactNode,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-} from "react";
+import { $dfs } from "@lexical/utils";
+import { $getRoot, EditorState, LexicalEditor } from "lexical";
+import { ComponentProps, ReactNode, Ref, useEffect, useImperativeHandle, useRef } from "react";
 
 import { cn } from "../util";
 import { defaultNodes } from "./constants";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
+import ListExitPlugin from "./plugins/ListExitPlugin";
 import { $createMentionNode, MentionNode } from "./plugins/MentionNode";
 import MentionsPlugin from "./plugins/MentionsPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import theme from "./theme";
 
 function Placeholder({
-  children = "Enter some rich text...\nReference your saved tabs by entering '@' followed by the tab name.",
+  children = "Enter some rich text...\nReference your saved bookmarks by entering '@' followed by the title.",
 }: {
   children?: ReactNode;
 }) {
   return (
-    <div className="text-muted-foreground pointer-events-none absolute left-4 top-4 inline-block overflow-hidden text-ellipsis whitespace-pre text-pretty text-sm">
+    <div className="text-muted-foreground pointer-events-none absolute top-4 left-4 inline-block overflow-hidden text-sm text-pretty text-ellipsis whitespace-pre">
       {children}
     </div>
   );
@@ -50,7 +46,7 @@ const editorConfig: InitialConfigType = {
   nodes: [...defaultNodes],
 };
 
-type Props = Omit<ComponentProps<"div">, "onChange"> & {
+type Props = Omit<ComponentProps<"div">, "onChange" | "ref"> & {
   plugins?: ReactNode;
   config?: Partial<InitialConfigType>;
   placeholder?: ReactNode;
@@ -58,6 +54,7 @@ type Props = Omit<ComponentProps<"div">, "onChange"> & {
   defaultMentions?: { value: string; label: string }[];
   onStateChange?: (value: string) => void;
   onMentionsChange?: (mentions: string[]) => void;
+  ref?: Ref<RichEditorRef>;
 };
 
 export interface RichEditorRef {
@@ -66,32 +63,39 @@ export interface RichEditorRef {
   clear(): void;
 }
 
-function appendMentions(mentions: { value: string; label: string }[]) {
+function appendMentionsAsList(mentions: { value: string; label: string }[]) {
   const root = $getRoot();
+  const listNode = $createListNode("bullet");
 
   for (const m of mentions) {
-    const paragraphNode = $createParagraphNode();
+    const listItemNode = $createListItemNode();
     const mention = $createMentionNode(m.value, m.label);
-    paragraphNode.append(mention);
-    root.append(paragraphNode);
+    listItemNode.append(mention);
+    listNode.append(listItemNode);
   }
+
+  root.append(listNode);
 }
 
-const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
-  {
-    defaultState,
-    defaultMentions,
-    onStateChange,
-    onMentionsChange,
-    placeholder,
-    className,
-    config,
-    plugins,
-    ...props
-  }: Props,
+function $getMentionNodes(): MentionNode[] {
+  return $dfs()
+    .filter(({ node }) => node instanceof MentionNode)
+    .map(({ node }) => node as MentionNode);
+}
+
+function RichEditor({
+  defaultState,
+  defaultMentions,
+  onStateChange,
+  onMentionsChange,
+  placeholder,
+  className,
+  config,
+  plugins,
   ref,
-) {
-  const editor = useRef<LexicalEditor>();
+  ...props
+}: Props) {
+  const editor = useRef<LexicalEditor>(null);
 
   function onChange(editorState: EditorState) {
     const editorStateJSON = editorState.toJSON();
@@ -99,15 +103,40 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
     onStateChange?.(JSON.stringify(editorStateJSON));
   }
 
-  // there's probably be a better way to do this
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     editor.current?.update(
       () => {
         if (defaultMentions?.length) {
-          appendMentions(defaultMentions);
+          const root = $getRoot();
 
-          const addedMentions = defaultMentions.map((m) => m.value);
-          onMentionsChange?.(addedMentions);
+          const children = root.getChildren();
+          const isEmptyRoot =
+            children.length === 1 &&
+            children[0]!.getTextContent().trim() === "";
+
+          if (isEmptyRoot) {
+            root.clear();
+          }
+
+          const existingMentions = new Set(
+            $getMentionNodes().map((n) => n.__mention)
+          );
+
+          const newMentions = defaultMentions.filter(
+            (m) => !existingMentions.has(m.value)
+          );
+
+          if (newMentions.length) {
+            appendMentionsAsList(newMentions);
+          }
+
+          const allMentions = $getMentionNodes().map((n) => n.__mention);
+          onMentionsChange?.(allMentions);
         }
       },
       {
@@ -122,12 +151,12 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
   useImperativeHandle(ref, () => ({
     addMentions: (mentions: { value: string; label: string }[]) => {
       editor.current?.update(() => {
-        appendMentions(mentions);
+        appendMentionsAsList(mentions);
       });
     },
     getMentions: () => {
       const mentions = editor.current?.getEditorState().read(() => {
-        const mentionNodes = $nodesOfType(MentionNode);
+        const mentionNodes = $getMentionNodes();
         const mentions = mentionNodes.map((node) => node.__mention);
 
         return mentions;
@@ -145,7 +174,7 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
 
   return (
     <LexicalComposer initialConfig={{ ...editorConfig, ...config, editorState: defaultState }}>
-      <div className="border-border text-foreground ring-offset-background [&:has([role='textbox']:focus-visible)]:ring-ring relative rounded-lg border text-left font-normal leading-5 [&:has([role='textbox']:focus-visible)]:ring-2 [&:has([role='textbox']:focus-visible)]:ring-offset-2">
+      <div className="border-border text-foreground ring-offset-background [&:has([role='textbox']:focus-visible)]:ring-ring/50 [&:has([role='textbox']:focus-visible)]:border-ring relative rounded-lg border text-left leading-5 font-normal transition-[color,box-shadow] [&:has([role='textbox']:focus-visible)]:ring-[3px]">
         <ToolbarPlugin />
         <div className="bg-background relative rounded-b-lg">
           <RichTextPlugin
@@ -156,13 +185,15 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
                   className,
                 )}
                 {...props}
+                placeholder={<Placeholder>{placeholder}</Placeholder>}
+                aria-placeholder={'Enter some rich text...'}
               />
             }
-            placeholder={<Placeholder>{placeholder}</Placeholder>}
             ErrorBoundary={LexicalErrorBoundary}
           />
           <HistoryPlugin />
           <ListPlugin />
+          <ListExitPlugin />
           <LinkPlugin />
           <AutoLinkPlugin />
           <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
@@ -174,6 +205,6 @@ const RichEditor = forwardRef<RichEditorRef, Props>(function RichEditor(
       </div>
     </LexicalComposer>
   );
-});
+}
 
 export default RichEditor;

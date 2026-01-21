@@ -5,15 +5,16 @@ import "./FeaturesCarousel.css";
 import { motion, useTransform } from "framer-motion";
 import { ReactNode, useRef } from "react";
 
-const features = [
+const features: { label: string; upcoming?: boolean }[] = [
   { label: "Open-source" },
-  { label: "Tab tagging" },
-  { label: "AI-powered tagging", upcoming: true },
-  { label: "Tab search" },
-  { label: "CmdK command menu" },
-  { label: "List Sharing" },
-  { label: "Import & Export" },
-  { label: "Dark & light mode" },
+  { label: "Keyboard-first" },
+  { label: "Fast & performant" },
+  { label: "Bulk tagging" },
+  { label: "Instant search" },
+  { label: "Shareable lists" },
+  { label: "Local-only data" },
+  { label: "Beautiful UI" },
+  { label: "Export & import" },
   { label: "Statistics" },
 ];
 
@@ -53,7 +54,7 @@ export default function FeaturesCarousel() {
     <div className="flex flex-col items-center gap-8">
       <h2 className="font-mono uppercase">Features</h2>
       <div
-        className="relative w-[min(1024px,100vw)] overflow-hidden [mask-image:linear-gradient(90deg,transparent,black,transparent)]"
+        className="relative w-[min(1280px,100vw)] overflow-hidden mask-[linear-gradient(90deg,transparent_10%,black_25%,black_75%,transparent_90%)]"
         ref={ref}>
         <div className="track flex justify-center">
           <motion.ul className="items flex flex-nowrap gap-12" style={{ x }}>

@@ -4,8 +4,11 @@ import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
-import { ActiveTab, SavedTab, Tag } from "~/src/models";
-import { useUIStore } from "~/src/UIStore";
+import { ActiveTab, SavedTab, Tag } from "../models";
+import { useSettingStore } from "../store/settingStore";
+import { createLogger } from "../util/Logger";
+
+const logger = createLogger("AI");
 
 const tagSystemPrompt = `Tag saved browser tabs by analyzing their titles, URLs and optional metadata to select the most relevant tags from a provided list. Create new tags only if none apply.
 
@@ -28,13 +31,13 @@ const makeTagUserPrompt = (tags: Tag[], tabs: ActiveTab[]) => {
 const generatedTagSchema = z.object({ tags: z.array(z.string()) });
 
 export function useLLMTagMutation() {
-  const uiStore = useUIStore();
+  const settings = useSettingStore((s) => s.settings);
 
   return useMutation({
     mutationFn: async ({ tags, tabs }: { tags: Tag[]; tabs: ActiveTab[] }): Promise<string[]> => {
       const openai = new OpenAI({
-        baseURL: uiStore.settings.aiApiBaseURL,
-        apiKey: uiStore.settings.aiApiKey,
+        baseURL: settings.aiApiBaseURL,
+        apiKey: settings.aiApiKey,
         dangerouslyAllowBrowser: true,
       });
 
@@ -58,8 +61,8 @@ export function useLLMTagMutation() {
       return res.choices[0].message.parsed?.tags || [];
     },
     onError: (e) => {
-      console.error(e);
-      toast.error("Failed to suggest tags. Please try again.");
+      logger.error("Failed to suggest tags", e);
+      toast.error("Failed to suggest tags");
     },
   });
 }
@@ -99,8 +102,8 @@ export function useTestLLMMutation() {
       });
     },
     onError: (e) => {
-      console.error(e);
-      toast.error("Failed to test connection. Please try again.");
+      logger.error("Failed to test connection", e);
+      toast.error("Failed to test connection");
     },
     onSuccess: (response) => {
       toast.success("Connection successful!");
@@ -111,19 +114,19 @@ export function useTestLLMMutation() {
 const summarizeSystemPrompt = `Summarize the following link's content into a short description of up to 75 words. Return ONLY the description. Make sure to include the most important information and make sure it's grammatically correct.`;
 
 export function useLLMSummarizeQuery({ tab }: { tab: SavedTab }) {
-  const uiStore = useUIStore();
+  const settings = useSettingStore((s) => s.settings);
 
   return useQuery({
     queryKey: ["llm-summarize", tab.id],
-    enabled: Boolean(uiStore.settings.aiApiProvider),
+    enabled: Boolean(settings.aiApiProvider),
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: "always",
     queryFn: async () => {
       const openai = new OpenAI({
-        baseURL: uiStore.settings.aiApiBaseURL,
-        apiKey: uiStore.settings.aiApiKey,
+        baseURL: settings.aiApiBaseURL,
+        apiKey: settings.aiApiKey,
         dangerouslyAllowBrowser: true,
       });
 

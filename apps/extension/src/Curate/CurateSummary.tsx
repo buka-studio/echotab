@@ -1,10 +1,11 @@
 import { NumberFlow } from "@echotab/ui/NumberFlow";
 import { cn } from "@echotab/ui/util";
-import { Tag as TagIcon, Trash as TrashIcon } from "@phosphor-icons/react";
+import { TagIcon, TrashIcon } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { CSSProperties } from "react";
 
-import PCVisual from "./PCVisual";
+import { PCVisual } from "./PCVisual";
+import { ChristmasTreeIllustration } from "./PCVisual/illustrations";
 
 interface Props {
   deleted: number;
@@ -22,13 +23,25 @@ export default function CurateSummary({ deleted, kept, className, children, empt
         className,
       )}>
       <PCVisual
+        illustration={
+          <g className="translate-x-[145px] translate-y-[80px] scale-85 skew-x-[6deg] skew-y-[-3deg]">
+            <ChristmasTreeIllustration
+              style={
+                {
+                  "--tree": "var(--card-active)",
+                  "--tree-light": "var(--muted-foreground)",
+                } as CSSProperties
+              }
+            />
+          </g>
+        }
         style={
           {
-            "--screen": "hsl(var(--card-active))",
-            "--edges": "hsl(var(--muted-foreground) / 0.5)",
-            "--case": "hsl(var(--card))",
-            "--splash": "hsl(var(--surface-2))",
-            "--visual": "hsl(var(--foreground))",
+            "--screen": "var(--background-base)",
+            "--edges": "color-mix(in srgb, var(--muted-foreground) 30%, transparent)",
+            "--case": "var(--card)",
+            "--splash": "var(--surface-2)",
+            "--visual": "var(--foreground)",
           } as CSSProperties
         }
       />
@@ -38,23 +51,24 @@ export default function CurateSummary({ deleted, kept, className, children, empt
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}>
         {empty
-          ? "No tabs to curate today, come back tomorrow!"
-          : `You organized ${kept + deleted} links today, nice job!`}
+          ? "No bookmarks to curate today, come back tomorrow!"
+          : `You curated ${kept + deleted} bookmarks today, nice job!`}
       </motion.h1>
       {!empty && (
         <>
           <motion.div
-            className="flex items-center gap-2"
+            className="text-muted-foreground/50 flex items-center gap-4"
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.15 }}>
-            <span className="text-muted-foreground flex items-center gap-1">
+            <span className="text-muted-foreground flex items-center gap-2">
               <NumberFlow value={deleted} /> deleted{" "}
-              <TrashIcon className="text-muted-foreground h-4 w-4" />
+              <TrashIcon className="text-muted-foreground/80 h-4 w-4" />
             </span>
             /
-            <span className="text-muted-foreground flex items-center gap-1">
-              <NumberFlow value={kept} /> kept <TagIcon className="text-muted-foreground h-4 w-4" />
+            <span className="text-muted-foreground flex items-center gap-2">
+              <NumberFlow value={kept} /> kept{" "}
+              <TagIcon className="text-muted-foreground/80 h-4 w-4" />
             </span>
           </motion.div>
         </>

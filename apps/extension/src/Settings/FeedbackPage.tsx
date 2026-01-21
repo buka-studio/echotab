@@ -1,14 +1,42 @@
+import FeedbackVisual from "./FeedbackVisual";
+import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
+
 export default function FeedbackPage() {
   return (
-    <div>
-      <div className="text-muted-foreground text-sm">
-        We&apos;d love to hear from you! If you have any feedback, questions, or issues, please
-        reach out to us at:
-        <br />
-        <a href="mailto:support@buka.studio?subject=EchoTab Feedback" className="mt-2 block">
-          support@buka.studio
-        </a>
-      </div>
-    </div>
+    <SettingsPage>
+      <SettingsTitle>Feedback</SettingsTitle>
+      <SettingsContent className="flex h-full flex-col items-center gap-5 pt-10">
+        <FeedbackVisual />
+        <div className="flex max-w-[350px] flex-col text-center">
+          <h1 className="text-sm font-semibold">Help improve EchoTab</h1>
+
+          <div className="text-muted-foreground mb-4 text-sm">
+            <p>Found something worth flagging?</p>
+            <p>
+              Reach us at{" "}
+              <a
+                href="mailto:support@buka.studio?subject=EchoTab Feedback"
+                className="hover:text-foreground underline">
+                support@buka.studio
+              </a>
+              .
+            </p>
+          </div>
+          <div className="text-muted-foreground text-sm">
+            <p>
+              EchoTab is open source. Browse the code, report bugs, or contribute on{" "}
+              <a
+                href="https://github.com/buka-studio/echotab"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground underline">
+                GitHub
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+      </SettingsContent>
+    </SettingsPage>
   );
 }

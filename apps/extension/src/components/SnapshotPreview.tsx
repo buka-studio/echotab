@@ -1,27 +1,17 @@
-import ButtonWithTooltip from "@echotab/ui/ButtonWithTooltip";
 import { cn } from "@echotab/ui/util";
-import { Cross2Icon } from "@radix-ui/react-icons";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { ReactNode } from "react";
 
-import usePatternBackground from "~/src/hooks/usePatternBackground";
+import usePatternBackground from "~/hooks/usePatternBackground";
+import { SnapshotStore } from "~/snapshot";
 
-import { Message } from "../models";
-import SnapshotStore, { Snapshot } from "../util/SnapshotStore";
-
-const isSavedTab = (id: string | number): id is string => typeof id === "string";
-
-function useSnapshot(id: string | number) {
+function useSnapshot(url: string) {
   return useQuery({
-    queryKey: ["snapshots", id],
+    queryKey: ["snapshots", url],
+    staleTime: 0,
     queryFn: async () => {
       const snapshotStore = await SnapshotStore.init();
-      let snap: Snapshot | undefined;
-      if (isSavedTab(id)) {
-        snap = await snapshotStore.getSnapshot(id);
-      } else {
-        snap = await snapshotStore.getTmp(id);
-      }
+      const snap = await snapshotStore.getSnapshot(url);
 
       if (snap?.blob) {
         return URL.createObjectURL(snap.blob);
@@ -32,96 +22,68 @@ function useSnapshot(id: string | number) {
   });
 }
 
-const NoSnapshot = ({ onVisit }: { onVisit: () => void }) => {
+function SnapshotFallbackState({
+  className,
+  children,
+  title = "No snapshot available.",
+}: {
+  className?: string;
+  children?: ReactNode;
+  title?: ReactNode;
+}) {
   const patternBg = usePatternBackground("diagonal_lines");
 
   return (
-    <div className="relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg text-sm">
+    <div
+      className={cn(
+        "border-border/50 relative flex h-full w-full flex-1 flex-col items-center justify-center gap-2 rounded-lg border text-sm",
+        className,
+      )}>
       <div
-        className="bg-background absolute inset-0 rounded-lg [mask-image:linear-gradient(180deg,transparent_60%,black)]"
+        className="bg-background absolute inset-0 rounded-lg mask-[linear-gradient(180deg,transparent_60%,black)]"
         style={{ backgroundImage: patternBg }}
       />
-      <div className="text-sm">No snapshot available</div>
-      <div className="relative z-[1]">
-        <div className="text-muted-foreground text-center">
-          A snapshot will be taken
-          <br />
-          the next time you{" "}
-          <button className="text-foreground underline" onClick={onVisit}>
-            visit
-          </button>{" "}
-          this link.
-        </div>
+      <div className="text-sm">{title}</div>
+      <div className="relative z-1">
+        <div className="text-muted-foreground text-center">{children || ""}</div>
       </div>
     </div>
   );
-};
+}
 
 type Props = {
-  tab: {
-    url: string;
-    id: string | number;
-  };
+  url: string;
   className?: string;
+  onVisit?: () => void;
 };
 
-export default function SnapshotPreview({ tab, className }: Props) {
-  const { data, isLoading } = useSnapshot(tab.id);
-  const queryClient = useQueryClient();
+export default function SnapshotPreview({ url, className }: Props) {
+  const { data, isLoading } = useSnapshot(url);
+  const patternBg = usePatternBackground("diagonal_lines");
 
-  const handleVisit = () => {
-    chrome.tabs.create({ url: tab.url, active: true }).then(async (newTab) => {
-      chrome.runtime.onMessage.addListener(async (message: Message, sender) => {
-        if (message.type === "snapshot_tmp" && tab.url === message.url) {
-          const snapshotStore = await SnapshotStore.init();
-          try {
-            if (isSavedTab(tab.id)) {
-              await snapshotStore.commitSnapshot(message.tabId, tab.id, tab.url);
-            }
-          } catch (e) {
-            // ehh, we tried
-            console.error(e);
-          }
-          queryClient.refetchQueries({ queryKey: ["snapshots", tab.id] });
-        }
-      });
-    });
-  };
+  if (isLoading) {
+    return <SnapshotFallbackState title="Loading snapshot..." />;
+  }
 
-  const handleClear = async () => {
-    const snapshotStore = await SnapshotStore.init();
-    if (isSavedTab(tab.id)) {
-      await snapshotStore.deleteSnapshot(tab.id);
-    } else {
-      await snapshotStore.discardTmp(tab.id);
-    }
-    queryClient.setQueryData(["snapshots", tab.id], null);
-  };
+  if (!data) {
+    return <SnapshotFallbackState title="No snapshot available." />;
+  }
 
   return (
-    <div className={cn("relative h-full w-full", className)}>
-      {data ? (
-        <>
-          <motion.img
-            initial={{ filter: "blur(10px)" }}
-            animate={{ filter: "blur(0px)" }}
-            transition={{ duration: 0.25 }}
-            src={data}
-            className="pointer-events-none h-full w-full rounded-lg object-cover object-top"
-            alt="screenshot"
-          />
-          <ButtonWithTooltip
-            tooltipText="Remove snapshot"
-            size="icon-sm"
-            onClick={handleClear}
-            className="absolute right-2 top-2 rounded-full"
-            variant="outline">
-            <Cross2Icon />
-          </ButtonWithTooltip>
-        </>
-      ) : (
-        <NoSnapshot onVisit={handleVisit} />
+    <div
+      className={cn(
+        "flex h-full items-center justify-center overflow-hidden rounded-lg",
+        className,
       )}
+      style={{ backgroundImage: patternBg }}>
+      <img
+        src={data}
+        alt="Snapshot preview"
+        className="h-full max-h-[245px] w-full object-cover"
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
+      />
     </div>
   );
 }

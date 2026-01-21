@@ -2,21 +2,27 @@ import { UserList } from "@echotab/lists/models";
 import { toast } from "@echotab/ui/Toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { List } from "~/src/models";
-import { useUIStore } from "~/src/UIStore";
-import { replaceBy } from "~/src/util";
+import { useSettingStore } from "~/store/settingStore";
 
-import BookmarkStore, { useBookmarkStore } from "../BookmarkStore";
+import { List } from "../../models";
+import { upsertList, useBookmarkStore } from "../../store/bookmarkStore";
+import { replaceBy } from "../../util";
+import { createLogger } from "../../util/Logger";
 import { getLists, publishList, unpublishLists, updateList } from "./api";
+import { getPublicListURL } from "./util";
+
+const logger = createLogger("lists:queries");
 
 function getListPayload(list: List) {
+  const { tabs } = useBookmarkStore.getState();
+  const tabsById = new Map(tabs.map((t) => [t.id, t]));
   return {
     localId: list.id,
     title: list.title,
     content: list.content,
     published: true,
     links: list.tabIds.map((id) => {
-      const tab = BookmarkStore.viewTabsById[id];
+      const tab = tabsById.get(id)!;
       return {
         localId: tab.id,
         url: tab.url,
@@ -27,16 +33,9 @@ function getListPayload(list: List) {
 }
 
 export function useGetPublicLists() {
-  const bookmarkStore = useBookmarkStore();
-  const {
-    settings: { disableListSharing },
-  } = useUIStore();
+  const lists = useBookmarkStore((s) => s.lists);
 
-  const enabled = Boolean(
-    process.env.PLASMO_PUBLIC_LIST_SHARING_FF &&
-      !disableListSharing &&
-      bookmarkStore.lists.length > 0,
-  );
+  const enabled = lists.some((l) => l.publicId);
 
   return useQuery({
     queryKey: ["lists"],
@@ -49,17 +48,26 @@ export function useGetPublicLists() {
 
 export function usePublishListMutation() {
   const queryClient = useQueryClient();
+  const profileLink = useSettingStore((s) => s.settings.profileLinkUrl);
 
   return useMutation({
-    mutationFn: (list: List) => publishList(getListPayload(list)),
+    mutationFn: (list: List) =>
+      publishList({ ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
-      console.error(e);
-      // handle 403 - too many published lists
-      toast.error("Failed to publish list. Please try again.");
+      logger.error("Failed to publish list", e);
+      toast.error("Failed to publish list");
     },
-    onSuccess: (newList) => {
-      toast.success("List published successfully!");
-      queryClient.setQueryData(["lists"], (prev: UserList[]) => {
+    onSuccess: (newList, list) => {
+      upsertList({ ...list, publicId: newList.publicId, published: true });
+      toast.success("List published", {
+        action: {
+          label: "View",
+          onClick: () => {
+            window.open(getPublicListURL(newList.publicId), "_blank");
+          },
+        },
+      });
+      queryClient.setQueryData(["lists"], (prev: UserList[] = []) => {
         return [...prev, newList];
       });
     },
@@ -68,15 +76,27 @@ export function usePublishListMutation() {
 
 export function useUpdateListMutation() {
   const queryClient = useQueryClient();
+  const profileLink = useSettingStore((s) => s.settings.profileLinkUrl);
+
   return useMutation({
-    mutationFn: (list: List) => updateList(list.id, getListPayload(list)),
+    mutationFn: (list: List) =>
+      updateList(list.id, { ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
-      console.error(e);
-      toast.error("Failed to update list. Please try again.");
+      logger.error("Failed to update list", e);
+      toast.error("Failed to update list");
     },
-    onSuccess: (updatedList) => {
-      toast.success("Public list updated successfully!");
-      queryClient.setQueryData(["lists"], (prev: UserList[]) => {
+    onSuccess: (updatedList, list) => {
+      upsertList({ ...list, publicId: updatedList.publicId, published: updatedList.published });
+
+      toast.success("Public list updated", {
+        action: {
+          label: "View",
+          onClick: () => {
+            window.open(getPublicListURL(updatedList.publicId), "_blank");
+          },
+        },
+      });
+      queryClient.setQueryData(["lists"], (prev: UserList[] = []) => {
         return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
       });
     },
@@ -93,7 +113,11 @@ export function useUnpublishAllListsMutation() {
         return [];
       });
 
-      toast.success("Lists unpublished successfully");
+      useBookmarkStore.setState((state) => ({
+        lists: state.lists.map((l) => ({ ...l, published: false })),
+      }));
+
+      toast.success("Lists unpublished");
     },
   });
 }
@@ -104,15 +128,18 @@ export function useUnpublishMutation() {
   return useMutation({
     mutationFn: (listId: string) => updateList(listId, { published: false }),
     onError: (e) => {
-      console.error(e);
-      toast.error("Failed to unpublish list. Please try again.");
+      logger.error("Failed to unpublish list", e);
+      toast.error("Failed to unpublish list");
     },
-    onSuccess: (updatedList) => {
-      queryClient.setQueryData(["lists"], (prev: UserList[]) => {
+    onSuccess: (updatedList, listId) => {
+      useBookmarkStore.setState((state) => ({
+        lists: state.lists.map((l) => (l.id === listId ? { ...l, published: false } : l)),
+      }));
+      queryClient.setQueryData(["lists"], (prev: UserList[] = []) => {
         return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
       });
 
-      toast.success("List unpublished successfully");
+      toast.success("List unpublished");
     },
   });
 }

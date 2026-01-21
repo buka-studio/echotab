@@ -1,22 +1,24 @@
-import { useUIStore } from "../UIStore";
+import { useSettingStore } from "../store/settingStore";
 import { URLEncodeSVG } from "../util";
+import { getRootElement } from "../util/dom";
 
 export type PatternType = "diagonal_lines" | "dots";
 
 export default function usePatternBackground(type: PatternType) {
-  useUIStore();
+  // Subscribe to settings changes to trigger re-render when theme changes
+  const _theme = useSettingStore((s) => s.settings.theme);
 
-  const isDarkTheme = document.documentElement.classList.contains("dark");
-  const fillColor = window
-    .getComputedStyle(document.documentElement)
-    .getPropertyValue("--muted-foreground");
+  const root = getRootElement();
+
+  const isDarkTheme = root.classList.contains("dark");
+  const fillColor = window.getComputedStyle(root).getPropertyValue("--muted-foreground");
 
   let pattern;
   if (type === "diagonal_lines") {
     pattern =
       "data:image/svg+xml," +
       URLEncodeSVG(`<svg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'>
-              <g fill='hsl(${fillColor})' fill-opacity=${isDarkTheme ? "'0.25'" : "'0.3'"} fill-rule='evenodd'>
+              <g fill='${fillColor}' fill-opacity=${isDarkTheme ? "'0.15'" : "'0.3'"} fill-rule='evenodd'>
                   <path d='M5 0h1L0 6V5zM6 5v1H5z' />
               </g>
           </svg>`);
@@ -24,7 +26,7 @@ export default function usePatternBackground(type: PatternType) {
     pattern =
       "data:image/svg+xml," +
       URLEncodeSVG(`<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'>
-        <path fill='hsl(${fillColor})' fill-opacity=${isDarkTheme ? "'0.25'" : "'0.35'"} d='M1 3h1v1H1V3zm2-2h1v1H3V1z'></path>
+        <path fill='${fillColor}' fill-opacity=${isDarkTheme ? "'0.15'" : "'0.35'"} d='M1 3h1v1H1V3zm2-2h1v1H3V1z'></path>
       </svg>`);
   }
 

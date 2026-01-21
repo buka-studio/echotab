@@ -6,28 +6,25 @@ import {
   CommandItem,
   CommandList,
 } from "@echotab/ui/Command";
+import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
+import { cn } from "@echotab/ui/util";
 import {
-  Broom as BroomIcon,
-  Palette as PaletteIcon,
-  Sparkle as SparkleIcon,
-  Tag as TagIcon,
+  BroomIcon,
+  DatabaseIcon,
+  PaletteIcon,
+  SquaresFourIcon,
+  TagIcon,
 } from "@phosphor-icons/react";
-import {
-  DownloadIcon,
-  ExclamationTriangleIcon,
-  MixerHorizontalIcon,
-  UploadIcon,
-} from "@radix-ui/react-icons";
+import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { ComponentProps, useRef, useState } from "react";
 
-import AIPage from "./AIPage";
 import AppearancePage from "./AppearancePage";
+import CollectionsPage from "./CollectionsPage";
 import CuratePage from "./CuratePage";
-import DeletePage from "./DeletePage";
-import ExportPage from "./ExportPage";
+import DataPage from "./DataPage";
 import FeedbackPage from "./FeedbackPage";
-import ImportPage from "./ImportPage";
 import MiscPage from "./MiscPage";
+import ShortcutsPage from "./ShortcutsPage";
 import TagsPage from "./TagsPage";
 
 const BukaIcon = (props: ComponentProps<"svg">) => (
@@ -44,87 +41,138 @@ const BukaIcon = (props: ComponentProps<"svg">) => (
 const versionLabel = `Version: ${chrome.runtime.getManifest().version}`;
 
 const pages = [
-  "Tags",
+  "Account",
   "Appearance",
+  "Tags",
   "AI",
   "Misc",
-  "Import",
-  "Export",
+  "Data",
   "Feedback",
   "Delete",
   "Curate",
+  "Shortcuts",
+  "Collections",
 ] as const;
 
 type Page = (typeof pages)[number];
 
+function SettingsCommandItem({
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof CommandItem>) {
+  return (
+    <CommandItem
+      className={cn("h-auto min-h-auto rounded-none pl-4", className)}
+      variant="primary"
+      {...props}>
+      {children}
+    </CommandItem>
+  );
+}
+
 export default function Settings() {
   const cmdInputRef = useRef<HTMLInputElement>(null);
-  const [page, setPage] = useState<Page>("Tags");
+  const [page, setPage] = useState<Page>("Appearance");
+  const [open, setOpen] = useState(false);
 
-  const contentRef = useRef<HTMLDivElement>(null);
+  const commandList = (
+    <CommandList className="max-h-[400px] flex-1 md:max-h-none">
+      <CommandGroup className="p-0">
+        <SettingsCommandItem>
+          <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Appearance
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Tags
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <SquaresFourIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Collections
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          Curate
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <DatabaseIcon className="text-muted-foreground mr-2" />
+          Data
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <MixerHorizontalIcon className="text-muted-foreground mr-2" />
+          Misc
+        </SettingsCommandItem>
+      </CommandGroup>
+      <CommandGroup className="mt-auto p-0">
+        <SettingsCommandItem value="Shortcuts">
+          <span className="text-muted-foreground icon mr-2 text-base">⌘</span>
+          Shortcuts
+        </SettingsCommandItem>
+        <SettingsCommandItem>
+          <BukaIcon className="text-muted-foreground mr-2" />
+          Feedback
+        </SettingsCommandItem>
+      </CommandGroup>
+      <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
+    </CommandList>
+  );
+
+  const commandInput = (
+    <CommandInput
+      placeholder="Search settings..."
+      ref={cmdInputRef}
+      autoFocus
+      className="border-border max-h-[60px] border-b py-5 pl-5 text-sm"
+    />
+  );
 
   return (
-    <Command loop value={page} onValueChange={(p) => setPage(p as Page)} className="min-h-[450px]">
-      <div className="mb-4 flex items-center border-b">
-        <CommandInput placeholder="Search settings..." ref={cmdInputRef} autoFocus />
-      </div>
-      <div className="grid h-full grid-cols-[150px_auto] grid-rows-[1fr_30px] gap-4">
-        <CommandList>
-          <CommandGroup>
-            <CommandItem>
-              <TagIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              Tags
-            </CommandItem>
-            <CommandItem>
-              <PaletteIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              Appearance
-            </CommandItem>
-            <CommandItem>
-              <SparkleIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              AI
-            </CommandItem>
-            <CommandItem>
-              <BroomIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
-              Curate
-            </CommandItem>
-            <CommandItem>
-              <MixerHorizontalIcon className="text-muted-foreground mr-2" />
-              Misc
-            </CommandItem>
-            <CommandItem>
-              <DownloadIcon className="text-muted-foreground mr-2" />
-              Import
-            </CommandItem>
-            <CommandItem>
-              <UploadIcon className="text-muted-foreground mr-2" />
-              Export
-            </CommandItem>
-            <CommandItem>
-              <BukaIcon className="text-muted-foreground mr-2" />
-              Feedback
-            </CommandItem>
-            <CommandItem value="Delete" className="text-destructive">
-              <ExclamationTriangleIcon className="mr-2" />
-              Delete Data
-            </CommandItem>
-          </CommandGroup>
-          <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
-        </CommandList>
-        <div className="text-muted-foreground col-start-1 row-start-2 mt-auto font-mono">
-          {versionLabel}
+    <Command
+      loop
+      value={page}
+      onValueChange={(p) => {
+        setPage(p as Page);
+        setOpen(false);
+      }}
+      className="h-[500px] sm:min-h-[450px]"
+      disablePointerSelection>
+      <div
+        className={cn(
+          "flex h-full grid-cols-[180px_auto] grid-rows-[1fr_40px] flex-col **:data-[slot=settings-content]:transition-all sm:grid",
+          {
+            "**:data-[slot=settings-content]:opacity-50 **:data-[slot=settings-content]:blur-xs":
+              open,
+          },
+        )}>
+        <div className="col-1 row-1 hidden flex-col sm:flex">
+          <div className="mb-2 flex items-center">{commandInput}</div>
+          {commandList}
         </div>
-        <div
-          className="content scrollbar-gray col-start-2 row-span-2 row-start-1 h-full max-h-[375px] flex-1 overflow-auto border-l-[1px] pl-4 pr-2 pt-2"
-          ref={contentRef}>
-          {page === "Tags" && <TagsPage />}
-          {page === "AI" && <AIPage />}
-          {page === "Appearance" && <AppearancePage />}
-          {page === "Misc" && <MiscPage />}
-          {page === "Import" && <ImportPage />}
-          {page === "Export" && <ExportPage />}
-          {page === "Feedback" && <FeedbackPage />}
-          {page === "Delete" && <DeletePage />}
-          {page === "Curate" && <CuratePage />}
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button className="text-muted-foreground bg-card hover:bg-card-active border-b p-3 text-left text-sm transition-all sm:hidden">
+              Settings <span className="mx-2 font-bold opacity-50">/</span> {page}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-(--radix-popover-trigger-width) rounded-t-none p-0"
+            sideOffset={2}>
+            {commandList}
+          </PopoverContent>
+        </Popover>
+
+        {/* {page === "Account" && <AccountPage />} */}
+        {page === "Tags" && <TagsPage contentClassName="px-1 sm:px-3" />}
+        {page === "Collections" && <CollectionsPage />}
+        {page === "Appearance" && <AppearancePage />}
+        {page === "Misc" && <MiscPage />}
+        {page === "Data" && <DataPage />}
+        {page === "Feedback" && <FeedbackPage />}
+        {page === "Shortcuts" && <ShortcutsPage />}
+        {page === "Curate" && <CuratePage />}
+        <div className="text-muted-foreground bg-card col-start-1 row-start-2 mt-auto border-t border-transparent p-3 font-mono sm:bg-transparent">
+          {versionLabel}
         </div>
       </div>
     </Command>
