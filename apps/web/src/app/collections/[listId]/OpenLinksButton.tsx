@@ -7,9 +7,10 @@ import { cn } from "@echotab/ui/util";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { ComponentProps } from "react";
 
-const handleOpenLinks = (links: string[]) => {
+const handleOpenLinks = async (links: string[]) => {
   for (const link of links) {
     window.open(link, "_blank");
+    await new Promise((r) => setTimeout(r, 100));
   }
 };
 

@@ -24,7 +24,7 @@ export default function Renderer(props: ComponentProps<typeof RichTextRenderer>)
       }
 
       for (const m of targetMentions) {
-        m.classList.add(..."transition-all duration-200 ring-ring ring ring-1".split(" "));
+        m.classList.add(..."bg-card ring-ring ring ring-1".split(" "));
       }
     }
   }, [hoveredMention]);

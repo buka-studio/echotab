@@ -92,3 +92,39 @@ export async function getMarkdown(serializedEditorState: string) {
     });
   });
 }
+
+interface LexicalNode {
+  type: string;
+  children?: LexicalNode[];
+  text?: string;
+}
+
+interface LexicalState {
+  root: LexicalNode;
+}
+
+export function isLinkOnlyContent(content: string): boolean {
+  try {
+    const state: LexicalState = JSON.parse(content);
+    const root = state.root;
+
+    if (!root?.children?.length) return false;
+
+    return root.children.every((child) => {
+      if (child.type !== "list") return false;
+
+      return child.children?.every((listItem) => {
+        if (listItem.type !== "listitem") return false;
+
+        return listItem.children?.every((node) => {
+          if (node.type === "mention") return true;
+          if (node.type === "text" && (!node.text || node.text.trim() === "")) return true;
+          if (node.type === "linebreak") return true;
+          return false;
+        });
+      });
+    });
+  } catch {
+    return false;
+  }
+}

@@ -1,8 +1,14 @@
-import { PublicLink, PublicListView } from "@echotab/lists/models";
+import { PublicListView } from "@echotab/lists/models";
 import { getSupabaseListOGUrl } from "@echotab/supabase/util";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@echotab/ui/Collapsible";
+import { Separator } from "@echotab/ui/Separator";
+import { ArrowTopRightIcon, CaretSortIcon } from "@radix-ui/react-icons";
 import { NoResultError } from "kysely";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+import { formatLinks } from "~/app/util";
+import { isLinkOnlyContent } from "~/app/util/richText";
 
 import { CopyButtonWithTooltip } from "./CopyButton";
 import Date from "./Date";
@@ -46,10 +52,6 @@ export async function generateMetadata({
   };
 }
 
-const formatLinks = (links: PublicLink[]) => {
-  return links.map((link) => link.url).join("\n");
-};
-
 export default async function Page({ params }: { params: Promise<Params> }) {
   const { listId } = await params;
 
@@ -66,18 +68,39 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <div className="mb-2 flex items-start justify-between gap-3 sm:items-center">
         <h1 className="truncate pl-4 text-2xl">{list.title}</h1>
         <div>
           <ShareDialog list={list} />
         </div>
       </div>
-      <article className="bg-background border-border rounded-lg border p-4">
+      {list.profileLinkUrl && (
+        <div className="text-muted-foreground truncate pl-4 text-base">
+          Curated by:{" "}
+          <a
+            href={list.profileLinkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground focus-visible:text-foreground group hover:underline focus-visible:underline focus-visible:outline-none">
+            {list.profileLinkUrl}
+            <ArrowTopRightIcon className="ml-1.5 inline-block opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100" />
+          </a>
+        </div>
+      )}
+      <article className="bg-background border-border flex flex-col gap-4 rounded-lg border p-4">
         <ListContextProvider>
-          <ListContent content={list.content} />
+          <Collapsible defaultOpen={!isLinkOnlyContent(list.content)}>
+            <CollapsibleTrigger className="text-muted-foreground flex w-full items-center gap-2">
+              Content <CaretSortIcon className="text-foreground size-4.5" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              <ListContent content={list.content} />
+            </CollapsibleContent>
+          </Collapsible>
           <ListViewLogger listId={listId} />
-          <div className="border-border mt-6 border-t pt-5">
+          <Separator />
+          <div className="border-border">
             <div className="mb-2 flex items-center gap-2">
               <h2 className="text-muted-foreground">Links</h2>
               <div>

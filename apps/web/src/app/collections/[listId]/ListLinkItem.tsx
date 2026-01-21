@@ -29,10 +29,10 @@ export default function ListLinkItem({ link }: { link: PublicLink }) {
           target="_blank"
           rel="noopener noreferrer"
           onFocus={handleActivateLink}
-          className="focus-visible:underline focus-visible:outline-none">
+          className="focus-visible:outline-none hover:underline focus-visible:underline">
           {link.url}
         </a>
-        <ArrowTopRightIcon className="ml-2 inline-block opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100" />
+        <ArrowTopRightIcon className="ml-1.5 inline-block opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100" />
       </span>
     </li>
   );
