@@ -146,9 +146,9 @@ export default function FeedbackVisual({
         </g>
         <g
           stroke="var(--signature, currentColor)"
-          stroke-width="0.75"
-          stroke-miterlimit="10"
-          stroke-linejoin="round">
+          strokeWidth="0.75"
+          strokeMiterlimit="10"
+          strokeLinejoin="round">
           <path d="M1.16455 40.3766C1.48297 42.5712 1.38806 48.7026 3.49222 49.8506" />
           <path d="M1.28287 40.5652C0.195195 39.9717 6.69906 39.5592 8.39806 40.4867" />
           <path d="M1.53067 44.1125C1.16078 44.0991 2.27067 44.1385 2.64065 44.152C3.86047 44.1962 5.0244 44.1651 6.24777 44.281" />

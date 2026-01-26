@@ -70,7 +70,9 @@ export default defineBackground({
       );
 
       if (details.reason === "update") {
-        logger.info(`Extension updated from ${details.previousVersion} to ${chrome.runtime.getManifest().version}`);
+        logger.info(
+          `Extension updated from ${details.previousVersion} to ${chrome.runtime.getManifest().version}`,
+        );
       } else if (details.reason === "install") {
         logger.info("Extension installed");
       }
@@ -223,6 +225,9 @@ export default defineBackground({
 
       "metadata:fetch": async (payload) => {
         return handleMetadataFetch(payload);
+      },
+      "echotab:open": async () => {
+        await openOrCreateEchoTab();
       },
     });
 

@@ -9,7 +9,8 @@ export type Message =
   | { type: "snapshot:save"; tabId: number; url: string }
   | { type: "widget:toggle" }
   | { type: "snapshot:ready"; tabId: number; url: string }
-  | ({ type: "metadata:fetch" } & TabMetadataRequest);
+  | ({ type: "metadata:fetch" } & TabMetadataRequest)
+  | { type: "echotab:open" };
 
 export type MessageType = Message["type"];
 
@@ -27,6 +28,7 @@ export interface ResponseMap {
   "widget:toggle": void;
   "snapshot:ready": void;
   "metadata:fetch": { success: boolean; metadata?: TabMetadata; error?: string };
+  "echotab:open": void;
 }
 
 export type MessageResponse<T extends MessageType> = ResponseMap[T];
