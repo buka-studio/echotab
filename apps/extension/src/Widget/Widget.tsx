@@ -11,6 +11,7 @@ import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "
 
 import { ActiveTab } from "~/store/schema";
 
+import { Badge } from "@echotab/ui/Badge";
 import TagChip from "../components/tag/TagChip";
 import { MessageBus } from "../messaging";
 import PulseLogo from "../PulseLogo";
@@ -166,6 +167,15 @@ function Widget({ onClose }: Props) {
     }
   }, [settingsTheme]);
 
+  const [showPinnedTabNotice, setShowPinnedTabNotice] = useState<boolean | undefined>(undefined);
+  useEffect(() => {
+    chrome.storage.local.get("showPinnedTabNotice").then((result) => {
+      setShowPinnedTabNotice(result.showPinnedTabNotice === undefined ? true : Boolean(result.showPinnedTabNotice));
+    });
+  }, []);
+
+  if (showPinnedTabNotice === undefined) return null;
+
   return (
     <motion.main
       className={cn("echotab-root rounded-xl", theme)}
@@ -175,11 +185,22 @@ function Widget({ onClose }: Props) {
       exit={{ opacity: 0, y: -20, filter: "blur(5px)" }}
       transition={{ duration: 0.15 }}>
       <div className="bg-background-base border-border rounded-xl border p-4 shadow-sm">
+        {showPinnedTabNotice && (
+          <motion.div className="flex items-center justify-center gap-2 px-4 py-1 bg-card text-muted-foreground text-sm rounded-t-xl border-b border-border -mx-4 -mt-4 mb-4" initial={{ opacity: 0, y: -10, filter: "blur(4px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -10, filter: "blur(4px)" }} transition={{ duration: 0.15 }}>
+            <Badge variant="secondary" className="text-[0.625rem] px-1 py-0.5 uppercase bg-background-base">New</Badge> EchoTab now works as a pinned tab!
+            <button className="ml-auto underline" onClick={() => {
+              chrome.storage.local.set({ showPinnedTabNotice: false });
+              setShowPinnedTabNotice(false);
+            }}>
+              More
+            </button>
+          </motion.div>
+        )}
         <div className="mx-auto flex items-center justify-between gap-3 rounded-full text-sm">
           <div className="flex items-center gap-1">
             <PulseLogo />{" "}
             <button
-              onClick={() => window.open(chrome.runtime.getURL("home.html"), "_blank")}
+              onClick={() => MessageBus.send("echotab:open", {})}
               className="text-muted-foreground">
               EchoTab
             </button>
