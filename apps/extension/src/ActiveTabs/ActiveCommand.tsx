@@ -32,6 +32,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { curateStoreActions } from "~/store/curateStore";
 import { openLinksInLLM } from "~/util/url";
 
+import { useDebounceValue } from "usehooks-ts";
 import FilterTagChips from "../components/FilterTagChips";
 import { KeyboardShortcut, KeyboardShortcutKey } from "../components/KeyboardShortcut";
 import {
@@ -262,6 +263,16 @@ export default function ActiveCommand() {
     tabStoreActions.removeTabs(Array.from(SelectionStore.selectedTabIds));
   };
 
+  const [quickSearch, setQuickSearch] = useState("");
+  const [debouncedQuickSearch, setValue] = useDebounceValue(quickSearch, 300);
+
+  useEffect(() => {
+    if (!quickSearch) {
+      return;
+    }
+    handleToggleFilterKeyword(quickSearch, true);
+  }, [debouncedQuickSearch]);
+
   const runningSearchRef = useRef<string>(search);
   const handleToggleFilterKeyword = (keyword: string, isQuick = false) => {
     if (isQuick) {
@@ -429,7 +440,8 @@ export default function ActiveCommand() {
 
             if (!enterToSearch) {
               if (isAlphanumeric(e.key) && !e.metaKey && !search.startsWith("#")) {
-                handleToggleFilterKeyword(search + e.key, true);
+                setQuickSearch(search + e.key);
+                setValue(search + e.key);
               }
             }
           }
