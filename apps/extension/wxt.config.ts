@@ -28,9 +28,15 @@ export default defineConfig({
       default_title: "EchoTab",
     },
   },
+  react: {
+    vite: {
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+    },
+  },
   vite: () => ({
     plugins: [tailwindcss()],
-    // css: { postcss },
     resolve: {
       alias: {
         "~": path.resolve(__dirname, "./src"),
