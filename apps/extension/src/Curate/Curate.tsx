@@ -113,7 +113,8 @@ const useCurateQueue = (maxCards: number, curateQueueItems: InclusionResult[]) =
 
   return {
     total: total.current,
-    queue: visibleQueue,
+    visibleQueue,
+    allQueue: queue,
     dequeue,
     unshift,
     left: queue.length,
@@ -131,9 +132,8 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
   const open = useCurateStore((s) => s.open);
   const settings = useCurateStore((s) => s.settings);
   const tabs = useBookmarkStore((s) => s.tabs);
-  // const curateQueueItems = useCurateQueueHook({ manualIds: [] });
 
-  const { initialized, total, queue, kept, deleted, left, dequeue, unshift } = useCurateQueue(
+  const { initialized, total, visibleQueue: queue, allQueue, kept, deleted, left, dequeue, unshift } = useCurateQueue(
     maxCards,
     curateQueueItems,
   );
@@ -151,14 +151,18 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
   const [pressAction, setPressAction] = useState<string | null>(null);
   const pressActionTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  const handleSkip = (tab: SavedTab) => {
+    dequeue("skip");
+    setSkipCount((prev) => ({ ...prev, [tab.id]: (prev[tab.id] || 0) + 1 }));
+  };
+
   const handleSwipe = (tab: SavedTab, direction?: Direction) => {
     if (direction === "left") {
       dequeue("delete");
     } else if (direction === "right") {
       dequeue("keep");
     } else if (direction === "down") {
-      dequeue("skip");
-      setSkipCount((prev) => ({ ...prev, [tab.id]: (prev[tab.id] || 0) + 1 }));
+      handleSkip(tab);
     } else if (direction === "up") {
       setSkipCount((prev) => {
         const count = prev[tab.id] || 0;
@@ -222,7 +226,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
 
   useHotkeys("up", () => unshift());
 
-  const hasSkipped = Object.values(skipCount).some((count) => count > 0);
+  const canRewind = Boolean(queue.length > 2 && allQueue.at(-1)?.skipped);
 
   return (
     <Dialog
@@ -363,7 +367,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                         size="icon"
                         className="bg-card"
                         tooltipText="Rewind"
-                        disabled={hasSkipped}
+                        disabled={!canRewind}
                         onClick={() => {
                           unshift();
                         }}>
@@ -386,7 +390,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                         tooltipText="Skip"
                         disabled={queue.length < 2}
                         onClick={() => {
-                          swipeableRef.current?.swipe("up");
+                          swipeableRef.current?.swipe("down");
                         }}>
                         <FastForwardIcon className="text-muted-foreground/60 h-5 w-5" />
                       </ButtonWithTooltip>

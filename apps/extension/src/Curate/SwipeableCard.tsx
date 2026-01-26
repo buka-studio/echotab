@@ -172,10 +172,10 @@ export default function SwipeableCard({
       .start({
         opacity: 0,
         filter: "blur(10px)",
-        y: 75,
+        y: 85,
         scale: 0.95,
         transition: {
-          duration: 0.225,
+          duration: 0.235,
         },
       })
       .then(() => {

@@ -91,7 +91,7 @@ export default function CurateCard({
   visible: boolean;
   hidden: boolean;
 }) {
-  const preload = index < 2;
+  const preload = index < 3;
 
   return (
     <article className="border-border bg-background flex w-[500px] flex-col rounded-xl border">
