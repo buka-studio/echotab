@@ -34,8 +34,9 @@ function getListPayload(list: List) {
 
 export function useGetPublicLists() {
   const lists = useBookmarkStore((s) => s.lists);
+  const listPublishingEnabled = useSettingStore((s) => s.settings.listPublishingEnabled);
 
-  const enabled = lists.some((l) => l.publicId);
+  const enabled = listPublishingEnabled && lists.some((l) => l.publicId);
 
   return useQuery({
     queryKey: ["lists"],

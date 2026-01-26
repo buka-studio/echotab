@@ -17,6 +17,7 @@ import { ComponentProps } from "react";
 
 import EchoItem from "../../components/EchoItem";
 import { List } from "../../models";
+import { useSettingStore } from "../../store/settingStore";
 import { pluralize } from "../../util";
 import ListDeleteDialog from "./ListDeleteDialog";
 import ListFormDialog from "./ListFormDialog";
@@ -25,6 +26,8 @@ import PublishIndicator from "./PublishIndicator";
 import { getPublicListURL } from "./util";
 
 function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
+  const listPublishingEnabled = useSettingStore((s) => s.settings.listPublishingEnabled);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,11 +41,13 @@ function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
           </DialogTrigger>
         </ListFormDialog>
-        <ListPublishDialog list={list} publicList={publicList}>
-          <DialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Publish</DropdownMenuItem>
-          </DialogTrigger>
-        </ListPublishDialog>
+        {listPublishingEnabled && (
+          <ListPublishDialog list={list} publicList={publicList}>
+            <DialogTrigger asChild>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Publish</DropdownMenuItem>
+            </DialogTrigger>
+          </ListPublishDialog>
+        )}
         <DropdownMenuSeparator />
         <ListDeleteDialog list={list} publicList={publicList}>
           <AlertDialogTrigger asChild>
@@ -61,6 +66,7 @@ type Props = {
 
 function ListItem({ list, publicList, className, ref, ...props }: Props) {
   const label = pluralize(list.tabIds.length, "bookmark");
+  const listPublishingEnabled = useSettingStore((s) => s.settings.listPublishingEnabled);
 
   return (
     <EchoItem
@@ -73,10 +79,12 @@ function ListItem({ list, publicList, className, ref, ...props }: Props) {
       }
       desc={
         <>
-          <PublishIndicator list={list} publicList={publicList} className="mr-1" />
+          {listPublishingEnabled && (
+            <PublishIndicator list={list} publicList={publicList} className="mr-1" />
+          )}
           <HoverCard openDelay={1000}>
             <HoverCardTrigger asChild>
-              {publicList?.published ? (
+              {listPublishingEnabled && publicList?.published ? (
                 <a
                   target="_blank"
                   href={getPublicListURL(publicList.publicId)}
@@ -87,7 +95,7 @@ function ListItem({ list, publicList, className, ref, ...props }: Props) {
                 <span className="focus-visible:underline focus-visible:outline-none">{label}</span>
               )}
             </HoverCardTrigger>
-            {publicList?.published && (
+            {listPublishingEnabled && publicList?.published && (
               <ArrowTopRightIcon className="icon h-4 w-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover/desc:opacity-100" />
             )}
             <HoverCardContent className="h-[300px] w-[350px] overflow-hidden p-3">

@@ -24,6 +24,7 @@ import TagChipCombobox from "~/components/tag/TagChipCombobox";
 
 import { List, SavedTab } from "../../models";
 import { bookmarkStoreActions, filterTabs, useBookmarkStore } from "../../store/bookmarkStore";
+import { useSettingStore } from "../../store/settingStore";
 import { useTagsById } from "../../store/tagStore";
 import { formatDate } from "../../util/date";
 import { useUpdateListMutation } from "./queries";
@@ -120,6 +121,7 @@ export default function ListFormDialog({
   const contentRef = useRef<string | undefined>(list?.content);
   const editorRef = useRef<RichEditorRef>(null);
   const [open, setOpen] = useState(false);
+  const listPublishingEnabled = useSettingStore((s) => s.settings.listPublishingEnabled);
 
   const ItemLookupService = useItemLookupService();
 
@@ -157,7 +159,7 @@ export default function ListFormDialog({
 
     toast.success(`Collection ${list ? "updated" : "created"}`);
 
-    if (list && list.sync) {
+    if (listPublishingEnabled && list && list.sync) {
       updateMutation.mutate(result as List);
     }
   };
@@ -215,7 +217,7 @@ export default function ListFormDialog({
                     Last updated: {formatDate(list.updatedAt)}
                   </div>
                 )}
-                {list?.sync && (
+                {listPublishingEnabled && list?.sync && (
                   <div className="text-muted-foreground">
                     Updates to this collection are published automatically.
                   </div>

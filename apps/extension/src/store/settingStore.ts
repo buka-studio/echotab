@@ -29,6 +29,7 @@ export const useSettingStore = create(
       clipboardFormat: ClipboardFormat.Text,
       clipboardIncludeTags: false,
       accentColor: accentColors.Orange,
+      listPublishingEnabled: false,
     } as Settings,
     activePanel: Panel.Tabs,
     open: false,

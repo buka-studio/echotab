@@ -96,6 +96,7 @@ export const SettingsSchema = z.object({
   clipboardIncludeTags: z.boolean().default(false),
   activePanel: z.enum(Panel).default(Panel.Tabs),
   accentColor: z.string().default(accentColors.Orange),
+  listPublishingEnabled: z.boolean().default(false),
   updatedAt: z.string(),
 });
 
