@@ -124,7 +124,7 @@ export default function App() {
                     <div className="bg-surface-2 grid grid-cols-2 rounded-full relative">
                       <span className={cn("bg-surface-3 absolute -inset-px rounded-full border will-change-transform dark:shadow-sm transition-transform duration-200 w-1/2", {
                         "translate-x-0": activePanel === Panel.Tabs,
-                        "translate-x-full": activePanel === Panel.Bookmarks,
+                        "translate-x-[calc(100%+2px)]": activePanel === Panel.Bookmarks,
                       })} />
                       <PanelTrigger
                         value={Panel.Tabs}
