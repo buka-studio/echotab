@@ -2,8 +2,7 @@ import { Button } from "@echotab/ui/Button";
 import { cn } from "@echotab/ui/util";
 import { BrowserIcon } from "@phosphor-icons/react";
 import { DragHandleDots2Icon } from "@radix-ui/react-icons";
-import { motion } from "framer-motion";
-import { memo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import ExpandIcon from "~/components/ExpandIcon";
@@ -336,9 +335,14 @@ export default function ActiveTabs() {
                             return null;
                           }
 
+                          const windowTabs =
+                            groupedTabs === tabIdsByWindowId
+                              ? tabIds
+                              : tabIdsByWindowId[tab.windowId] || [];
+
                           return (
                             <SelectableItem asChild id={tabId} key={tabId}>
-                              <motion.li
+                              <li
                                 className={cn(
                                   "item-container rounded-lg transition-all duration-200 select-none not-first:-mt-px focus-within:z-1 hover:z-1 data-[selected=true]:z-1 [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-1 [&:last-child_.tab-item]:rounded-b-lg",
                                   {
@@ -359,11 +363,12 @@ export default function ActiveTabs() {
                                       assignedTags={assignedTags}
                                       duplicate={duplicateTabIds.has(tabId)}
                                       stale={staleTabIds.has(tabId)}
+                                      windowTabs={windowTabs}
                                       className="group-data-[is-dragged=true]/sortable:opacity-20! group-data-[is-dragged=true]/sortable:blur-sm"
                                     />
                                   </div>
                                 </ConditionalWrapper>
-                              </motion.li>
+                              </li>
                             </SelectableItem>
                           );
                         })}

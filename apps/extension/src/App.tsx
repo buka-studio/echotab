@@ -6,7 +6,6 @@ import { TooltipProvider } from "@echotab/ui/Tooltip";
 import { cn } from "@echotab/ui/util";
 import { BrowserIcon } from "@phosphor-icons/react";
 import { BookmarkFilledIcon, BookmarkIcon } from "@radix-ui/react-icons";
-import { motion } from "framer-motion";
 
 import ActiveTabs from "./ActiveTabs";
 import Bookmarks from "./Bookmarks";
@@ -55,22 +54,22 @@ updateViewport();
 initStores();
 subscribeSettingStore();
 
-function Highlight() {
-  return (
-    <motion.span
-      layoutId="highlight"
-      className="bg-surface-3 absolute -inset-px rounded-full border will-change-transform dark:shadow-sm"
-      transition={{
-        type: "spring",
-        bounce: 0.2,
-        duration: 0.25,
-      }}
-      style={{
-        originY: "0px",
-      }}
-    />
-  );
-}
+// function Highlight() {
+//   return (
+//     <motion.span
+//       layoutId="highlight"
+//       className="bg-surface-3 absolute -inset-px rounded-full border will-change-transform dark:shadow-sm"
+//       transition={{
+//         type: "spring",
+//         bounce: 0.2,
+//         duration: 0.25,
+//       }}
+//       style={{
+//         originY: "0px",
+//       }}
+//     />
+//   );
+// }
 
 function PanelTrigger({ className, ...props }: ComponentProps<typeof TabsTrigger>) {
   return (
@@ -122,11 +121,14 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2">
                   <TabsList className="flex h-auto gap-2 rounded-full border bg-transparent p-0 dark:shadow-sm">
-                    <div className="bg-surface-2 grid grid-cols-2 rounded-full">
+                    <div className="bg-surface-2 grid grid-cols-2 rounded-full relative">
+                      <span className={cn("bg-surface-3 absolute -inset-px rounded-full border will-change-transform dark:shadow-sm transition-transform duration-200 w-1/2", {
+                        "translate-x-0": activePanel === Panel.Tabs,
+                        "translate-x-full": activePanel === Panel.Bookmarks,
+                      })} />
                       <PanelTrigger
                         value={Panel.Tabs}
                         onClick={() => settingStoreActions.activatePanel(Panel.Tabs)}>
-                        {activePanel === Panel.Tabs && <Highlight />}
                         <span className="relative z-1 flex items-center gap-1">
                           {activePanel === Panel.Tabs ? (
                             <BrowserIcon weight="fill" className="h-4 w-4" />
@@ -139,7 +141,6 @@ export default function App() {
                       <PanelTrigger
                         value={Panel.Bookmarks}
                         onClick={() => settingStoreActions.activatePanel(Panel.Bookmarks)}>
-                        {activePanel === Panel.Bookmarks && <Highlight />}
                         <span className="relative z-1 flex items-center gap-1">
                           {activePanel === Panel.Bookmarks ? (
                             <BookmarkFilledIcon className="h-4 w-4" />

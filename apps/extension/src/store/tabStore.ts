@@ -1,6 +1,6 @@
 import { toast } from "@echotab/ui/Toast";
 import Fuse from "fuse.js";
-import { useMemo } from "react";
+import { memoize } from "proxy-memoize";
 import { proxy, subscribe, useSnapshot } from "valtio";
 import { proxySet } from "valtio/utils";
 import { create } from "zustand";
@@ -19,7 +19,7 @@ import {
   useBookmarkStore,
 } from "./bookmarkStore";
 import { addRecentlyClosed } from "./recentlyClosedStore";
-import { ActiveTab } from "./schema";
+import { ActiveTab, SavedTab } from "./schema";
 
 const logger = createLogger("TabStore");
 
@@ -546,38 +546,23 @@ const getStaleTabIds = (): Set<number> => {
   return new Set(filteredTabs.filter((t) => isStale(t.lastAccessed)).map((t) => t.id));
 };
 
-export const useFiltersApplied = () => {
-  const filter = useTabViewStore((s) => s.filter);
-  return Boolean(filter.keywords.length);
-};
-
-export const useFilteredTabIds = () => {
-  const tabs = useTabStore((s) => s.tabs);
-  const filter = useTabViewStore((s) => s.filter);
-
-  return useMemo(() => {
+const selectFilteredTabIds = memoize(
+  (state: { tabs: ActiveTab[]; filter: Filter }): Set<number> => {
+    const { tabs, filter } = state;
     const allIds = new Set(tabs.map((t) => t.id));
-
-    if (!filter.keywords.length) {
-      return allIds;
-    }
-
+    if (!filter.keywords.length) return allIds;
     return filterTabs(tabs, filter);
-  }, [tabs, filter]);
-};
+  },
+);
 
-export const useViewDuplicateTabIds = () => {
-  const tabs = useTabStore((s) => s.tabs);
-  const savedTabs = useBookmarkStore((s) => s.tabs);
-  const filteredIds = useFilteredTabIds();
-
-  return useMemo(() => {
+const selectDuplicateTabIds = memoize(
+  (state: { tabs: ActiveTab[]; savedTabs: SavedTab[]; filteredIds: Set<number> }): Set<number> => {
+    const { tabs, savedTabs, filteredIds } = state;
     const filteredTabs = tabs.filter((t) => filteredIds.has(t.id));
     const activeByUrl = new Map(filteredTabs.map((t) => [canonicalizeURL(t.url), t]));
     const savedByUrl = new Map(savedTabs.map((t) => [canonicalizeURL(t.url), t]));
 
     const duplicates = new Set<number>();
-
     for (const { id, url } of filteredTabs) {
       const canonicalUrl = canonicalizeURL(url);
       const saved = savedByUrl.has(canonicalUrl);
@@ -586,41 +571,37 @@ export const useViewDuplicateTabIds = () => {
         duplicates.add(id);
       }
     }
-
     return duplicates;
-  }, [tabs, savedTabs, filteredIds]);
-};
+  },
+);
 
-export const useViewStaleTabIds = () => {
-  const tabs = useTabStore((s) => s.tabs);
-  const filteredIds = useFilteredTabIds();
-
-  return useMemo(() => {
+const selectStaleTabIds = memoize(
+  (state: { tabs: ActiveTab[]; filteredIds: Set<number> }): Set<number> => {
+    const { tabs, filteredIds } = state;
     const filteredTabs = tabs.filter((t) => filteredIds.has(t.id));
     return new Set(filteredTabs.filter((t) => isStale(t.lastAccessed)).map((t) => t.id));
-  }, [tabs, filteredIds]);
-};
+  },
+);
 
-export const useViewTabsById = () => {
-  const tabs = useTabStore((s) => s.tabs);
-  const filteredIds = useFilteredTabIds();
-
-  return useMemo(() => {
+const selectTabsById = memoize(
+  (state: { tabs: ActiveTab[]; filteredIds: Set<number> }): Record<number, ActiveTab> => {
+    const { tabs, filteredIds } = state;
     const filteredTabs = tabs.filter((t) => filteredIds.has(t.id));
     const result: Record<number, ActiveTab> = {};
     for (const t of filteredTabs) {
       result[t.id] = t;
     }
     return result;
-  }, [tabs, filteredIds]);
-};
+  },
+);
 
-export const useViewTabIdsByWindowId = () => {
-  const tabs = useTabStore((s) => s.tabs);
-  const sort = useTabViewStore((s) => s.sort);
-  const filteredIds = useFilteredTabIds();
-
-  return useMemo(() => {
+const selectTabIdsByWindowId = memoize(
+  (state: {
+    tabs: ActiveTab[];
+    filteredIds: Set<number>;
+    sortDir: SortDir;
+  }): Record<number, number[]> => {
+    const { tabs, filteredIds, sortDir } = state;
     const filteredTabs = tabs.filter((t) => filteredIds.has(t.id));
     const ids: Record<number, number[]> = {};
 
@@ -631,22 +612,23 @@ export const useViewTabIdsByWindowId = () => {
       ids[t.windowId]!.push(t.id);
     }
 
-    if (sort.dir === SortDir.Desc) {
+    if (sortDir === SortDir.Desc) {
       for (const windowId of Object.keys(ids)) {
         ids[Number(windowId)] = ids[Number(windowId)]!.reverse();
       }
     }
 
     return ids;
-  }, [tabs, filteredIds, sort.dir]);
-};
+  },
+);
 
-export const useViewTabIdsByDomain = () => {
-  const tabs = useTabStore((s) => s.tabs);
-  const sort = useTabViewStore((s) => s.sort);
-  const filteredIds = useFilteredTabIds();
-
-  return useMemo(() => {
+const selectTabIdsByDomain = memoize(
+  (state: {
+    tabs: ActiveTab[];
+    filteredIds: Set<number>;
+    sort: { prop: TabSortProp; dir: SortDir };
+  }): Record<string, number[]> => {
+    const { tabs, filteredIds, sort } = state;
     const filteredTabs = tabs.filter((t) => filteredIds.has(t.id));
     const domains = Array.from(new Set(filteredTabs.map((t) => getDomain(t.url))));
 
@@ -686,17 +668,63 @@ export const useViewTabIdsByDomain = () => {
     };
 
     return sortRecord(tabsByDomain, keyComparator);
-  }, [tabs, filteredIds, sort]);
+  },
+);
+
+const selectTabIds = memoize((state: { tabs: ActiveTab[]; filteredIds: Set<number> }): number[] => {
+  const { tabs, filteredIds } = state;
+  const filteredTabs = tabs.filter((t) => filteredIds.has(t.id));
+  return filteredTabs.map((t) => t.id);
+});
+
+export const useFiltersApplied = () => {
+  const filter = useTabViewStore((s) => s.filter);
+  return Boolean(filter.keywords.length);
+};
+
+export const useFilteredTabIds = () => {
+  const tabs = useTabStore((s) => s.tabs);
+  const filter = useTabViewStore((s) => s.filter);
+  return selectFilteredTabIds({ tabs, filter });
+};
+
+export const useViewDuplicateTabIds = () => {
+  const tabs = useTabStore((s) => s.tabs);
+  const savedTabs = useBookmarkStore((s) => s.tabs);
+  const filteredIds = useFilteredTabIds();
+  return selectDuplicateTabIds({ tabs, savedTabs, filteredIds });
+};
+
+export const useViewStaleTabIds = () => {
+  const tabs = useTabStore((s) => s.tabs);
+  const filteredIds = useFilteredTabIds();
+  return selectStaleTabIds({ tabs, filteredIds });
+};
+
+export const useViewTabsById = () => {
+  const tabs = useTabStore((s) => s.tabs);
+  const filteredIds = useFilteredTabIds();
+  return selectTabsById({ tabs, filteredIds });
+};
+
+export const useViewTabIdsByWindowId = () => {
+  const tabs = useTabStore((s) => s.tabs);
+  const sort = useTabViewStore((s) => s.sort);
+  const filteredIds = useFilteredTabIds();
+  return selectTabIdsByWindowId({ tabs, filteredIds, sortDir: sort.dir });
+};
+
+export const useViewTabIdsByDomain = () => {
+  const tabs = useTabStore((s) => s.tabs);
+  const sort = useTabViewStore((s) => s.sort);
+  const filteredIds = useFilteredTabIds();
+  return selectTabIdsByDomain({ tabs, filteredIds, sort });
 };
 
 export const useViewTabIds = () => {
   const tabs = useTabStore((s) => s.tabs);
   const filteredIds = useFilteredTabIds();
-
-  return useMemo(() => {
-    const filteredTabs = tabs.filter((t) => filteredIds.has(t.id));
-    return filteredTabs.map((t) => t.id);
-  }, [tabs, filteredIds]);
+  return selectTabIds({ tabs, filteredIds });
 };
 
 export function useTabSelectionStore() {

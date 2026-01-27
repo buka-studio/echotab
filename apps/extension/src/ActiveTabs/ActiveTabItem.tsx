@@ -36,13 +36,9 @@ import {
   tabStoreActions,
   tabStoreSelectionActions,
   useIsTabSelected,
-  useViewTabIdsByWindowId
 } from "../store/tabStore";
 
-function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
-  const viewTabIdsByWindowId = useViewTabIdsByWindowId();
-
-  const windowTabs = viewTabIdsByWindowId[tab.windowId] || [];
+function TabMenu({ tab, selected, windowTabs }: { tab: ActiveTab; selected: boolean; windowTabs: number[] }) {
 
   const tabIndex = windowTabs.findIndex((id) => id === tab.id);
 
@@ -134,9 +130,10 @@ type Props = Omit<ComponentProps<typeof TabItem>, "tab"> & {
   stale?: boolean;
   duplicate?: boolean;
   assignedTags?: Tag[];
+  windowTabs?: number[];
 };
 
-function ActiveTabItem({ className, tab, stale, duplicate, assignedTags = [], ...rest }: Props) {
+function ActiveTabItem({ className, tab, stale, duplicate, assignedTags = [], windowTabs = [], ...rest }: Props) {
 
   const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
 
@@ -212,7 +209,7 @@ function ActiveTabItem({ className, tab, stale, duplicate, assignedTags = [], ..
       }
       actions={<div className="flex items-center gap-2">
         <TagChipCombobox tags={selected ? assignedTags : []} />
-        <TabMenu tab={tab} selected={selected} />
+        <TabMenu tab={tab} selected={selected} windowTabs={windowTabs} />
         <ButtonWithTooltip
           size="icon-sm"
           variant="ghost"
