@@ -10,7 +10,7 @@ import CopyButton from "./CopyButton";
 function buildTwitterShareLink(list: PublicList) {
   const params = new URLSearchParams();
   params.set("text", `Check out this list: ${list.title}`);
-  params.set("url", `${process.env.NEXT_PUBLIC_WEB_HOST}/lists/${list.publicId}`);
+  params.set("url", `${process.env.NEXT_PUBLIC_WEB_HOST}/collections/${list.publicId}`);
   params.set("hashtags", "echotab");
 
   return `https://twitter.com/intent/tweet?${params.toString()}`;

@@ -89,7 +89,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         </div>
       )}
       <article className="bg-background border-border flex flex-col gap-4 rounded-lg border p-4">
-        <ListContextProvider>
+        <ListContextProvider links={list.links}>
           <Collapsible defaultOpen={!isLinkOnlyContent(list.content)}>
             <CollapsibleTrigger className="text-muted-foreground flex w-full items-center gap-2">
               Content <CaretSortIcon className="text-foreground size-4.5" />
@@ -113,7 +113,9 @@ export default async function Page({ params }: { params: Promise<Params> }) {
             </div>
             <ol className="list-inside list-decimal">
               {list.links.map((l, i) => (
-                <ListLinkItem link={l} key={l.url + i} />
+                <li key={l.url + i} className="text-muted-foreground list-none flex gap-2 items-center">
+                  <ListLinkItem link={l} index={i} />
+                </li>
               ))}
             </ol>
           </div>

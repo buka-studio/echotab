@@ -6,6 +6,7 @@ import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ComponentProps, ReactNode } from "react";
 
+import { cn } from "../util";
 import { defaultNodes } from "./constants";
 import theme from "./theme";
 
@@ -29,18 +30,17 @@ function Placeholder({ children = "Enter some rich text..." }: { children?: Reac
 
 type Props = Omit<ComponentProps<"div">, "onChange"> & {
   editorState: string;
+  children?: ReactNode;
 };
 
-function RichTextRenderer(
-  { editorState, ref, ...props }: Props,
-) {
+function RichTextRenderer({ editorState, ref, children, className, ...props }: Props) {
   return (
     <LexicalComposer initialConfig={{ ...editorConfig, editorState }}>
       <div className="text-foreground text-left font-normal leading-5" ref={ref}>
         <RichTextPlugin
           contentEditable={
             <ContentEditable
-              className="caret-muted-foreground relative resize-none space-x-1 rounded-b-lg text-sm outline-none"
+              className={cn("caret-muted-foreground relative resize-none space-x-1 rounded-b-lg text-sm outline-none", className)}
               {...props}
               aria-placeholder="No content"
               placeholder={<Placeholder>No content</Placeholder>}
@@ -48,6 +48,7 @@ function RichTextRenderer(
           }
           ErrorBoundary={LexicalErrorBoundary}
         />
+        {children}
       </div>
     </LexicalComposer>
   );

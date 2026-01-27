@@ -40,6 +40,7 @@ function Placeholder({
 const editorConfig: InitialConfigType = {
   namespace: "Editor",
   theme,
+  editable: true,
   onError(error: any) {
     throw error;
   },

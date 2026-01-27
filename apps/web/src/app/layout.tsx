@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           inter.variable,
           jetbrains.variable,
           sahitya.variable,
-          "echotab-root font-sans",
+          "echotab-root font-sans bg-background-base",
         )}>
         <Providers>{children}</Providers>
         <Toaster />
