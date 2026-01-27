@@ -699,21 +699,6 @@ export const useViewTabIds = () => {
   }, [tabs, filteredIds]);
 };
 
-export const useTabInfo = (tabId: number) => {
-  const duplicateTabIds = useViewDuplicateTabIds();
-  const staleTabIds = useViewStaleTabIds();
-  const selected = useIsTabSelected(tabId);
-
-  return useMemo(
-    () => ({
-      duplicate: duplicateTabIds.has(tabId),
-      stale: staleTabIds.has(tabId),
-      selected,
-    }),
-    [duplicateTabIds, staleTabIds, selected, tabId],
-  );
-};
-
 export function useTabSelectionStore() {
   return useSnapshot(SelectionStore);
 }

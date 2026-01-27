@@ -41,7 +41,7 @@ export default function TagDeleteButton({ tag, onDelete, disabled, tabCount }: P
         size="icon-sm"
         disabled={disabled}
         onClick={handleDelete}
-        tooltipText="Delete tag">
+        tooltipText="Delete Tag">
         <TrashIcon className="h-4 w-4" />
       </ButtonWithTooltip>
 

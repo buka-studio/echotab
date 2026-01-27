@@ -443,7 +443,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handleCreateListFromSelected)}>
                           <FilePlusIcon className="text-muted-foreground mr-2" /> Create a
-                          collection
+                          Collection
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handlePinSelected)}>
                           <DrawingPinIcon className="text-muted-foreground mr-2" />
@@ -451,16 +451,16 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                         </TabCommandItem>
 
                         <TabCommandItem onSelect={withClear(handleOpenSelected)}>
-                          <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in this
-                          window
+                          <ExternalLinkIcon className="text-muted-foreground mr-2" /> Open in This
+                          Window
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(() => handleOpenSelected(true))}>
-                          <OpenInNewWindowIcon className="text-muted-foreground mr-2" /> Open in new
-                          window
+                          <OpenInNewWindowIcon className="text-muted-foreground mr-2" /> Open in New
+                          Window
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
                           <ClipboardIcon className="text-muted-foreground mr-2" />
-                          Copy to clipboard
+                          Copy to Clipboard
                         </TabCommandItem>
                         <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
                           <OpenAiLogoIcon className="text-muted-foreground mr-2" />
@@ -501,7 +501,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                       Curate
                     </TabCommandItem>
                   </TabCommandGroup>
-                  <CommandEmpty>No Results</CommandEmpty>
+                  <CommandEmpty>No results</CommandEmpty>
                 </>
               )}
               {activePage === "tag" && (

@@ -56,11 +56,11 @@ export function usePublishListMutation() {
       publishList({ ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
       logger.error("Failed to publish list", e);
-      toast.error("Failed to publish list");
+      toast.error("Failed to publish collection");
     },
     onSuccess: (newList, list) => {
       upsertList({ ...list, publicId: newList.publicId, published: true });
-      toast.success("List published", {
+      toast.success("Collection published", {
         action: {
           label: "View",
           onClick: () => {
@@ -84,12 +84,12 @@ export function useUpdateListMutation() {
       updateList(list.id, { ...getListPayload(list), profileLinkUrl: profileLink }),
     onError: (e) => {
       logger.error("Failed to update list", e);
-      toast.error("Failed to update list");
+      toast.error("Failed to update collection");
     },
     onSuccess: (updatedList, list) => {
       upsertList({ ...list, publicId: updatedList.publicId, published: updatedList.published });
 
-      toast.success("Public list updated", {
+      toast.success("Collection updated", {
         action: {
           label: "View",
           onClick: () => {
@@ -118,7 +118,7 @@ export function useUnpublishAllListsMutation() {
         lists: state.lists.map((l) => ({ ...l, published: false })),
       }));
 
-      toast.success("Lists unpublished");
+      toast.success("Collections unpublished");
     },
   });
 }
@@ -130,7 +130,7 @@ export function useUnpublishMutation() {
     mutationFn: (listId: string) => updateList(listId, { published: false }),
     onError: (e) => {
       logger.error("Failed to unpublish list", e);
-      toast.error("Failed to unpublish list");
+      toast.error("Failed to unpublish collection");
     },
     onSuccess: (updatedList, listId) => {
       useBookmarkStore.setState((state) => ({
@@ -140,7 +140,7 @@ export function useUnpublishMutation() {
         return replaceBy(prev, updatedList, (l) => l.localId === updatedList.localId);
       });
 
-      toast.success("List unpublished");
+      toast.success("Collection unpublished");
     },
   });
 }

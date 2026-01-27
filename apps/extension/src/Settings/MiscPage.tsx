@@ -43,7 +43,7 @@ export default function MiscPage() {
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="include-tags">Clipboard tags</Label>
+            <Label htmlFor="include-tags">Clipboard Tags</Label>
             <div className="text-muted-foreground text-sm">
               Include or exclude tags when copying links to the clipboard
             </div>
@@ -88,7 +88,7 @@ export default function MiscPage() {
               });
             }}>
             <SelectTrigger id="clipboard-format">
-              <SelectValue placeholder="Select a format" />
+              <SelectValue placeholder="Select a format..." />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>

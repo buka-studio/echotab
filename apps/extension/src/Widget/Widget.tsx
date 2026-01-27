@@ -228,14 +228,14 @@ function Widget({ onClose }: Props) {
             }}>
             <div className="border-border focus-within:bg-muted/60 mb-3 flex w-full items-center gap-2 rounded-lg border p-2 pl-3 transition-all duration-200">
               <CommandPrimitive.Input
-                placeholder="Search or create tags"
+                placeholder="Search or create tags..."
                 className="placeholder:text-muted-foreground text-muted-foreground w-full flex-1 border-dashed bg-transparent text-sm focus-visible:outline-none"
                 value={search}
                 onValueChange={(v) => setSearch(v)}
               />
               <div className="flex items-center gap-2">
                 <ButtonWithTooltip
-                  tooltipText="Quick save"
+                  tooltipText="Quick Save"
                   tooltipContainer={getWidgetRoot()}
                   size="icon-sm"
                   variant="outline"

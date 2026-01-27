@@ -119,7 +119,7 @@ export default function DataPage() {
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="import-bookmarks">Import browser bookmarks</Label>
+            <Label htmlFor="import-bookmarks">Import Browser Bookmarks</Label>
             <div className="text-muted-foreground text-sm">
               Import your browser bookmarks and create a tag for every folder.
             </div>
@@ -154,7 +154,7 @@ export default function DataPage() {
               </Tooltip>
             </Label>
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              Drop a file or click to upload an Echotab JSON export.{" "}
+              Drop a file or click to upload an EchoTab JSON export.{" "}
             </div>
           </div>
 
@@ -188,7 +188,7 @@ export default function DataPage() {
           <div className="flex flex-col gap-1">
             <Label htmlFor="export">Export Data</Label>
             <div className="text-muted-foreground text-sm">
-              Export all your echotab data as a JSON file.
+              Export all your EchoTab data as a JSON file.
             </div>
           </div>
           <Button variant="outline" onClick={handleExport}>
@@ -199,7 +199,7 @@ export default function DataPage() {
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col gap-1">
             <Label htmlFor="delete">Delete Data</Label>
-            <div className="text-muted-foreground text-sm">Delete all your echotab data.</div>
+            <div className="text-muted-foreground text-sm">Delete all your EchoTab data.</div>
           </div>
 
           <AlertDialog>

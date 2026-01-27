@@ -8,6 +8,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import ExpandIcon from "~/components/ExpandIcon";
 
+import { useTagsById } from "~/store/tagStore";
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { ConditionalWrapper } from "../components/ConditionalWrapper";
 import FilterTagChips from "../components/FilterTagChips";
@@ -29,6 +30,8 @@ import {
   useFiltersApplied,
   useTabStore,
   useTabViewStore,
+  useViewDuplicateTabIds,
+  useViewStaleTabIds,
   useViewTabIds,
   useViewTabIdsByDomain,
   useViewTabIdsByWindowId,
@@ -168,6 +171,20 @@ export default function ActiveTabs() {
     },
   );
 
+  const duplicateTabIds = useViewDuplicateTabIds();
+  const staleTabIds = useViewStaleTabIds();
+
+
+  const assignedTagIds = useTabStore((s) => s.assignedTagIds);
+  const tags = useTagsById();
+
+  const assignedTags = useMemo(() => {
+    return Array.from(assignedTagIds)
+      .map((id) => tags.get(id)!)
+      .filter(Boolean)
+
+  }, [assignedTagIds, tags]);
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="header contained outlined-side sticky top-0 z-10 flex p-3 px-2">
@@ -227,7 +244,7 @@ export default function ActiveTabs() {
           {!hasTabs && (
             <ItemListPlaceholder>
               <ItemListPlaceholderCopy
-                title="Currently, there are no open tabs."
+                title="No open tabs yet."
                 subtitle="Open tabs will be displayed here."
               />
             </ItemListPlaceholder>
@@ -301,55 +318,58 @@ export default function ActiveTabs() {
                 {(view.grouping === TabGrouping.All
                   ? windowsExpanded[Number(groupId)]
                   : domainsExpanded[Number(groupId)]) && (
-                  <DroppableContainer id={groupId} asChild>
-                    <ul
-                      onKeyDown={(e) => {
-                        if (activeId) {
-                          return;
-                        }
-                        focusSiblingItem(e, ".item-container");
-                      }}
-                      className={cn("data-[over=true]:bg-muted/30 flex w-full flex-col", {
-                        "[&_.echo-item-icon]:hidden":
-                          groupedTabs === viewTabIdsByDomain && groupId !== "Other",
-                      })}>
-                      {tabIds.map((tabId) => {
-                        const tab = viewTabsById[tabId];
-                        if (!tab) {
-                          return null;
-                        }
+                    <DroppableContainer id={groupId} asChild>
+                      <ul
+                        onKeyDown={(e) => {
+                          if (activeId) {
+                            return;
+                          }
+                          focusSiblingItem(e, ".item-container");
+                        }}
+                        className={cn("data-[over=true]:bg-muted/30 flex w-full flex-col", {
+                          "[&_.echo-item-icon]:hidden":
+                            groupedTabs === viewTabIdsByDomain && groupId !== "Other",
+                        })}>
+                        {tabIds.map((tabId) => {
+                          const tab = viewTabsById[tabId];
+                          if (!tab) {
+                            return null;
+                          }
 
-                        return (
-                          <SelectableItem asChild id={tabId} key={tabId}>
-                            <motion.li
-                              className={cn(
-                                "item-container rounded-lg transition-all duration-200 select-none not-first:-mt-px focus-within:z-1 hover:z-1 data-[selected=true]:z-1 [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-1 [&:last-child_.tab-item]:rounded-b-lg",
-                                {
-                                  "[&_.tab-item]:rounded-none! [&_.tab-item]:transition-all [&_.tab-item]:duration-200":
-                                    activeId,
-                                },
-                              )}>
-                              <ConditionalWrapper
-                                condition={!tab.pinned}
-                                wrapper={(children) => (
-                                  <SortableItem id={tabId} useHandle asChild>
-                                    {children}
-                                  </SortableItem>
+                          return (
+                            <SelectableItem asChild id={tabId} key={tabId}>
+                              <motion.li
+                                className={cn(
+                                  "item-container rounded-lg transition-all duration-200 select-none not-first:-mt-px focus-within:z-1 hover:z-1 data-[selected=true]:z-1 [&:first-child_.tab-item]:rounded-t-lg [&:has([data-selected=true])]:z-1 [&:last-child_.tab-item]:rounded-b-lg",
+                                  {
+                                    "[&_.tab-item]:rounded-none! [&_.tab-item]:transition-all [&_.tab-item]:duration-200":
+                                      activeId,
+                                  },
                                 )}>
-                                <div className="group/sortable @container">
-                                  <MemoActiveTabItem
-                                    tab={tab}
-                                    className="group-data-[is-dragged=true]/sortable:opacity-20! group-data-[is-dragged=true]/sortable:blur-sm"
-                                  />
-                                </div>
-                              </ConditionalWrapper>
-                            </motion.li>
-                          </SelectableItem>
-                        );
-                      })}
-                    </ul>
-                  </DroppableContainer>
-                )}
+                                <ConditionalWrapper
+                                  condition={!tab.pinned}
+                                  wrapper={(children) => (
+                                    <SortableItem id={tabId} useHandle asChild>
+                                      {children}
+                                    </SortableItem>
+                                  )}>
+                                  <div className="group/sortable @container">
+                                    <MemoActiveTabItem
+                                      tab={tab}
+                                      assignedTags={assignedTags}
+                                      duplicate={duplicateTabIds.has(tabId)}
+                                      stale={staleTabIds.has(tabId)}
+                                      className="group-data-[is-dragged=true]/sortable:opacity-20! group-data-[is-dragged=true]/sortable:blur-sm"
+                                    />
+                                  </div>
+                                </ConditionalWrapper>
+                              </motion.li>
+                            </SelectableItem>
+                          );
+                        })}
+                      </ul>
+                    </DroppableContainer>
+                  )}
               </div>
             );
           })}

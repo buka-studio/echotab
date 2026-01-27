@@ -16,14 +16,14 @@ export default function KeyboardShortcuts({ className }: { className?: string })
         </KeyboardShortcut>
       </li>
       <li className="flex w-full items-center justify-between">
-        <span>Open search</span>
+        <span>Open Search</span>
         <KeyboardShortcut>
           <KeyboardShortcutKey className="h-5 w-5 text-base">⌘</KeyboardShortcutKey>
           <KeyboardShortcutKey className="h-5 w-5 text-sm">f</KeyboardShortcutKey>
         </KeyboardShortcut>
       </li>
       <li className="flex w-full items-center justify-between">
-        <span>Select all items</span>
+        <span>Select All Items</span>
         <KeyboardShortcut>
           <KeyboardShortcutKey className="h-5 w-5 text-base">⌘</KeyboardShortcutKey>
           <KeyboardShortcutKey className="h-5 w-5 text-sm">a</KeyboardShortcutKey>
@@ -31,8 +31,8 @@ export default function KeyboardShortcuts({ className }: { className?: string })
       </li>
       <li className="flex w-full items-center justify-between">
         <div className="flex flex-col gap-1">
-          <span>Toggle tagging</span>
-          <span className="text-muted-foreground text-xs">with tabs selected</span>
+          <span>Toggle Tagging</span>
+          <span className="text-muted-foreground text-xs">With tabs selected</span>
         </div>
         <KeyboardShortcut>
           <KeyboardShortcutKey className="h-5 text-[0.625rem]">alt</KeyboardShortcutKey>

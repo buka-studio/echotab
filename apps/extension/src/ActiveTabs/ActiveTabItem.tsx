@@ -30,16 +30,14 @@ import { SortableHandle } from "../components/SortableList";
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { Waveform } from "../components/Waveform";
-import { ActiveTab } from "../models";
+import { ActiveTab, Tag } from "../models";
 import { useSettingStore } from "../store/settingStore";
 import {
   tabStoreActions,
   tabStoreSelectionActions,
-  useTabInfo,
-  useTabStore,
-  useViewTabIdsByWindowId,
+  useIsTabSelected,
+  useViewTabIdsByWindowId
 } from "../store/tabStore";
-import { useTagsById } from "../store/tagStore";
 
 function TabMenu({ tab, selected }: { tab: ActiveTab; selected: boolean }) {
   const viewTabIdsByWindowId = useViewTabIdsByWindowId();
@@ -133,20 +131,16 @@ function formatLastAccessed(lastAccessed: number | undefined) {
 type Props = Omit<ComponentProps<typeof TabItem>, "tab"> & {
   tab: ActiveTab;
   currentGroupTagId?: number;
+  stale?: boolean;
+  duplicate?: boolean;
+  assignedTags?: Tag[];
 };
 
-function ActiveTabItem({ className, tab, ...rest }: Props) {
-  const assignedTagIds = useTabStore((s) => s.assignedTagIds);
-  const tags = useTagsById();
+function ActiveTabItem({ className, tab, stale, duplicate, assignedTags = [], ...rest }: Props) {
+
   const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
 
-  const { selected, duplicate, stale } = useTabInfo(tab.id);
-
-  const assignedTags = selected
-    ? Array.from(assignedTagIds)
-      .map((id) => tags.get(id)!)
-      .filter(Boolean)
-    : [];
+  const selected = useIsTabSelected(tab.id);
 
   const handleFocusTab = async () => {
     await chrome.windows.update(tab.windowId, { focused: true });
@@ -216,26 +210,25 @@ function ActiveTabItem({ className, tab, ...rest }: Props) {
           {tab.url}
         </button>
       }
-      actions={
-        <div className="flex items-center gap-2">
-          <TagChipCombobox tags={assignedTags} />
-          <TabMenu tab={tab} selected={selected} />
-          <ButtonWithTooltip
-            size="icon-sm"
-            variant="ghost"
-            tooltipText="Close Tab"
-            onClick={handleCloseTab}>
-            <Cross2Icon className="h-5 w-5" />
-          </ButtonWithTooltip>
-        </div>
+      actions={<div className="flex items-center gap-2">
+        <TagChipCombobox tags={selected ? assignedTags : []} />
+        <TabMenu tab={tab} selected={selected} />
+        <ButtonWithTooltip
+          size="icon-sm"
+          variant="ghost"
+          tooltipText="Close Tab"
+          onClick={handleCloseTab}>
+          <Cross2Icon className="h-5 w-5" />
+        </ButtonWithTooltip>
+      </div>
       }>
       <div className="flex items-center gap-1">
-        {duplicate && <Badge variant="card">Duplicate</Badge>}
+        {duplicate && <Badge variant="card" className="bg-background">Duplicate</Badge>}
         {stale && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Badge variant="card">Stale</Badge>
+                <Badge variant="card" className="bg-background">Stale</Badge>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Last visited: {formatLastAccessed(tab.lastAccessed)} ago.</p>

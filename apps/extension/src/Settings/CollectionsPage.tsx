@@ -22,7 +22,7 @@ export default function CollectionsPage() {
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="list-publishing">Enable collections publishing</Label>
+            <Label htmlFor="list-publishing">Enable Collections Publishing</Label>
             <div className="text-muted-foreground text-sm">
               Enable the option to share your collections publicly.
             </div>
@@ -40,7 +40,7 @@ export default function CollectionsPage() {
             <Separator />
             <div className="flex items-center justify-between space-x-2">
               <div className="flex flex-col gap-1">
-                <Label htmlFor="profile-link">Profile link</Label>
+                <Label htmlFor="profile-link">Profile Link</Label>
                 <div className="text-muted-foreground text-sm">
                   Link to your website or social media profile on public collections.
                 </div>

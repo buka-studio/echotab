@@ -265,8 +265,8 @@ export default function Bookmarks() {
                 <MobileBottomBarPortal>
                   <DrawerTrigger asChild>
                     <ButtonWithTooltip
-                      tooltipText="Toggle tag drawer"
-                      aria-label="Toggle tag drawer"
+                      tooltipText="Toggle Tag Drawer"
+                      aria-label="Toggle Tag Drawer"
                       className="absolute bottom-4 left-10"
                       size="icon"
                       variant="ghost">

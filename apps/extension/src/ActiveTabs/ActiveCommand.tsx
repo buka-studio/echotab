@@ -518,11 +518,11 @@ export default function ActiveCommand() {
 
                       <TabCommandItem onSelect={withClear(handleCopyToClipboard)}>
                         <ClipboardIcon className="text-muted-foreground mr-2" />
-                        Copy to clipboard
+                        Copy to Clipboard
                       </TabCommandItem>
                       <TabCommandItem onSelect={withClear(handleMoveToNewWindow)}>
                         <OpenInNewWindowIcon className="text-muted-foreground mr-2" />
-                        Move to new window
+                        Move to New Window
                       </TabCommandItem>
                       <TabCommandItem onSelect={withClear(handleOpenInLLM("chatgpt"))}>
                         <OpenAiLogoIcon className="text-muted-foreground mr-2" />
@@ -585,7 +585,7 @@ export default function ActiveCommand() {
                     Curate
                   </TabCommandItem>
                 </TabCommandGroup>
-                <CommandEmpty>No Results</CommandEmpty>
+                <CommandEmpty>No results</CommandEmpty>
               </>
             )}
             {activePage === "tag" && (

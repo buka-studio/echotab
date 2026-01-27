@@ -71,7 +71,7 @@ export default function CuratePage() {
       <SettingsContent className="flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="old-link-threshold-value">Link expiration</Label>
+            <Label htmlFor="old-link-threshold-value">Link Expiration</Label>
             <div className="text-muted-foreground text-sm">
               How old a link needs to be before it's flagged for curation.
             </div>
@@ -90,7 +90,7 @@ export default function CuratePage() {
               value={settings.oldLinkThreshold.unit}
               onValueChange={(value) => handleOldLinkUpdate(value as TimeUnit, "unit")}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a unit" />
+                <SelectValue placeholder="Select a unit..." />
               </SelectTrigger>
               <SelectContent>
                 {Object.values(timeUnits).map((unit) => (
@@ -107,7 +107,7 @@ export default function CuratePage() {
 
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="reminder-enabled">Reminders enabled</Label>
+            <Label htmlFor="reminder-enabled">Reminders Enabled</Label>
             <div className="text-muted-foreground text-sm">
               Toggle curation reminders on or off.
             </div>
@@ -124,7 +124,7 @@ export default function CuratePage() {
 
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="reminder-interval-value">Reminders frequency</Label>
+            <Label htmlFor="reminder-interval-value">Reminder Frequency</Label>
             <div className="text-muted-foreground text-sm">
               How often you want to be reminded to curate your links.
             </div>
@@ -143,7 +143,7 @@ export default function CuratePage() {
               value={settings.reminder.unit}
               onValueChange={(value) => handleReminderUpdate(value as TimeUnit, "unit")}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a unit" />
+                <SelectValue placeholder="Select a unit..." />
               </SelectTrigger>
               <SelectContent>
                 {Object.values(timeUnits).map((unit) => (

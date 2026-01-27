@@ -35,8 +35,8 @@ export default function ScrollTopFAB({
               behavior: "auto",
             })
           }
-          tooltipText="Scroll to top"
-          aria-label="Scroll to top"
+          tooltipText="Scroll to Top"
+          aria-label="Scroll to Top"
           size="icon"
           variant="ghost">
           <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

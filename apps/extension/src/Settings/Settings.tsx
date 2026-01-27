@@ -114,7 +114,7 @@ export default function Settings() {
           Feedback
         </SettingsCommandItem>
       </CommandGroup>
-      <CommandEmpty className="p-2 text-base">No Results.</CommandEmpty>
+      <CommandEmpty className="p-2 text-base">No results</CommandEmpty>
     </CommandList>
   );
 
