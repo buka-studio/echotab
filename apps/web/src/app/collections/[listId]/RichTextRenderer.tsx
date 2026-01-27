@@ -33,7 +33,7 @@ function LinkDecoratorPlugin() {
         element.setAttribute('data-local-id', links[linkIndex]?.localId ?? '');
       }
     });
-  }, [editor]);
+  }, [editor, links]);
 
   return null;
 }

@@ -6,7 +6,7 @@ import {
   useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $nodesOfType, TextNode } from "lexical";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, JSX, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { cn } from "../../util";
@@ -42,16 +42,16 @@ const LENGTH_LIMIT = 75;
 
 const AtSignMentionsRegex = new RegExp(
   "(^|\\s|\\()(" +
-    "[" +
-    TRIGGERS +
-    "]" +
-    "((?:" +
-    VALID_CHARS +
-    VALID_JOINS +
-    "){0," +
-    LENGTH_LIMIT +
-    "})" +
-    ")$",
+  "[" +
+  TRIGGERS +
+  "]" +
+  "((?:" +
+  VALID_CHARS +
+  VALID_JOINS +
+  "){0," +
+  LENGTH_LIMIT +
+  "})" +
+  ")$",
 );
 
 // 50 is the longest alias length limit.
@@ -60,15 +60,15 @@ const ALIAS_LENGTH_LIMIT = 50;
 // Regex used to match alias.
 const AtSignMentionsRegexAliasRegex = new RegExp(
   "(^|\\s|\\()(" +
-    "[" +
-    TRIGGERS +
-    "]" +
-    "((?:" +
-    VALID_CHARS +
-    "){0," +
-    ALIAS_LENGTH_LIMIT +
-    "})" +
-    ")$",
+  "[" +
+  TRIGGERS +
+  "]" +
+  "((?:" +
+  VALID_CHARS +
+  "){0," +
+  ALIAS_LENGTH_LIMIT +
+  "})" +
+  ")$",
 );
 
 // At most, 5 suggestions are shown in the popup.
@@ -83,7 +83,7 @@ interface Option {
 }
 
 const MentionsLookupServiceContext = createContext({
-  search: (string: string, callback: (results: Option[]) => void): void => {},
+  search: (string: string, callback: (results: Option[]) => void): void => { },
 });
 export function MentionsLookupServiceProvider({
   children,
@@ -282,31 +282,31 @@ export default function MentionsPlugin({ onMentionsChange }: Props): JSX.Element
       ) =>
         anchorElementRef.current && results.length
           ? createPortal(
-              <div className="typeahead-popover mentions-menu pointer-events-auto">
-                <ul
-                  className={cn(
-                    "bg-popover text-popover-foreground z-50 min-w-fit max-w-sm overflow-hidden rounded-md border p-1 shadow-md",
-                  )}>
-                  {options.map((option, i: number) => (
-                    <MentionsTypeaheadMenuItem
-                      index={i}
-                      isSelected={selectedIndex === i}
-                      onClick={() => {
-                        setHighlightedIndex(i);
-                        selectOptionAndCleanUp(option);
-                      }}
-                      onMouseEnter={() => {
-                        setHighlightedIndex(i);
-                      }}
-                      key={option.key}
-                      option={option}
-                      className="max-w-sm text-ellipsis whitespace-nowrap"
-                    />
-                  ))}
-                </ul>
-              </div>,
-              anchorElementRef.current,
-            )
+            <div className="typeahead-popover mentions-menu pointer-events-auto">
+              <ul
+                className={cn(
+                  "bg-popover text-popover-foreground z-50 min-w-fit max-w-sm overflow-hidden rounded-md border p-1 shadow-md",
+                )}>
+                {options.map((option, i: number) => (
+                  <MentionsTypeaheadMenuItem
+                    index={i}
+                    isSelected={selectedIndex === i}
+                    onClick={() => {
+                      setHighlightedIndex(i);
+                      selectOptionAndCleanUp(option);
+                    }}
+                    onMouseEnter={() => {
+                      setHighlightedIndex(i);
+                    }}
+                    key={option.key}
+                    option={option}
+                    className="max-w-sm text-ellipsis whitespace-nowrap"
+                  />
+                ))}
+              </ul>
+            </div>,
+            anchorElementRef.current,
+          )
           : null
       }
     />
