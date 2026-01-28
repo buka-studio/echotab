@@ -4,7 +4,7 @@ import { MentionNode } from "@echotab/ui/RichEditor";
 import RichTextRenderer from "@echotab/ui/RichTextRenderer";
 import { $createLinkNode, LinkNode } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $createTextNode } from "lexical";
+import { $createTextNode, $getNodeByKey } from "lexical";
 import { ComponentProps, useEffect, useRef } from "react";
 
 import { cn } from "@echotab/ui/util";
@@ -24,14 +24,25 @@ function LinkDecoratorPlugin() {
   const { links } = useListContext();
 
   useEffect(() => {
-    return editor.registerNodeTransform(LinkNode, (node) => {
-      const element = editor.getElementByKey(node.getKey());
-      if (element) {
-        const linkIndex = links.findIndex((l) => l.url === node.getURL());
-        element.setAttribute('data-citation', `[${linkIndex + 1}]`);
-        element.setAttribute('data-lexical-mention', 'true');
-        element.setAttribute('data-local-id', links[linkIndex]?.localId ?? '');
-      }
+    return editor.registerMutationListener(LinkNode, (mutations) => {
+      editor.getEditorState().read(() => {
+        for (const [nodeKey, mutation] of mutations) {
+          if (mutation === "destroyed") continue;
+
+          const node = $getNodeByKey(nodeKey) as LinkNode | null;
+          if (!node) continue;
+
+          const element = editor.getElementByKey(nodeKey);
+          if (!element) continue;
+
+          const linkIndex = links.findIndex((l) => l.url === node.getURL());
+          if (linkIndex !== -1) {
+            element.setAttribute("data-citation", `[${linkIndex + 1}]`);
+            element.setAttribute("data-lexical-mention", "true");
+            element.setAttribute("data-local-id", links[linkIndex]?.localId ?? "");
+          }
+        }
+      });
     });
   }, [editor, links]);
 
