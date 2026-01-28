@@ -33,14 +33,11 @@ import { Button } from "../../Button";
 import { cn } from "../../util";
 
 function ToolbarButton(props: ComponentProps<typeof Button>) {
-  const [editor] = useLexicalComposerContext();
-
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon-sm"
-      disabled={!editor.isEditable()}
       {...props}
     />
   );
@@ -90,7 +87,7 @@ export default function ToolbarPlugin() {
       )}>
       <div
         className={cn("flex flex-1 items-center", {
-          "pointer-events-none opacity-40": !editor.isEditable(),
+          "pointer-events-none opacity-40": !isEditable,
         })}>
         <ToolbarButton
           className={cn(isBold ? "bg-muted" : "bg-transparent")}
@@ -171,9 +168,8 @@ export default function ToolbarPlugin() {
         </ToolbarButton>
       </div>
       <ToolbarButton
-        disabled={false}
         onClick={() => {
-          editor.setEditable(!editor.isEditable());
+          editor.setEditable(!isEditable);
         }}>
         {isEditable ? (
           <LockOpen1Icon className="text-foreground h-5 w-5" />
