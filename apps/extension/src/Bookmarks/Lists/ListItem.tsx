@@ -15,10 +15,12 @@ import { cn } from "@echotab/ui/util";
 import { ArrowTopRightIcon, DotsVerticalIcon } from "@radix-ui/react-icons";
 import { ComponentProps } from "react";
 
+import { toast } from "@echotab/ui/Toast";
+import { useBookmarkStore } from "~/store/bookmarkStore";
 import EchoItem from "../../components/EchoItem";
 import { List } from "../../models";
 import { useSettingStore } from "../../store/settingStore";
-import { pluralize } from "../../util";
+import { formatLinks, pluralize } from "../../util";
 import ListDeleteDialog from "./ListDeleteDialog";
 import ListFormDialog from "./ListFormDialog";
 import ListPublishDialog from "./ListPublishDialog";
@@ -27,6 +29,25 @@ import { getPublicListURL } from "./util";
 
 function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
   const listPublishingEnabled = useSettingStore((s) => s.settings.listPublishingEnabled);
+  const clipboardFormat = useSettingStore((s) => s.settings.clipboardFormat);
+
+
+  const handleCopyToClipboard = () => {
+    const bookmarks = useBookmarkStore.getState().tabs.filter((tab) => list.tabIds.includes(tab.id));
+
+    const formatted = formatLinks(bookmarks, clipboardFormat);
+
+    if (!formatted) return;
+
+    navigator.clipboard
+      .writeText(formatted)
+      .then(() => {
+        toast.success(`${pluralize(bookmarks.length, "link")} copied to clipboard`);
+      })
+      .catch(() => {
+        toast.error("Failed to copy links to clipboard");
+      });
+  };
 
   return (
     <DropdownMenu>
@@ -36,6 +57,9 @@ function ListMenu({ list, publicList }: { list: List; publicList?: UserList }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <DropdownMenuItem onClick={handleCopyToClipboard}>
+          Copy Links
+        </DropdownMenuItem>
         <ListFormDialog list={list}>
           <DialogTrigger asChild>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
