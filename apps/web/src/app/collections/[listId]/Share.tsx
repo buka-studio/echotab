@@ -17,7 +17,7 @@ function buildTwitterShareLink(list: PublicList) {
 }
 
 export default function Share({ list }: { list: PublicList }) {
-  const listUrl = `${process.env.NEXT_PUBLIC_WEB_HOST}/lists/${list.publicId}`;
+  const listUrl = `${process.env.NEXT_PUBLIC_WEB_HOST}/collections/${list.publicId}`;
 
   const qr = renderSVG(listUrl, {
     blackColor: "var(--foreground)",
