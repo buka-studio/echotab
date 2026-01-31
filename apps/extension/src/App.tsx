@@ -54,28 +54,11 @@ updateViewport();
 initStores();
 subscribeSettingStore();
 
-// function Highlight() {
-//   return (
-//     <motion.span
-//       layoutId="highlight"
-//       className="bg-surface-3 absolute -inset-px rounded-full border will-change-transform dark:shadow-sm"
-//       transition={{
-//         type: "spring",
-//         bounce: 0.2,
-//         duration: 0.25,
-//       }}
-//       style={{
-//         originY: "0px",
-//       }}
-//     />
-//   );
-// }
-
 function PanelTrigger({ className, ...props }: ComponentProps<typeof TabsTrigger>) {
   return (
     <TabsTrigger
       className={cn(
-        "focus-ring text-muted-foreground data-[state=active]:text-foreground relative rounded-full border-none p-2 px-4 transition-colors duration-200 data-[state=active]:bg-transparent! data-[state=active]:outline-none dark:data-[state=active]:shadow-none",
+        "focus-ring text-muted-foreground data-[state=active]:text-foreground relative rounded-full border-none p-2 px-4 shadow-none! transition-colors duration-200 data-[state=active]:bg-transparent! data-[state=active]:outline-none",
       )}
       {...props}
     />
@@ -121,11 +104,16 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2">
                   <TabsList className="flex h-auto gap-2 rounded-full border bg-transparent p-0 dark:shadow-sm">
-                    <div className="bg-surface-2 grid grid-cols-2 rounded-full relative">
-                      <span className={cn("bg-surface-3 absolute -inset-px rounded-full border will-change-transform dark:shadow-sm transition-transform duration-200 w-1/2", {
-                        "translate-x-0": activePanel === Panel.Tabs,
-                        "translate-x-[calc(100%+2px)]": activePanel === Panel.Bookmarks,
-                      })} />
+                    <div className="bg-surface-2 relative grid grid-cols-2 rounded-full">
+                      <span
+                        className={cn(
+                          "bg-card border-border absolute -inset-px w-1/2 rounded-full border transition-transform duration-200 will-change-transform dark:shadow-sm",
+                          {
+                            "translate-x-0": activePanel === Panel.Tabs,
+                            "translate-x-[calc(100%+2px)]": activePanel === Panel.Bookmarks,
+                          },
+                        )}
+                      />
                       <PanelTrigger
                         value={Panel.Tabs}
                         onClick={() => settingStoreActions.activatePanel(Panel.Tabs)}>

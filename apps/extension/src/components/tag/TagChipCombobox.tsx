@@ -105,20 +105,6 @@ export default function TagChipCombobox({
 
       return selectedTagIds.has(t.id);
     });
-    // .sort((a, b) => {
-    //   const aSelected = selectedTagIds.has(a.id);
-    //   const bSelected = selectedTagIds.has(b.id);
-
-    //   if (aSelected && !bSelected) {
-    //     return -1;
-    //   }
-
-    //   if (!aSelected && bSelected) {
-    //     return 1;
-    //   }
-
-    //   return 0;
-    // });
   }, [tagStore.tags, selectedTagIds]);
 
   const atLeastOneChecked = selectedTagIds.size > 0;
