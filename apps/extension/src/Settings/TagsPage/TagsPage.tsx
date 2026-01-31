@@ -11,7 +11,7 @@ import {
 } from "@echotab/ui/Table";
 import { toast } from "@echotab/ui/Toast";
 import { cn } from "@echotab/ui/util";
-import { HeartIcon, PaintBucketIcon } from "@phosphor-icons/react";
+import { BroomIcon, HeartIcon, PaintBucketIcon, PlusIcon } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
 
 import { bookmarkStoreActions, useBookmarkStore } from "~/store/bookmarkStore";
@@ -113,14 +113,29 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
     tagStoreActions.shuffleTagColors();
   };
 
+  const handleCleanupUnusedTags = () => {
+    const unusedTagIds = bookmarkStoreActions.getUnusedTagIds();
+
+    tagStoreActions.deleteTags(unusedTagIds);
+  };
+
   return (
     <SettingsPage>
       <SettingsTitle
         className="flex items-center"
         right={
-          <Button variant="outline" onClick={handleAddTag} className="ml-auto">
-            Add new tag
-          </Button>
+          <div className="flex items-center gap-2">
+            <ButtonWithTooltip
+              tooltipText="Cleanup unused tags"
+              variant="outline"
+              onClick={handleCleanupUnusedTags}
+              size="icon">
+              <BroomIcon />
+            </ButtonWithTooltip>
+            <Button variant="outline" onClick={handleAddTag} className="ml-auto">
+              <PlusIcon className="mr-2" /> New tag
+            </Button>
+          </div>
         }>
         Tags
       </SettingsTitle>
