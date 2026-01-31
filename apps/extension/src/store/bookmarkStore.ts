@@ -492,11 +492,9 @@ const getFilteredTabIds = (tabs: SavedTab[], filter: Filter) => {
 
 type Tag = ReturnType<typeof useTagStore.getState>["tags"][number];
 
-const selectFilteredTabIds = memoize(
-  (state: { tabs: SavedTab[]; filter: Filter }): Set<string> => {
-    return getFilteredTabIds(state.tabs, state.filter);
-  },
-);
+const selectFilteredTabIds = memoize((state: { tabs: SavedTab[]; filter: Filter }): Set<string> => {
+  return getFilteredTabIds(state.tabs, state.filter);
+});
 
 const selectTabsById = memoize(
   (state: { tabs: SavedTab[]; filteredIds: Set<string> }): Record<string, SavedTab> => {
@@ -594,6 +592,14 @@ const selectViewTabIds = memoize(
   },
 );
 
+export const getUnusedTagIds = (): number[] => {
+  const tabs = useBookmarkStore.getState().tabs;
+  const allTagIds = useTagStore.getState().tags.map((t) => t.id);
+  const usedTagIds = new Set(tabs.flatMap((t) => t.tagIds));
+
+  return allTagIds.filter((id) => id !== unassignedTag.id && !usedTagIds.has(id));
+};
+
 const selectPinnedTabs = memoize((state: { tabs: SavedTab[] }): SavedTab[] => {
   return state.tabs.filter((t) => t.pinned);
 });
@@ -682,6 +688,7 @@ export const bookmarkStoreActions = {
   upsertList,
   removeList,
   removeLists,
+  getUnusedTagIds,
 };
 
 export const bookmarkStoreViewActions = {

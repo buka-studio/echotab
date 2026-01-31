@@ -48,6 +48,11 @@ export const deleteTag = (tagId: number) => {
   useTagStore.setState((state) => ({ tags: state.tags.filter((tag) => tag.id !== tagId) }));
 };
 
+export const deleteTags = (tagIds: number[]) => {
+  const tagIdsSet = new Set(tagIds);
+  useTagStore.setState((state) => ({ tags: state.tags.filter((tag) => !tagIdsSet.has(tag.id)) }));
+};
+
 export const updateTag = (tagId: number, updates: Partial<Tag>) => {
   useTagStore.setState((state) => ({
     tags: state.tags.map((tag) => (tag.id === tagId ? { ...tag, ...updates } : tag)),
@@ -91,36 +96,49 @@ export const getTagByName = (name: string) => {
 
 export const createTags = (params: TagParams[]) => {
   const createdTags: Tag[] = [];
+  const newTagsToAdd: Tag[] = [];
 
   for (const { name, color, isQuick, isAI } of params) {
-    const newId = getNextTagId();
+    const trimmedName = name.trim();
 
-    const _color = color || pickRandomTagColor();
-
-    const newTag = {
-      color: _color,
-      id: newId,
-      name: name.trim(),
-      favorite: false,
-      isQuick,
-      isAI,
-    };
-
-    if (!newTag.name) {
+    if (!trimmedName) {
       toast.error("Tag name cannot be empty");
       continue;
     }
 
-    const existing = getTagByName(newTag.name);
+    const existing = getTagByName(trimmedName);
     if (existing) {
       createdTags.push(existing);
       continue;
     }
 
-    createdTags.push({ ...newTag, createdAt: getUtcISO(), updatedAt: getUtcISO() });
+    const alreadyInBatch = newTagsToAdd.find((t) => t.name === trimmedName);
+    if (alreadyInBatch) {
+      createdTags.push(alreadyInBatch);
+      continue;
+    }
+
+    const newId = getNextTagId();
+    const _color = color || pickRandomTagColor();
+
+    const newTag: Tag = {
+      color: _color,
+      id: newId,
+      name: trimmedName,
+      favorite: false,
+      isQuick,
+      isAI,
+      createdAt: getUtcISO(),
+      updatedAt: getUtcISO(),
+    };
+
+    createdTags.push(newTag);
+    newTagsToAdd.push(newTag);
   }
 
-  useTagStore.setState((state) => ({ tags: [...state.tags, ...createdTags] }));
+  if (newTagsToAdd.length > 0) {
+    useTagStore.setState((state) => ({ tags: [...state.tags, ...newTagsToAdd] }));
+  }
 
   return createdTags;
 };
@@ -183,6 +201,7 @@ useTagStore.subscribe((store) => {
 export const tagStoreActions = {
   addTags,
   deleteTag,
+  deleteTags,
   updateTag,
   toggleTagFavorite,
   getQuickSaveTagName,
