@@ -160,9 +160,11 @@ export default function CuratedStats({ className }: { className?: string }) {
     return (
       <div className={cn("relative flex flex-col items-center justify-center", className)}>
         <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-lg text-balance">Currently, there are no curate sessions.</div>
-          <div className="text-foreground/75 text-sm text-balance">
-            Once you finish a curate session, your stats will be displayed here.
+          <div className="text-foreground text-sm font-semibold text-balance">
+            No curation sessions yet.
+          </div>
+          <div className="text-muted-foreground text-sm text-balance">
+            Once you finish a curation session, your stats will be displayed here.
           </div>
         </div>
         <div className="pointer-events-none flex h-full w-full items-center opacity-50 blur-sm">
