@@ -9,8 +9,7 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-foreground text-background dark:shadow hover:bg-foreground/90",
+        default: "bg-foreground text-background dark:shadow hover:bg-foreground/90",
         destructive:
           "bg-destructive-background text-destructive-foreground border-destructive-separator dark:shadow-sm hover:bg-destructive-background/80 border focus-visible:ring-destructive-separator/60",
         warning:
@@ -26,7 +25,7 @@ export const buttonVariants = cva(
         default: "h-8 rounded-md px-3 text-sm",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        icon: "size-8",
         "icon-sm": "h-7 w-7",
       },
     },
