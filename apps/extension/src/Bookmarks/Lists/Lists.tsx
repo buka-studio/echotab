@@ -2,7 +2,7 @@ import { Badge } from "@echotab/ui/Badge";
 import { Button } from "@echotab/ui/Button";
 import { DialogTrigger } from "@echotab/ui/Dialog";
 import { cn } from "@echotab/ui/util";
-import { SquaresFourIcon } from "@phosphor-icons/react";
+import { BookBookmarkIcon } from "@phosphor-icons/react";
 import { FilePlusIcon } from "@radix-ui/react-icons";
 import { useMemo, useState } from "react";
 
@@ -32,7 +32,7 @@ export default function Lists() {
       <div className="flex items-center pl-2 text-sm select-none">
         <span className="mr-2 inline-flex gap-2">
           <span className="text-muted-foreground flex items-center gap-2">
-            <SquaresFourIcon /> Collections
+            <BookBookmarkIcon weight="fill" /> Collections
           </span>
           <Badge variant="card">{lists?.length}</Badge>
         </span>

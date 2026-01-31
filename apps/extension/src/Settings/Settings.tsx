@@ -9,10 +9,10 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@echotab/ui/Popover";
 import { cn } from "@echotab/ui/util";
 import {
+  BookBookmarkIcon,
   BroomIcon,
   DatabaseIcon,
   PaletteIcon,
-  SquaresFourIcon,
   TagIcon,
 } from "@phosphor-icons/react";
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
@@ -88,7 +88,7 @@ export default function Settings() {
           Tags
         </SettingsCommandItem>
         <SettingsCommandItem>
-          <SquaresFourIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
+          <BookBookmarkIcon className="text-muted-foreground mr-2 h-[15px] w-[15px]" />
           Collections
         </SettingsCommandItem>
         <SettingsCommandItem>
