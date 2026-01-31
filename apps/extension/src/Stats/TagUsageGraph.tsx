@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { ComponentProps, useMemo, useState } from "react";
 
 import { useBookmarkStore, useFilteredTabsByTagId } from "~/store/bookmarkStore";
-import { unassignedTag, useTagsById, useTagStore } from "~/store/tagStore";
+import { useTagsById, useTagStore } from "~/store/tagStore";
 
 import SortButton from "../components/SortButton";
 import TagChip from "../components/tag/TagChip";
@@ -103,7 +103,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
   const filteredTabsByTagId = useFilteredTabsByTagId();
   const tabs = useBookmarkStore((s) => s.tabs);
 
-  const tags = useMemo(() => allTags.filter((t) => t.id !== unassignedTag.id), [allTags]);
+  const tags = useMemo(() => allTags, [allTags]);
 
   const yScale = useMemo(
     () =>
@@ -156,10 +156,7 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
 
   const activeTag = tagsById.get(tooltip?.tooltipData?.id || -1);
 
-  const usedTags = new Set(tabs.flatMap((t) => t.tagIds));
-
-  const noTaggedLinks =
-    usedTags.size === 0 || (usedTags.size === 1 && usedTags.has(unassignedTag.id));
+  const noBookmarks = tabs.length === 0;
 
   const handleSort = () => {
     if (sort === SortDir.Desc) {
@@ -173,13 +170,15 @@ export default function TagUsageGraph({ width, height, margin = defaultMargin }:
     }
   };
 
-  if (noTaggedLinks) {
+  if (noBookmarks) {
     return (
       <div className="relative">
         <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-lg text-balance">Currently, there are no tagged links.</div>
-          <div className="text-foreground/75 text-sm text-balance">
-            Begin organizing by tagging tabs, and the tag count will be displayed here.
+          <div className="text-foreground text-sm font-semibold text-balance">
+            No saved bookmarks yet.
+          </div>
+          <div className="text-muted-foreground text-sm text-balance">
+            Once you save bookmarks, the tag count will be displayed here.
           </div>
         </div>
         <PlaceholderGraph

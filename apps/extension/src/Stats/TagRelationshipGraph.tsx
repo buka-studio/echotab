@@ -155,11 +155,11 @@ export default function TagRelationshipGraph({ width, height, centerSize = 20 }:
     return (
       <div className="relative">
         <div className="absolute top-1/2 left-1/2 z-1 translate-x-[-50%] translate-y-[-50%] space-y-2 text-center">
-          <div className="text-lg text-balance">
-            Currently, there are no links with multiple tags.
+          <div className="text-foreground text-sm font-semibold text-balance">
+            No tag relationships yet.
           </div>
-          <div className="text-foreground/75 text-sm text-balance">
-            Add multiple tags to see tag relationships here.
+          <div className="text-muted-foreground text-sm text-balance">
+            Once you add multiple tags to bookmarks, relationships will be displayed here.
           </div>
         </div>
         <PlaceholderGraph
