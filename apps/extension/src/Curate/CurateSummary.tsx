@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { CSSProperties } from "react";
 
 import { PCVisual } from "./PCVisual";
-import { ChristmasTreeIllustration } from "./PCVisual/illustrations";
+import { ChristmasTreeIllustration, SmileyIllustration } from "./PCVisual/illustrations";
 
 interface Props {
   deleted: number;
@@ -14,6 +14,8 @@ interface Props {
   children?: React.ReactNode;
   empty?: boolean;
 }
+
+const isFestiveVisual = new Date().getMonth() === 11 && new Date().getDate() === 20;
 
 export default function CurateSummary({ deleted, kept, className, children, empty }: Props) {
   return (
@@ -24,16 +26,20 @@ export default function CurateSummary({ deleted, kept, className, children, empt
       )}>
       <PCVisual
         illustration={
-          <g className="translate-x-[145px] translate-y-[80px] scale-85 skew-x-[6deg] skew-y-[-3deg]">
-            <ChristmasTreeIllustration
-              style={
-                {
-                  "--tree": "var(--card-active)",
-                  "--tree-light": "var(--muted-foreground)",
-                } as CSSProperties
-              }
-            />
-          </g>
+          isFestiveVisual ? (
+            <g className="translate-x-[145px] translate-y-[80px] scale-85 skew-x-[6deg] skew-y-[-3deg]">
+              <ChristmasTreeIllustration
+                style={
+                  {
+                    "--tree": "var(--card-active)",
+                    "--tree-light": "var(--muted-foreground)",
+                  } as CSSProperties
+                }
+              />
+            </g>
+          ) : (
+            <SmileyIllustration />
+          )
         }
         style={
           {

@@ -26,11 +26,16 @@ export default function NavMenu() {
   const queue = useCurateQueue();
   const open = useCurateStore((s) => s.open);
   const settingsOpen = useSettingStore((s) => s.open);
+  const showCurateCount = queue.length > 10;
 
   return (
     <div className="flex gap-2">
       <Curate key={String(open)} curateQueueItems={queue}>
-        <NumberNotificationBadge value={queue.length} variant="secondary" show={queue.length > 0} className="pointer-events-none">
+        <NumberNotificationBadge
+          value={queue.length}
+          variant="secondary"
+          show={showCurateCount}
+          className="pointer-events-none">
           <CurateTrigger>
             <ButtonWithTooltip
               tooltipText="Curate"

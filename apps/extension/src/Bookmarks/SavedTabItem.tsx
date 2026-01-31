@@ -4,6 +4,8 @@ import { TagIcon } from "@phosphor-icons/react";
 import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
 import { ComponentProps } from "react";
 
+import TagChip from "~/components/tag/TagChip";
+
 import TabItem, { Favicon } from "../components/TabItem";
 import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { SavedTab, Tag } from "../models";
@@ -97,6 +99,21 @@ function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
                   size="icon-sm"
                   onClick={() => bookmarkStoreActions.removeTabTag(tab.id, currentGroupTagId!)}
                   side="top"
+                  tooltipContent={
+                    currentGroupTag ? (
+                      <div className="flex items-center gap-2">
+                        Untag{" "}
+                        <TagChip
+                          color={currentGroupTag.color}
+                          className="border-0 px-0"
+                          indicatorClassName="size-3">
+                          {currentGroupTag.name}
+                        </TagChip>
+                      </div>
+                    ) : (
+                      "Untag"
+                    )
+                  }
                   tooltipText={currentGroupTag ? `Untag "${currentGroupTag.name}"` : "Untag"}>
                   <TagIcon className="h-5 w-5" weight="fill" />
                 </ButtonWithTooltip>
