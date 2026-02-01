@@ -1,6 +1,7 @@
 import { createHeadlessEditor } from "@echotab/ui/RichTextServerRenderer";
 import { $generateHtmlFromNodes } from "@lexical/html";
 import { $convertToMarkdownString, TRANSFORMERS } from "@lexical/markdown";
+import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 import { $getRoot } from "lexical";
 
@@ -49,7 +50,9 @@ export async function getHtml(serializedEditorState: string) {
         const _html = $generateHtmlFromNodes(editor, null);
         cleanupDom();
 
-        resolve(_html);
+        const sanitizedHtml = DOMPurify.sanitize(_html);
+
+        resolve(sanitizedHtml);
       } catch (e) {
         console.log(e);
       }

@@ -24,6 +24,7 @@
     "@tanstack/react-query": "^5.90.12",
     "dayjs": "^1.11.19",
     "framer-motion": "^12.23.26",
+    "isomorphic-dompurify": "~2.35.0",
     "jsdom": "^27.2.0",
     "kysely": "^0.28.9",
     "lexical": "^0.39.0",
