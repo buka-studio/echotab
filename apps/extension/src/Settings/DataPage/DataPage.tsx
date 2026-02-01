@@ -141,11 +141,11 @@ export default function DataPage() {
                   onWheel={(e) => {
                     e.stopPropagation();
                   }}>
-                  <div className="overflow-auto">
+                  <div className="overflow-auto ">
                     JSON Format shape:
                     <div
                       className={cn(
-                        "text-muted-foreground scrollbar-gray mt-3 max-h-[150px] overflow-auto font-mono whitespace-pre",
+                        "text-muted-foreground scrollbar-gray mt-3 max-h-[150px] overflow-auto font-mono whitespace-pre scrollbar-gray scroll-fade",
                       )}>
                       {importHint}
                     </div>

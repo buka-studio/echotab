@@ -235,6 +235,12 @@ export const updateTabs = (tabIds: string[], updates: Partial<SavedTab>) => {
   }));
 };
 
+export const updateTab = (tabId: string, updates: Partial<SavedTab>) => {
+  useBookmarkStore.setState((state) => ({
+    tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, ...updates } : tab)),
+  }));
+};
+
 export const removeTab = (tabId: string) => {
   removeTabs([tabId]);
 };
@@ -689,6 +695,7 @@ export const bookmarkStoreActions = {
   removeList,
   removeLists,
   getUnusedTagIds,
+  updateTab,
 };
 
 export const bookmarkStoreViewActions = {

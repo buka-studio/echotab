@@ -25,7 +25,7 @@ function EchoItem({ title, desc, actions, className, icon, children, ref, ...pro
       <span className="echo-item-title group/title col-[1/3] row-2 overflow-hidden text-sm text-ellipsis whitespace-nowrap not-first:mt-2 @[250px]:max-w-[30cqw] @[250px]:not-first:mt-0 @[250px]:first:pl-2">
         {title}
       </span>
-      <span className="group/desc text-muted-foreground col-[1/3] row-3 flex max-w-[calc(100cqw-16px)] items-center gap-1 transition-colors duration-100 @[250px]:max-w-[25cqw] overflow-hidden">
+      <span className="group/desc text-muted-foreground col-[1/3] row-3 flex max-w-[calc(100cqw-16px)] items-center gap-1 overflow-hidden transition-colors duration-100 @[250px]:max-w-[25cqw]">
         {desc}
       </span>
       {children}

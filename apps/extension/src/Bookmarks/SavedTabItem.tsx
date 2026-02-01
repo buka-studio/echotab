@@ -1,7 +1,13 @@
 import { ButtonWithTooltip } from "@echotab/ui/ButtonWithTooltip";
+import { Input } from "@echotab/ui/Input";
 import { cn } from "@echotab/ui/util";
 import { TagIcon } from "@phosphor-icons/react";
-import { DrawingPinFilledIcon, DrawingPinIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  DrawingPinFilledIcon,
+  DrawingPinIcon,
+  Pencil1Icon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { ComponentProps } from "react";
 
 import TagChip from "~/components/tag/TagChip";
@@ -49,18 +55,82 @@ function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
 
   const currentGroupTag = tagsById.get(currentGroupTagId!);
 
+  const [editing, setEditing] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleTitleChange = (value: string) => {
+    bookmarkStoreActions.updateTab(tab.id, {
+      title: value,
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setEditing(false);
+      const value = inputRef.current?.value.trim() || tab.title;
+      handleTitleChange(value);
+    } else if (e.key === "Escape") {
+      setEditing(false);
+    }
+  };
+
   return (
     <TabItem
       data-selected={selected}
       className={cn({
         "border-border-active bg-card-active": selected,
       })}
+      title={
+        <>
+          {editing ? (
+            <Input
+              key="input"
+              className="focus-visible:border-input hover:border-input bg-card! light:bg-card! field-sizing-content h-7 rounded border-none! border-transparent px-2 py-1 text-sm shadow-none! transition-all outline-none! not-focus-visible:bg-transparent! focus-visible:ring-0! starting:pl-0"
+              ref={(e) => {
+                inputRef.current?.focus();
+                inputRef.current?.select();
+                inputRef.current = e;
+              }}
+              defaultValue={String(tab.title)}
+              onKeyDown={handleKeyDown}
+              onBlur={(e) => {
+                setEditing(false);
+                handleTitleChange(e.target.value.trim() || tab.title);
+              }}
+            />
+          ) : (
+            <span key="value" className="truncate">
+              {tab.title}
+            </span>
+          )}
+        </>
+      }
       hideFavicon={hideFavicons}
       icon={
-        <Favicon
-          src={tab.url}
-          className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
-        />
+        <button
+          className={cn("handle focus-ring group relative cursor-pointer rounded")}
+          onClick={() => setEditing(true)}>
+          {!hideFavicons && (
+            <Favicon
+              src={tab.url}
+              className="transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0"
+            />
+          )}
+
+          <span
+            className={cn(
+              "absolute top-1/2 left-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100",
+              {
+                "text-muted-foreground hover:text-foreground relative opacity-100": hideFavicons,
+              },
+            )}>
+            <Pencil1Icon className="size-5" />
+          </span>
+
+        </button>
+
+
       }
       link={
         <a
