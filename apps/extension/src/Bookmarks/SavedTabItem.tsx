@@ -88,9 +88,10 @@ function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
               key="input"
               className="focus-visible:border-input hover:border-input bg-card! light:bg-card! field-sizing-content h-7 rounded border-none! border-transparent px-2 py-1 text-sm shadow-none! transition-all outline-none! not-focus-visible:bg-transparent! focus-visible:ring-0! starting:pl-0"
               ref={(e) => {
+                inputRef.current = e;
+
                 inputRef.current?.focus();
                 inputRef.current?.select();
-                inputRef.current = e;
               }}
               defaultValue={String(tab.title)}
               onKeyDown={handleKeyDown}
