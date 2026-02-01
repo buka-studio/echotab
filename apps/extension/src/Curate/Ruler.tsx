@@ -61,13 +61,10 @@ export default function Ruler({
 
         return (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: remap(i, 0, steps, steps, 0) * 0.01 }}
             key={i}
-            style={{ "--offset": i * stepSize } as CSSProperties}
+            style={{ "--offset": i * stepSize, '--delay': remap(i, 0, steps, steps, 0) * 0.01 } as CSSProperties}
             className={cn(
-              "ruler-step dark:outline-muted outline-border-active absolute top-[calc(var(--offset)*1px)] w-1 outline",
+              "ruler-step dark:outline-muted outline-border-active absolute top-[calc(var(--offset)*1px)] w-1 outline starting:opacity-0 animate-in fade-in-0 delay-[calc(var(--delay)*1s)]",
               {
                 "w-3": i % 5 === 0,
                 "w-5": i % 10 === 0,
