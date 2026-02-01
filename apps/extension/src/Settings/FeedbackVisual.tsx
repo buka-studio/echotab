@@ -55,7 +55,7 @@ export default function FeedbackVisual({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-        <g fill="var(--stamp, currentColor)">
+        <g fill="var(--stamp, currentColor)" className="animate-rotate origin-center transform-fill">
           <g>
             <path d="M187.83 66.453L189.121 67.8002L191.927 68.6809L191.308 69.274L189.355 68.6312L189.915 70.6095L189.315 71.185L188.553 68.3449L187.261 66.9977L187.83 66.453Z" />
           </g>

@@ -442,3 +442,16 @@
     --offset-x-right: 0%;
   }
 }
+
+.animate-rotate {
+  animation: rotate 15s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
