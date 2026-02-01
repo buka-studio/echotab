@@ -118,10 +118,5 @@
     "tailwindcss": "~4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-scoped-preflight": "~3.5.7"
-  },
-  "eslintConfig": {
-    "extends": [
-      "plugin:storybook/recommended"
-    ]
   }
 }

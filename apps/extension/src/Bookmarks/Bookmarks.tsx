@@ -102,11 +102,11 @@ export default function Bookmarks() {
 
   const itemGroups = isTagView
     ? viewTagIds
-        .map((id) => ({
-          tag: tagsById.get(id),
-          items: tagsExpanded[id] ? filteredTabsByTagId[id] : [],
-        }))
-        .filter((g) => g.tag)
+      .map((id) => ({
+        tag: tagsById.get(id),
+        items: tagsExpanded[id] ? filteredTabsByTagId[id] : [],
+      }))
+      .filter((g) => g.tag)
     : viewTabIds.length
       ? [{ tag: undefined, items: viewTabIds }]
       : [];
@@ -376,7 +376,9 @@ export default function Bookmarks() {
                       className="sortable-list"
                       items={items || []}
                       ref={(e) => {
-                        e?.virtualizer && virtualizerRefs.current.add(e?.virtualizer);
+                        if (e?.virtualizer) {
+                          virtualizerRefs.current.add(e?.virtualizer);
+                        }
                       }}>
                       {(item) => {
                         const tabId = items?.[item.index];

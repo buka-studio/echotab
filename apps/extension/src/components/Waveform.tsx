@@ -1,6 +1,6 @@
 import { cn } from "@echotab/ui/util";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { CSSProperties, forwardRef, useEffect } from "react";
+import { ComponentProps, CSSProperties, useEffect } from "react";
 
 interface BarProps {
   minHeight?: number;
@@ -12,38 +12,41 @@ interface BarProps {
   speed?: number;
 }
 
-const Bar = forwardRef<HTMLDivElement, BarProps>(
-  (
-    { maxHeight = 18, playing, minHeight = 3, className, width = 2, style, speed = 150, ...props },
-    ref,
-  ) => {
-    const height = useMotionValue(minHeight);
-    const spring = useSpring(height, { stiffness: 100, damping: 10 });
+function Bar({
+  maxHeight = 18,
+  playing,
+  minHeight = 3,
+  className,
+  width = 2,
+  style,
+  speed = 150,
+  ...props
+}: BarProps & ComponentProps<typeof motion.div>) {
+  const height = useMotionValue(minHeight);
+  const spring = useSpring(height, { stiffness: 100, damping: 10 });
 
-    useEffect(() => {
-      if (playing) {
-        const interval = setInterval(() => {
-          height.set(Math.floor(Math.random() * maxHeight) + minHeight);
-        }, speed);
+  useEffect(() => {
+    if (playing) {
+      const interval = setInterval(() => {
+        height.set(Math.floor(Math.random() * maxHeight) + minHeight);
+      }, speed);
 
-        return () => clearInterval(interval);
-      } else {
-        spring.set(minHeight);
-      }
-    }, [maxHeight, playing, speed]);
+      return () => clearInterval(interval);
+    } else {
+      spring.set(minHeight);
+    }
+  }, [maxHeight, playing, speed]);
 
-    return (
-      <motion.div
-        ref={ref}
-        className={cn("bg-primary rounded-full transition-colors", className, {
-          "bg-muted-foreground": !playing,
-        })}
-        style={{ height: spring, width, ...style }}
-        {...props}
-      />
-    );
-  },
-);
+  return (
+    <motion.div
+      className={cn("bg-primary rounded-full transition-colors", className, {
+        "bg-muted-foreground": !playing,
+      })}
+      style={{ height: spring, width, ...style }}
+      {...props}
+    />
+  );
+}
 
 interface WaveformProps extends BarProps {
   bars: number;
@@ -71,7 +74,7 @@ export function Waveform({
             maxHeight={maxHeight}
             playing={playing}
             width={width}
-            className="absolute left-[calc(var(--offset)*1px)] top-1/2 translate-y-[-50%]"
+            className="absolute top-1/2 left-[calc(var(--offset)*1px)] translate-y-[-50%]"
             style={
               {
                 "--offset": offset,

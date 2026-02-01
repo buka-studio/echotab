@@ -420,6 +420,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
 
                     return (
                       <motion.div
+                        key={reason}
                         initial={{ opacity: 0, y: 0 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 50 }}>

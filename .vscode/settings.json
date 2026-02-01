@@ -1,5 +1,6 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.useFlatConfig": true,
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "tailwindCSS.classFunctions": ["cva", "cx"],
   "tailwindCSS.experimental.configFile": "./packages/ui/src/globals.css"

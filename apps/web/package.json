@@ -45,6 +45,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint-config-next": "16.1.6",
+    "globals": "^16.2.0",
     "lightningcss": "~1.30.2",
     "postcss": "^8",
     "tailwind-scrollbar": "^4.0.2",

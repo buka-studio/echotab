@@ -111,6 +111,7 @@ function ListItem({ list, publicList, className, ref, ...props }: Props) {
               {listPublishingEnabled && publicList?.published ? (
                 <a
                   target="_blank"
+                  rel="noreferrer"
                   href={getPublicListURL(publicList.publicId)}
                   className="focus-visible:underline focus-visible:outline-none">
                   {label}

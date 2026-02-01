@@ -199,7 +199,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
   };
 
   const handleToggleFilterTag = (id: number) => {
-    let filterTags = new Set(view.filter.tags);
+    const filterTags = new Set(view.filter.tags);
     toggle(filterTags, id);
 
     bookmarkStoreViewActions.updateFilter({
@@ -592,7 +592,7 @@ export default function BookmarkCommand({ onCurate }: { onCurate?: () => void })
                   )}
                   <CommandEmpty className="flex items-center justify-center gap-2">
                     <div className="text-muted-foreground">
-                      {search && !Boolean(hashtag) ? (
+                      {search && !hashtag ? (
                         <span>
                           Search by "<span className="text-foreground italic">{search}</span>"
                         </span>

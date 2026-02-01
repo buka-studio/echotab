@@ -309,10 +309,6 @@ export default function OnboardingDialog() {
     settingStoreActions.updateSettings({ showOnboarding: false });
   };
 
-  if (!showOnboarding) {
-    return null;
-  }
-
   const updateHeight = (height?: number | null) => {
     if (!height) return;
     setHeight(height);
@@ -325,6 +321,10 @@ export default function OnboardingDialog() {
   useHotkeys("left", handleBack);
   useHotkeys("enter", handleFinish);
   useHotkeys("escape", handleSkip);
+
+  if (!showOnboarding) {
+    return null;
+  }
 
   return (
     <Dialog defaultOpen>

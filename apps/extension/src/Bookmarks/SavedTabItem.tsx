@@ -128,15 +128,13 @@ function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
             )}>
             <Pencil1Icon className="size-5" />
           </span>
-
         </button>
-
-
       }
       link={
         <a
           className="cursor-pointer overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline focus-visible:underline focus-visible:outline-none"
           target="_blank"
+          rel="noreferrer"
           href={tab.url}>
           {tab.url}
         </a>
