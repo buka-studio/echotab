@@ -1,6 +1,7 @@
 import { toast } from "@echotab/ui/Toast";
 import { differenceInDays, differenceInMonths, differenceInWeeks } from "date-fns";
 import dayjs from "dayjs";
+import { memoize } from "proxy-memoize";
 import { useMemo } from "react";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
@@ -9,7 +10,7 @@ import { getUtcISO } from "../util/date";
 import { createLogger } from "../util/Logger";
 import { useBookmarkStore } from "./bookmarkStore";
 import { StoragePersistence } from "./persistence";
-import { Tag } from "./schema";
+import { SavedTab, Tag } from "./schema";
 import { unassignedTag, useTagsById } from "./tagStore";
 
 const logger = createLogger("CurateStore");
@@ -215,6 +216,28 @@ export const useCurateQueue = ({ manualIds = [] }: { manualIds?: string[] } = {}
   }, [tabs, tags]);
 
   return queue;
+};
+
+const selectCurateTabsById = memoize(
+  (state: { tabs: SavedTab[]; curateTabIds: Set<string> }): Record<string, SavedTab> => {
+    const { tabs, curateTabIds } = state;
+    const result: Record<string, SavedTab> = {};
+    for (const tab of tabs) {
+      if (curateTabIds.has(tab.id)) {
+        result[tab.id] = tab;
+      }
+    }
+    return result;
+  },
+);
+
+export const useCurateTabsById = (curateQueueItems: InclusionResult[]) => {
+  const tabs = useBookmarkStore((s) => s.tabs);
+  const curateTabIds = useMemo(
+    () => new Set(curateQueueItems.map((result) => result.tabId)),
+    [curateQueueItems],
+  );
+  return selectCurateTabsById({ tabs, curateTabIds });
 };
 
 export const initStore = async () => {

@@ -33,17 +33,18 @@ import {
 } from "@phosphor-icons/react";
 import { ClockIcon, LightningBoltIcon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import { SavedTab } from "../models";
-import { bookmarkStoreActions, useBookmarkStore } from "../store/bookmarkStore";
+import { bookmarkStoreActions } from "../store/bookmarkStore";
 import {
   curateStoreActions,
   InclusionReason,
   InclusionResult,
   useCurateStore,
+  useCurateTabsById,
 } from "../store/curateStore";
 import { pluralize } from "../util";
 import { getUtcISO } from "../util/date";
@@ -54,6 +55,7 @@ import CurateSummary from "./CurateSummary";
 import Ruler from "./Ruler";
 import SwipeableCard, { Direction, SwipeableRef } from "./SwipeableCard";
 import TagList from "./TagList";
+import { useIsMounted } from "usehooks-ts";
 
 interface Props {
   children?: ReactNode;
@@ -131,20 +133,13 @@ export function CurateTrigger({ children }: { children: ReactNode }) {
 export default function Curate({ children, maxCards = 5, curateQueueItems }: Props) {
   const open = useCurateStore((s) => s.open);
   const settings = useCurateStore((s) => s.settings);
-  const tabs = useBookmarkStore((s) => s.tabs);
 
   const { initialized, total, visibleQueue: queue, allQueue, kept, deleted, left, dequeue, unshift } = useCurateQueue(
     maxCards,
     curateQueueItems,
   );
 
-  const curateTabsById = useMemo(() => {
-    const curateTabIds = new Set(curateQueueItems.map((result) => result.tabId));
-
-    return Object.fromEntries(
-      tabs.filter((tab) => curateTabIds.has(tab.id)).map((tab) => [tab.id, tab]),
-    );
-  }, [tabs, curateQueueItems]);
+  const curateTabsById = useCurateTabsById(curateQueueItems);
 
   const swipeableRef = useRef<SwipeableRef | null>(null);
 
@@ -306,6 +301,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                       constrained
                       className={cn(
                         "focus-ring absolute rounded-2xl perspective-dramatic transform-3d",
+                        { 'will-change-auto': i < 3 }
                       )}
                       style={{
                         zIndex: remap(i, 0, maxCards, maxCards, 0),

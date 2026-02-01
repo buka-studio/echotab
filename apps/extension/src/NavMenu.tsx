@@ -19,14 +19,29 @@ import { BroomIcon } from "@phosphor-icons/react";
 
 import { NumberNotificationBadge } from "./components/NumberNotificationBadge";
 import { Curate, CurateTrigger } from "./Curate";
-import { useCurateQueue, useCurateStore } from "./store/curateStore";
+import { useCurateQueue, useCurateStore, useCurateTabsById } from "./store/curateStore";
 import { settingStoreActions, useSettingStore } from "./store/settingStore";
+import { usePreloadTabInfo } from "./TabInfo/queries";
 
 export default function NavMenu() {
   const queue = useCurateQueue();
   const open = useCurateStore((s) => s.open);
   const settingsOpen = useSettingStore((s) => s.open);
   const showCurateCount = queue.length > 10;
+
+  const curateTabsById = useCurateTabsById(queue);
+  const preloadTabInfo = usePreloadTabInfo();
+
+  const handlePreloadCurate = () => {
+    const firstQueueItem = queue[0];
+    if (!firstQueueItem) return;
+
+    const tab = curateTabsById[firstQueueItem.tabId];
+    if (tab) {
+      preloadTabInfo({ tabId: tab.id, url: tab.url });
+    }
+  };
+
 
   return (
     <div className="flex gap-2">
@@ -38,6 +53,8 @@ export default function NavMenu() {
           className="pointer-events-none">
           <CurateTrigger>
             <ButtonWithTooltip
+              onMouseOver={handlePreloadCurate}
+              onFocus={handlePreloadCurate}
               tooltipText="Curate"
               variant="outline"
               size="icon"
