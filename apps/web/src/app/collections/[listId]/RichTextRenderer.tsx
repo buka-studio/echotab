@@ -35,6 +35,8 @@ function LinkDecoratorPlugin() {
           const element = editor.getElementByKey(nodeKey);
           if (!element) continue;
 
+          element.setAttribute('rel', 'noopener noreferrer');
+
           const linkIndex = links.findIndex((l) => l.url === node.getURL());
           if (linkIndex !== -1) {
             element.setAttribute("data-citation", `[${linkIndex + 1}]`);

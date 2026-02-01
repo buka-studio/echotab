@@ -113,10 +113,18 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
     tagStoreActions.shuffleTagColors();
   };
 
+  const unusedTagIds = useMemo(() => {
+    return bookmarkStoreActions.getUnusedTagIds();
+  }, [tagsById]);
+
   const handleCleanupUnusedTags = () => {
     const unusedTagIds = bookmarkStoreActions.getUnusedTagIds();
 
     tagStoreActions.deleteTags(unusedTagIds);
+
+    if (unusedTagIds.length) {
+      toast.success(`${unusedTagIds.length} unused tags deleted`);
+    }
   };
 
   return (
@@ -129,10 +137,11 @@ export default function TagsPage({ contentClassName }: { contentClassName?: stri
               tooltipText="Cleanup unused tags"
               variant="outline"
               onClick={handleCleanupUnusedTags}
+              disabled={unusedTagIds.length === 0}
               size="icon">
               <BroomIcon />
             </ButtonWithTooltip>
-            <Button variant="outline" onClick={handleAddTag} className="ml-auto">
+            <Button variant="outline" onClick={handleAddTag} className="ml-auto" >
               <PlusIcon className="mr-2" /> New tag
             </Button>
           </div>
