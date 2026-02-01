@@ -13,7 +13,7 @@ const features: { label: string; upcoming?: boolean }[] = [
   { label: "Instant search" },
   { label: "Shareable lists" },
   { label: "Local-only data" },
-  { label: "Beautiful UI" },
+  { label: "Clean UI" },
   { label: "Export & import" },
   { label: "Statistics" },
 ];

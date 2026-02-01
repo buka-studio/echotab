@@ -1,14 +1,24 @@
-# 🚧 WIP 🚧
-
-V2 is under active development. It introduces a polished UI, new features and _ideally_ no breaking changes!
-
 ![og](./apps/extension/assets/og.png)
 
 # EchoTab
 
 ## Overview
 
-EchoTab is a tab management Chrome extension. It is built using [shadcn-ui](https://github.com/shadcn-ui/ui) and heavily utilizes [cmdk](https://github.com/pacocoursey/cmdk) for keyboard interactions.
+EchoTab is a keyboard-first Chrome extension for managing browser tabs. Save tabs, organize them with tags, and find them fast.
+
+**Core features:**
+
+- Save and close tabs with a single shortcut
+- Tag-based organization with bulk operations
+- Fast fuzzy search across all saved tabs
+- Shareable collections via public links
+- Data stays local (unless explicitly shared)
+
+**Tech stack:**
+
+- Extension: React, TypeScript, WXT (Vite), Zustand, shadcn-ui, cmdk
+- Web: Next.js
+- Monorepo: Turborepo, pnpm
 
 ### Installing
 
