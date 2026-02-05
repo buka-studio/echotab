@@ -410,12 +410,21 @@ export const saveTabsPar = async (tabs: (ActiveTab & { tagIds: number[] })[], re
     return;
   }
 
+  const results = {
+    success: [] as { tabId: string }[],
+    error: {
+      tabs: [] as number[],
+      snapshots: [] as string[],
+    },
+  };
+
   if (remove) {
     const tabIds = tabs.map(({ id }) => id!).filter(Boolean);
     await removeTabs(tabIds, { notify: false }).catch(() => {
       const msg = `Failed to remove tabs: ${tabIds}`;
-      toast.error(msg);
       logger.error(msg);
+
+      results.error.tabs.push(...tabIds);
     });
   }
 
@@ -424,6 +433,16 @@ export const saveTabsPar = async (tabs: (ActiveTab & { tagIds: number[] })[], re
   }));
 
   const saved = saveBookmarkTabs(withoutIds);
+
+  results.success.push(...saved.map(({ id }) => ({ tabId: id })));
+
+  if (results.success.length) {
+    toast.success(`${pluralize(results.success.length, "tab")} saved`);
+  }
+  if (results.error.tabs.length) {
+    toast.error(`Failed to save ${pluralize(results.error.tabs.length, "tab")}`);
+  }
+
   return saved;
 };
 

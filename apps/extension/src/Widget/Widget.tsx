@@ -52,6 +52,8 @@ const exactMatchFilter = (value: string, search: string) => {
   return 0;
 };
 
+const pinnedTabNoticeStorageKey = "showPinnedTabNotice";
+
 function Widget({ onClose }: Props) {
   const [tab, setTab] = useState<chrome.tabs.Tab | null>(null);
   const tags = useTagStore((s) => s.tags);
@@ -169,8 +171,9 @@ function Widget({ onClose }: Props) {
 
   const [showPinnedTabNotice, setShowPinnedTabNotice] = useState<boolean | undefined>(undefined);
   useEffect(() => {
-    chrome.storage.local.get("showPinnedTabNotice").then((result) => {
-      setShowPinnedTabNotice(result.showPinnedTabNotice === undefined ? true : Boolean(result.showPinnedTabNotice));
+    chrome.storage.local.get(pinnedTabNoticeStorageKey).then((result) => {
+      const value = result[pinnedTabNoticeStorageKey];
+      setShowPinnedTabNotice(value === undefined ? true : Boolean(value));
     });
   }, []);
 
@@ -189,8 +192,9 @@ function Widget({ onClose }: Props) {
           <motion.div className="flex items-center justify-center gap-2 px-4 py-1 bg-card text-muted-foreground text-sm rounded-t-xl border-b border-border -mx-4 -mt-4 mb-4" initial={{ opacity: 0, y: -10, filter: "blur(4px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -10, filter: "blur(4px)" }} transition={{ duration: 0.15 }}>
             <Badge variant="secondary" className="text-[0.625rem] px-1 py-0.5 uppercase bg-background-base">New</Badge> EchoTab now works as a pinned tab!
             <button className="ml-auto underline" onClick={() => {
-              chrome.storage.local.set({ showPinnedTabNotice: false });
+              chrome.storage.local.set({ [pinnedTabNoticeStorageKey]: false });
               setShowPinnedTabNotice(false);
+              window.open("https://chromewebstore.google.com/detail/echotabextension/cnhamlcjfdekdinhkfmllfdjamcncbkl", "_blank");
             }}>
               More
             </button>

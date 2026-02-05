@@ -4,6 +4,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import { StoragePersistence } from "./persistence";
 import { ActiveTab } from "./schema";
 
+export const MAX_RECENTLY_CLOSED_TABS = 10;
 export interface RecentlyClosedStore {
   tabs: ActiveTab[];
   initialized: boolean;
@@ -29,7 +30,9 @@ export const initStore = async () => {
 };
 
 export const addRecentlyClosed = (tab: ActiveTab) => {
-  useRecentlyClosedStore.setState((state) => ({ tabs: [tab, ...state.tabs] }));
+  useRecentlyClosedStore.setState((state) => ({
+    tabs: [tab, ...state.tabs].slice(0, MAX_RECENTLY_CLOSED_TABS),
+  }));
 };
 
 export const clear = () => {

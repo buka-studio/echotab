@@ -9,7 +9,7 @@ import ItemGrid from "../../Bookmarks/ItemGrid";
 import ItemListPlaceholder, { ItemListPlaceholderCopy } from "../../components/ItemListPlaceholder";
 import TabItem, { Favicon } from "../../components/TabItem";
 import { ActiveTab } from "../../models";
-import { recentlyClosedActions, useRecentlyClosedStore } from "../../store/recentlyClosedStore";
+import { MAX_RECENTLY_CLOSED_TABS, recentlyClosedActions, useRecentlyClosedStore } from "../../store/recentlyClosedStore";
 
 function RecentlyClosedTabItem({ tab }: { tab: ActiveTab }) {
   return (
@@ -22,6 +22,7 @@ function RecentlyClosedTabItem({ tab }: { tab: ActiveTab }) {
         <a
           className="cursor-pointer overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline focus-visible:underline focus-visible:outline-none"
           target="_blank"
+          rel="noreferrer"
           href={tab.url}>
           {tab.url}
         </a>
@@ -34,7 +35,7 @@ export default function RecentlyClosed() {
   const recentlyClosedTabs = useRecentlyClosedStore((s) => s.tabs);
   const [expanded, setExpanded] = useState(true);
 
-  const visibleTabs = recentlyClosedTabs.slice(0, 10);
+  const visibleTabs = recentlyClosedTabs.slice(0, MAX_RECENTLY_CLOSED_TABS);
 
   return (
     <div className="flex flex-col gap-3">

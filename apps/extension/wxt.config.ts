@@ -5,6 +5,7 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   modules: ["@wxt-dev/module-react", "@wxt-dev/auto-icons"],
   manifest: {
+    name: "EchoTab",
     key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1vbwzQ2F4A5VLg8uPfIYFhn6ICcLLoQzgVMAQ0vN3T66cgk8N0zaktQfUtRRICVAiFG5jUZPAW10COYUmhc1NAt/0OXQmj4Z6Cq1/l/zc0UTbizQNLVI3hZXGkvBjS4Wne+iEMJcJ/AUHr8zmlBcRpotNpyfrxERPb1R/vud9zTXXn8xTxgSgmntzNyvTvLci5Wzcr0aDz3Ll6M7SUOcTDHpFIvTqHvCuOP5oCLMlI0WSA5zpt/RA5HmzPqM+aZoA6Uvo7dqo+p+suXmG1Cz3ZAdiubBdvDRh8/lpEmZzKkGsNq4QukK2hrmXgEDL14gRHKjd8rh+YlN643ed64y2QIDAQAB",
     permissions: [
       "storage",
