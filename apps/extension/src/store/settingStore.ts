@@ -12,7 +12,7 @@ export interface RecentlyClosedStore {
   activePanel: Panel;
 }
 
-const storageKey = `echotab-settings`;
+export const storageKey = `echotab-settings`;
 
 const persistence = new StoragePersistence<{
   settings: Settings;
@@ -30,6 +30,7 @@ export const useSettingStore = create(
       clipboardIncludeTags: false,
       accentColor: accentColors.Orange,
       listPublishingEnabled: false,
+      enableNewTab: false,
     } as Settings,
     activePanel: Panel.Tabs,
     open: false,

@@ -98,6 +98,7 @@ export const SettingsSchema = z.object({
   accentColor: z.string().default(accentColors.Orange),
   listPublishingEnabled: z.boolean().default(false),
   updatedAt: z.string(),
+  enableNewTab: z.boolean().default(false),
 });
 
 export const CurateSettingsSchema = z.object({

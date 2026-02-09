@@ -3,6 +3,9 @@ import { uuidv7 } from "uuidv7";
 import { MessageBus } from "~/messaging";
 import { SnapshotService, SnapshotStore } from "~/snapshot";
 import { cleanupValtioKeys, migrateFromValtio } from "~/store/migrate";
+import { StoragePersistence } from "~/store/persistence";
+import { Settings } from "~/store/schema";
+import { storageKey } from "~/store/settingStore";
 import { MetadataParser } from "~/TabInfo/MetadataParser";
 import type { TabMetadataRequest } from "~/TabInfo/models";
 import { createLogger } from "~/util/Logger";
@@ -11,6 +14,18 @@ import { getPublicList } from "../../Bookmarks/Lists/api";
 import { isValidActiveTab } from "../../util/tab";
 
 const logger = createLogger("background");
+
+const settingsPersistence = new StoragePersistence<{
+  settings: Pick<Settings, "enableNewTab">;
+}>({
+  key: storageKey,
+});
+
+function getEnableNewTab() {
+  return settingsPersistence.load().then((settings) => {
+    return settings?.settings?.enableNewTab ?? false;
+  });
+}
 
 const AUTO_SNAPSHOT_ENABLED = false;
 
@@ -79,6 +94,10 @@ export default defineBackground({
     });
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+      const enableNewTab = await getEnableNewTab();
+      if (enableNewTab) {
+        return;
+      }
       if (changeInfo.url === extensionUrl && !tab.pinned) {
         const pinnedTabs = await chrome.tabs.query({ pinned: true });
         const existingPinnedTab = pinnedTabs.find((t) => t.url === extensionUrl);
@@ -93,6 +112,16 @@ export default defineBackground({
         } else {
           await chrome.tabs.update(tabId, { pinned: true });
         }
+      }
+    });
+
+    chrome.tabs.onCreated.addListener(async (tab) => {
+      const enableNewTab = await getEnableNewTab();
+
+      if (enableNewTab && tab.pendingUrl === "chrome://newtab/") {
+        chrome.tabs.update(tab.id, {
+          url: chrome.runtime.getURL("home.html"),
+        });
       }
     });
 

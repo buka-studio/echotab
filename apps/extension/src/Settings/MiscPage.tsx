@@ -11,31 +11,15 @@ import { Separator } from "@echotab/ui/Separator";
 import { Switch } from "@echotab/ui/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@echotab/ui/Tooltip";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
 
 import { ClipboardFormat } from "~/store/schema";
 import { settingStoreActions, useSettingStore } from "~/store/settingStore";
 
-import { useGetPublicLists, useUnpublishAllListsMutation } from "../Bookmarks/Lists/queries";
 import { getFormattedLinksExample } from "../util";
 import { SettingsContent, SettingsPage, SettingsTitle } from "./SettingsLayout";
 
 export default function MiscPage() {
   const settings = useSettingStore((s) => s.settings);
-
-  const publicLists = useGetPublicLists();
-
-  const [unpublishDialogOpen, setUnpublishDialogOpen] = useState(false);
-
-  const unpublishMutation = useUnpublishAllListsMutation();
-
-  const handleConfirmUnpublish = () => {
-    unpublishMutation.mutate(undefined, {
-      onSuccess: () => {
-        setUnpublishDialogOpen(false);
-      },
-    });
-  };
 
   return (
     <SettingsPage>
@@ -100,6 +84,22 @@ export default function MiscPage() {
               </SelectGroup>
             </SelectContent>
           </Select>
+        </div>
+        <Separator />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="include-tags">Open in New Tab</Label>
+            <div className="text-muted-foreground text-sm">
+              Open EchoTab when opening a new tab
+            </div>
+          </div>
+          <Switch
+            id="open-in-new-tab"
+            checked={settings?.enableNewTab ?? false}
+            onCheckedChange={(v) => {
+              settingStoreActions.updateSettings({ enableNewTab: v });
+            }}
+          />
         </div>
       </SettingsContent>
     </SettingsPage>
