@@ -32,14 +32,17 @@ import TagChipCombobox from "../components/tag/TagChipCombobox";
 import { Waveform } from "../components/Waveform";
 import { ActiveTab, Tag } from "../models";
 import { useSettingStore } from "../store/settingStore";
-import {
-  tabStoreActions,
-  tabStoreSelectionActions,
-  useIsTabSelected,
-} from "../store/tabStore";
+import { tabStoreActions, tabStoreSelectionActions, useIsTabSelected } from "../store/tabStore";
 
-function TabMenu({ tab, selected, windowTabs }: { tab: ActiveTab; selected: boolean; windowTabs: number[] }) {
-
+function TabMenu({
+  tab,
+  selected,
+  windowTabs,
+}: {
+  tab: ActiveTab;
+  selected: boolean;
+  windowTabs: number[];
+}) {
   const tabIndex = windowTabs.findIndex((id) => id === tab.id);
 
   const handleCloseBefore = () => {
@@ -83,7 +86,7 @@ function TabMenu({ tab, selected, windowTabs }: { tab: ActiveTab; selected: bool
           <DotsVerticalIcon className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent side="bottom" align="end">
         <DropdownMenuLabel>
           Last opened:{" "}
           <span className="text-xs tracking-normal [text-transform:initial]">
@@ -133,8 +136,15 @@ type Props = Omit<ComponentProps<typeof TabItem>, "tab"> & {
   windowTabs?: number[];
 };
 
-function ActiveTabItem({ className, tab, stale, duplicate, assignedTags = [], windowTabs = [], ...rest }: Props) {
-
+function ActiveTabItem({
+  className,
+  tab,
+  stale,
+  duplicate,
+  assignedTags = [],
+  windowTabs = [],
+  ...rest
+}: Props) {
   const hideFavicons = useSettingStore((s) => s.settings.hideFavicons);
 
   const selected = useIsTabSelected(tab.id);
@@ -207,25 +217,32 @@ function ActiveTabItem({ className, tab, stale, duplicate, assignedTags = [], wi
           {tab.url}
         </button>
       }
-      actions={<div className="flex items-center gap-2">
-        <TagChipCombobox tags={selected ? assignedTags : []} />
-        <TabMenu tab={tab} selected={selected} windowTabs={windowTabs} />
-        <ButtonWithTooltip
-          size="icon-sm"
-          variant="ghost"
-          tooltipText="Close Tab"
-          onClick={handleCloseTab}>
-          <Cross2Icon className="h-5 w-5" />
-        </ButtonWithTooltip>
-      </div>
+      actions={
+        <div className="flex items-center gap-2">
+          <TagChipCombobox tags={selected ? assignedTags : []} />
+          <TabMenu tab={tab} selected={selected} windowTabs={windowTabs} />
+          <ButtonWithTooltip
+            size="icon-sm"
+            variant="ghost"
+            tooltipText="Close Tab"
+            onClick={handleCloseTab}>
+            <Cross2Icon className="h-5 w-5" />
+          </ButtonWithTooltip>
+        </div>
       }>
       <div className="flex items-center gap-1">
-        {duplicate && <Badge variant="card" className="bg-background">Duplicate</Badge>}
+        {duplicate && (
+          <Badge variant="card" className="bg-background">
+            Duplicate
+          </Badge>
+        )}
         {stale && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Badge variant="card" className="bg-background">Stale</Badge>
+                <Badge variant="card" className="bg-background">
+                  Stale
+                </Badge>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Last visited: {formatLastAccessed(tab.lastAccessed)} ago.</p>

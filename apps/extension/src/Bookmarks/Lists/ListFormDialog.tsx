@@ -87,8 +87,9 @@ function TabMentionPopover({ mention }: { mention: string }) {
         }
         link={
           <a
-            className="overflow-hidden rounded-sm text-ellipsis whitespace-nowrap focus-visible:underline focus-visible:outline-none"
+            className="overflow-hidden rounded-sm text-ellipsis whitespace-nowrap hover:underline focus-visible:underline focus-visible:outline-none"
             target="_blank"
+            rel="noreferrer"
             href={tab.url}>
             {tab.url}
           </a>

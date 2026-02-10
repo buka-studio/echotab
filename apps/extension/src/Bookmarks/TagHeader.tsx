@@ -207,7 +207,7 @@ export default function TagHeader({
             <DotsVerticalIcon className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent side="bottom" align="end">
           {Boolean(selectedTabIds.size) && (
             <DropdownMenuLabel>Selected: {selectedTabIds.size}</DropdownMenuLabel>
           )}
