@@ -27,7 +27,6 @@ You can install the extension in a couple of ways:
 #### Installing from the Web Store
 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/cmdtab/cnhamlcjfdekdinhkfmllfdjamcncbkl)
-- Firefox Add-ons (soon)
 
 #### Building from Source
 
@@ -72,13 +71,6 @@ openssl rsa -in key.pem -pubout -outform DER | openssl base64 -A
 ```bash
 openssl rsa -in key.pem -pubout -outform DER | shasum -a 256 | head -c32 | tr 0-9a-f a-p
 ```
-
-### Roadmap
-
-Some features planned for future releases include:
-
-- AI powered auto-tagging
-- Firefox support
 
 ### Why yet another tab management extension?
 
