@@ -50,3 +50,41 @@
   background: color-mix(in lch, var(--primary) 10%, transparent);
   color: var(--primary);
 }
+
+.animate-shimmer-text-copy {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-color: color-mix(in lch, var(--muted-foreground) 75%, transparent);
+  background-image: -webkit-gradient(
+    linear,
+    100% 0,
+    0 0,
+    from(color-mix(in lch, var(--muted-foreground) 75%, transparent)),
+    color-stop(0.5, color-mix(in lch, var(--foreground) 100%, transparent)),
+    to(color-mix(in lch, var(--muted-foreground) 75%, transparent))
+  );
+  animation: shimmer-text-copy 1.75s forwards;
+  background-repeat: no-repeat;
+  background-size: 50% 200%;
+  transition: all 0.25s;
+}
+
+@keyframes shimmer-text-copy {
+  0% {
+    background-position: -100% top;
+  }
+  50% {
+    background-position: 200% top;
+  }
+  90% {
+    transition: all 0.25s;
+    background-color: var(--foreground);
+    background-position: 200% top;
+  }
+  100% {
+    background-color: currentColor;
+    background-position: 200% top;
+    transition: all 0.25s;
+  }
+}
