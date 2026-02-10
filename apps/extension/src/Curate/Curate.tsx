@@ -55,7 +55,6 @@ import CurateSummary from "./CurateSummary";
 import Ruler from "./Ruler";
 import SwipeableCard, { Direction, SwipeableRef } from "./SwipeableCard";
 import TagList from "./TagList";
-import { useIsMounted } from "usehooks-ts";
 
 interface Props {
   children?: ReactNode;
@@ -299,6 +298,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                       autoFocus={i === 0}
                       key={tab.id + skipCount[tab.id]}
                       constrained
+                      unshifted={result.unshifted && i === 0}
                       className={cn(
                         "focus-ring absolute rounded-2xl perspective-dramatic transform-3d",
                         { 'will-change-auto': i < 3 }
@@ -308,13 +308,6 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
                         y: remap(i, 0, maxCards, 0, -200),
                         scale: remap(i, 0, maxCards, 1, 0.6),
                         filter: `blur(${remap(i, 0, maxCards, 0, 5)}px)`,
-                        ...(result.unshifted &&
-                          i === 0 && {
-                          filter: "blur(10px)",
-                          opacity: 0,
-                          y: -50,
-                          scale: 0.9,
-                        }),
                       }}
                       active={i === 0}
                       i={i}

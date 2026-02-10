@@ -1,4 +1,5 @@
 import {
+  animate,
   AnimationDefinition,
   motion,
   useAnimation,
@@ -22,6 +23,7 @@ interface Props {
   active: boolean;
   swipeableRef: React.Ref<SwipeableRef>;
   directions: Direction[];
+  unshifted?: boolean;
 }
 
 export default function SwipeableCard({
@@ -33,12 +35,15 @@ export default function SwipeableCard({
   active,
   swipeableRef,
   directions,
+  unshifted,
   ...props
 }: Props & ComponentProps<typeof motion.div>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+  const hasAnimated = useRef(false);
 
   const x = useMotionValue(0);
+  const opacity = useMotionValue(0);
   const rotate = useMotionValue(0);
   const rotateSpring = useSpring(rotate, { stiffness: 50, damping: 10 });
   const controls = useAnimation();
@@ -95,8 +100,31 @@ export default function SwipeableCard({
   }
 
   useEffect(() => {
+    const delay = unshifted && i === 0 ? 0 : 0.05 * i;
+
+    if (unshifted && i === 0) {
+      if (hasAnimated.current) {
+        opacity.jump(0);
+        controls.stop();
+        controls.set({
+          filter: "blur(10px)",
+        });
+      } else {
+        controls.set({
+          scale: 0.9,
+          y: -50,
+          filter: "blur(10px)",
+        });
+      }
+    }
+
+    animate(opacity, 1, {
+      delay,
+      duration: 0.75,
+      type: "spring",
+    });
+
     controls.start({
-      opacity: 1,
       y: ((props.style?.y as number) || 0) + 20,
       scale: i === 0 ? 1 : props.style?.scale || 0.7,
       filter: props.style?.filter || "blur(0px)",
@@ -105,19 +133,21 @@ export default function SwipeableCard({
         y: 20,
       }),
       transition: {
-        delay: 0.05 * i,
+        delay,
         duration: 0.75,
         type: "spring",
       },
     } as AnimationDefinition);
-  }, [props.style?.y, controls, i, props.style?.filter]);
+
+    hasAnimated.current = true;
+  }, [props.style?.y, controls, i, props.style?.filter, unshifted, opacity]);
 
   const swipeLeft = () => {
     onBeforeSwipe("left");
     trajectory.current.direction = "left";
+    animate(opacity, 0, { duration: 0.175 });
     controls
       .start({
-        opacity: 0,
         x: -500,
         rotate: -90,
         filter: "blur(5px)",
@@ -133,9 +163,9 @@ export default function SwipeableCard({
   const swipeRight = () => {
     onBeforeSwipe("right");
     trajectory.current.direction = "right";
+    animate(opacity, 0, { duration: 0.175 });
     controls
       .start({
-        opacity: 0,
         x: 500,
         rotate: 90,
         transition: {
@@ -149,9 +179,9 @@ export default function SwipeableCard({
 
   const swipeUp = () => {
     trajectory.current.direction = "up";
+    animate(opacity, 0, { duration: 0.2 });
     controls
       .start({
-        opacity: 0,
         filter: "blur(10px)",
         y: -100,
         scale: 0.85,
@@ -168,9 +198,9 @@ export default function SwipeableCard({
 
   const swipeDown = () => {
     trajectory.current.direction = "down";
+    animate(opacity, 0, { duration: 0.235 });
     controls
       .start({
-        opacity: 0,
         filter: "blur(10px)",
         y: 85,
         scale: 0.95,
@@ -225,7 +255,7 @@ export default function SwipeableCard({
       style={{
         ...(props.style || {}),
         x,
-        opacity: 0,
+        opacity,
         rotate: rotateSpring,
         z: 1,
       }}
