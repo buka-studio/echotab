@@ -1,7 +1,7 @@
 {
   "name": "@echotab/extension",
   "displayName": "EchoTab - Extension",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An open-source Chrome tab manager",
   "author": "Buka Studio",
   "scripts": {
