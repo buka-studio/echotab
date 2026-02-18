@@ -11,20 +11,25 @@ import Hero from "./Hero";
 
 function Heading({ className }: { className?: string }) {
   return (
-    <div className={cn("relative flex w-full flex-col items-center gap-5", className)}>
-      <div className="flex w-full flex-col items-center gap-8">
-        <div className="flex items-center gap-4 font-mono uppercase">
+    <div className={cn("relative flex w-full flex-col items-center gap-5 px-5", className)}>
+      <div className="flex w-full flex-col items-center">
+        <div className="mb-4 flex items-center gap-4 font-mono uppercase">
           <div className="bg-foreground h-4 w-4 rounded-full" />
           <div>
             EchoTab <span className="align-super text-xs">tm</span>
           </div>
         </div>
-        <h1 className="max-w-[700px] text-center font-serif text-4xl text-pretty md:text-5xl px-5">
-          Clean & fast Chrome tab manager
-        </h1>
-        <Button variant="outline" size="lg" className="px-6 font-mono text-base uppercase" asChild>
+        <div className="mb-8">
+          <h1 className="mb-2 max-w-[700px] px-5 text-center font-serif text-4xl text-pretty md:text-6xl">
+            Bring order to the noise
+          </h1>
+          <p className="text-muted-foreground text-lg text-balance">
+            The clean, fast tab manager that silences browser clutter.
+          </p>
+        </div>
+        <Button variant="default" size="lg" className="px-6 font-mono text-base uppercase" asChild>
           <a href={extensionStoreURL} target="_blank" rel="noopener noreferrer">
-            Add to your browser
+            Add to Chrome
           </a>
         </Button>
       </div>
@@ -59,7 +64,7 @@ export default function Home() {
         </div>
 
         <main className="relative z-10 my-auto flex flex-col items-center gap-[150px] text-center md:gap-[200px]">
-          <Heading className="pt-[150px]" />
+          <Heading className="z-10 translate-y-30 pt-[150px]" />
           <Hero />
           <FeaturesCarousel />
           <div className="bento relative z-2 flex max-w-5xl flex-col gap-5 p-5 md:flex-row">

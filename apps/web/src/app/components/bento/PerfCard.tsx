@@ -19,6 +19,7 @@ import "./PerfCard.css";
 import { cn } from "@echotab/ui/util";
 import NumberFlow from "@number-flow/react";
 
+import { getIsSafari } from "../../util";
 import TabItem from "../TabItem";
 import BentoCard from "./BentoCard";
 
@@ -39,11 +40,13 @@ const Counter = ({ count }: { count: MotionValue<number> }) => {
 };
 
 export default function PerformanceCard({ className }: { className?: string }) {
+  const [isSafari, setIsSafari] = useState<boolean | undefined>(undefined);
+  useEffect(() => {
+    setIsSafari(getIsSafari());
+  }, []);
+
   const count = useMotionValue(100);
-  const roundedCount = useTransform(count, (latest) => {
-    const v = Math.round(latest);
-    return v;
-  });
+  const roundedCount = useTransform(count, Math.round);
 
   const hovering = useRef(false);
   const rotation = useSpring(0, {
@@ -61,44 +64,65 @@ export default function PerformanceCard({ className }: { className?: string }) {
   const stdDevY = useMotionValue(0);
   const stdDevX = useMotionValue(0);
   const stdDeviation = useMotionTemplate`${stdDevX},${stdDevY}`;
+  const cssBlurPx = useTransform(stdDevY, [0, 25], [0, 4]);
+  const cssBlur = useMotionTemplate`blur(${cssBlurPx}px)`;
+
+  const [showCount, setShowCount] = useState(false);
+
+  const handleRun = () => {
+    setShowCount(true);
+    rotationSpeed.current = 0;
+    animate(count, 1000, {
+      duration: 3,
+      type: "tween",
+    });
+    hovering.current = true;
+    animate(stdDevY, 25, {
+      duration: 2,
+      type: "tween",
+    });
+  };
+
+  const handleStop = () => {
+    setShowCount(false);
+    hovering.current = false;
+    rotationSpeed.current = 0;
+    setTimeout(() => {
+      if (!hovering.current) {
+        count.jump(100);
+      }
+    }, 300);
+    animate(stdDevY, 0, {
+      duration: 0.1,
+      type: "tween",
+    });
+  };
 
   return (
     <BentoCard
-      className={cn(className, "group", {})}
-      onMouseEnter={() => {
-        rotationSpeed.current = 0;
-        animate(count, 1000, {
-          duration: 3,
-          type: "tween",
-        });
-        hovering.current = true;
-        animate(stdDevY, 25, {
-          duration: 2,
-          type: "tween",
-        });
-      }}
-      onMouseLeave={() => {
-        hovering.current = false;
-        rotationSpeed.current = 0;
-        setTimeout(() => {
-          if (!hovering.current) {
-            count.jump(100);
-          }
-        }, 300);
-        animate(stdDevY, 0, {
-          duration: 0.1,
-          type: "tween",
-        });
-      }}
+      className={cn(className, "group select-none", {})}
+      onTouchStart={handleRun}
+      onTouchEnd={handleStop}
+      onMouseEnter={handleRun}
+      onMouseLeave={handleStop}
       illustration={
         <div className="relative h-full w-full">
-          <motion.div className="counter absolute top-1/2 left-5 min-w-[85px] text-[28px] tracking-widest opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <motion.div
+            className={cn(
+              "counter absolute top-1/2 left-5 min-w-[85px] text-[28px] tracking-widest opacity-0 transition-opacity duration-300 group-hover:opacity-100",
+              {
+                "opacity-100": showCount,
+              },
+            )}>
             <div className="absolute right-0">
               <Counter count={roundedCount} />
             </div>
           </motion.div>
 
-          <div className={cn("cylinder-container relative h-full overflow-clip transform-3d")}>
+          <div
+            className={cn(
+              "cylinder-container relative h-full transform-gpu overflow-clip transform-3d",
+            )}>
             <motion.div
               style={{ rotateX: rotation, "--segments": segments } as CSSProperties}
               className={cn("cylinder group", {})}>
@@ -113,7 +137,14 @@ export default function PerformanceCard({ className }: { className?: string }) {
                     <TabItem
                       key={tab.link}
                       tab={tab}
-                      className="filter-[url(#blur)] transition-all duration-150"
+                      className={cn("transform-gpu transition-all duration-150", {
+                        "opacity-0": isSafari === undefined,
+                      })}
+                      style={
+                        isSafari === undefined
+                          ? undefined
+                          : { filter: isSafari ? cssBlur : "url(#blur)" }
+                      }
                     />
                   </div>
                 );

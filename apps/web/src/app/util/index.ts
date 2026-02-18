@@ -12,3 +12,8 @@ export function pluralize(count: number, singular: string, suffix = "s") {
 export function formatLinks(links: PublicLink[]) {
   return links.map((link) => link.url).join("\n");
 }
+
+export function getIsSafari() {
+  if (typeof navigator === "undefined") return false;
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}

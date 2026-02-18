@@ -1,19 +1,14 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 export default function useMatchMedia(query: string, defaultState?: boolean) {
   const [state, setState] = useState(() => {
-    if (defaultState !== undefined) {
-      return defaultState;
-    }
-
     if (typeof window !== "undefined") {
       return window.matchMedia(query).matches;
     }
-
-    return false;
+    return defaultState ?? false;
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let mounted = true;
     const media = window.matchMedia(query);
     const onChange = () => {

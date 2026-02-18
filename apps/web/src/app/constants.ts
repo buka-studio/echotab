@@ -10,29 +10,29 @@ export const mockTabs = [
     favicon: "/echotab/bento/supabase.png",
   },
   {
+    title: "Daytona",
+    link: "https://daytona.io",
+    favicon: "/echotab/bento/daytona.png",
+  },
+  {
     title: "Vercel",
     link: "https://vercel.com",
     favicon: "/echotab/bento/vercel.png",
   },
   {
+    title: "Restream",
+    link: "https://restream.io/",
+    favicon: "/echotab/bento/restream.png",
+  },
+  {
+    title: "LiveKit",
+    link: "https://livekit.io/",
+    favicon: "/echotab/bento/livekit.png",
+  },
+  {
     title: "SmartAccount",
     link: "https://smartaccount.hr/",
     favicon: "/echotab/bento/smartaccount.png",
-  },
-  {
-    title: "MDN Web Docs",
-    link: "https://developer.mozilla.org/en-US/",
-    favicon: "/echotab/bento/mdn.png",
-  },
-  {
-    title: "OpenAI",
-    link: "https://openai.com/",
-    favicon: "/echotab/bento/openai.png",
-  },
-  {
-    title: "Y Combinator",
-    link: "https://www.ycombinator.com/",
-    favicon: "/echotab/bento/ycombinator.png",
   },
 ];
 
