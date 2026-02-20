@@ -269,7 +269,7 @@ export default function Curate({ children, maxCards = 5, curateQueueItems }: Pro
               className={cn("mx-auto flex items-center gap-2", {
                 "opacity-0": left === 0,
               })}>
-              <NumberFlow value={left} /> links left
+              <NumberFlow value={left} /> bookmarks left
             </span>
             <span className="hidden md:block">Swipe right to keep</span>
           </DialogDescription>
