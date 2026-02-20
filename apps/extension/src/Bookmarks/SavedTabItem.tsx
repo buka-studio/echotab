@@ -174,7 +174,7 @@ function SavedTabItem({ currentGroupTagId, tab, ...rest }: Props) {
                         Untag{" "}
                         <TagChip
                           color={currentGroupTag.color}
-                          className="border-0 px-0"
+                          className="border-0 pl-1 pr-2"
                           indicatorClassName="size-3">
                           {currentGroupTag.name}
                         </TagChip>
