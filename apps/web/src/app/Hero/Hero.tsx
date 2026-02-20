@@ -24,7 +24,7 @@ const SVG_WIDTH = 473;
 const SVG_HEIGHT = 291;
 const SVG_ASPECT = SVG_WIDTH / SVG_HEIGHT;
 
-const TARGET_COUNT_LG = 25;
+const TARGET_COUNT_LG = 20;
 const TARGET_COUNT_SM = 15;
 const TARGET_WIDTH_PX_LG = 300;
 const TARGET_WIDTH_PX_SM = 150;
@@ -188,7 +188,7 @@ export default function Hero() {
 
       <motion.div
         ref={heroRef}
-        className="hero relative"
+        className="hero relative z-10"
         initial={{ opacity: 0, y: HERO_ENTRANCE_Y, filter: "blur(10px)", scale: 1.1 }}
         animate={heroReady ? { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 } : undefined}
         transition={{ type: "tween", duration: 1, ease: [0.65, 0.05, 0.36, 1] }}>
