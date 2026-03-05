@@ -57,7 +57,13 @@ export async function PATCH(req: Request, context: Context) {
   try {
     const list = await updateList(userId, listId, parsedData as List);
     if (parsedData?.published) {
-      safeUpsertListOGImage(userId, { ...list, linkCount: (parsedData.links || []).length });
+      safeUpsertListOGImage(userId, {
+        ...list,
+        linkCount: (parsedData.links || []).length,
+        linkTitles: (parsedData.links || [])
+          .slice(0, 3)
+          .map((link: { title?: string | null; url: string }) => link.title?.trim() || link.url),
+      });
     }
 
     return Response.json({ list });

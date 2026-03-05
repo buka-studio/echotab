@@ -24,7 +24,13 @@ export async function POST(req: Request) {
   try {
     const list = await createList(userId, data);
 
-    safeUpsertListOGImage(userId, { ...list, linkCount: data.links.length });
+    safeUpsertListOGImage(userId, {
+      ...list,
+      linkCount: data.links.length,
+      linkTitles: data.links
+        .slice(0, 3)
+        .map((link: { title?: string | null; url: string }) => link.title?.trim() || link.url),
+    });
 
     return Response.json({ list }, { status: 201 });
   } catch (e) {
