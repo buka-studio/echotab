@@ -57,13 +57,13 @@ export function renderListOGHtml(list: ListOGData, text: string) {
         </span>
 
         {visibleLinkTitles.length > 0 ? (
-          <div tw="mt-[28px] max-w-[850px] flex flex-col gap-[10px]">
+          <div tw="mt-[28px] max-w-[850px] flex flex-col gap-3">
             {visibleLinkTitles.map((linkTitle, index) => (
               <span
                 key={`${linkTitle}-${index}`}
                 tw="text-[30px] leading-[1.3] text-[#A3A3A3]"
                 style={{ lineClamp: 1, display: "block" }}>
-                {`• ${linkTitle.slice(0, 100)}`}
+                {`— ${linkTitle.slice(0, 100)}`}
               </span>
             ))}
             {shouldRenderMoreBadge ? (
