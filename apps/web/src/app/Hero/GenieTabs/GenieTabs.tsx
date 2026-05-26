@@ -1,12 +1,12 @@
 import { cn } from "@echotab/ui/util";
-import { ComponentProps } from "react";
+import { ComponentProps, memo } from "react";
 
 import useResizeRef from "../../hooks/useResizeRef";
 import Warp, { GenieTarget } from "./Warp";
 
 type Subscribable = { on: (event: "change", cb: (v: number) => void) => () => void };
 
-export function GenieTabs({
+export const GenieTabs = memo(function GenieTabs({
   targets,
   onUpdate,
   className,
@@ -34,4 +34,4 @@ export function GenieTabs({
       )}
     </div>
   );
-}
+});

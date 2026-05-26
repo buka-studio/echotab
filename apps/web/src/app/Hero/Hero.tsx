@@ -10,22 +10,22 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { AnimatedNumberBadge } from "../components/AnimatedNumberBadge";
 import TabItem from "../components/TabItem";
 import { mockTabs } from "../constants";
 import CommandMenu from "./CommandMenu";
 import type { GenieTarget } from "./GenieTabs";
-import { GenieTabs, imageToTexture } from "./GenieTabs";
+import { GenieTabs, getWarpDpr, imageToTexture } from "./GenieTabs";
 import TabSwitch from "./TabSwitch";
 
 const SVG_WIDTH = 473;
 const SVG_HEIGHT = 291;
 const SVG_ASPECT = SVG_WIDTH / SVG_HEIGHT;
 
-const TARGET_COUNT_LG = 20;
-const TARGET_COUNT_SM = 15;
+const TARGET_COUNT_LG = 30;
+const TARGET_COUNT_SM = 20;
 const TARGET_WIDTH_PX_LG = 300;
 const TARGET_WIDTH_PX_SM = 150;
 
@@ -41,6 +41,32 @@ interface TargetData {
   opacityMV: MotionValue<number>;
 }
 
+function getVisibleTabCount(targetData: TargetData[], progress: number) {
+  if (targetData.length === 0) {
+    return 0;
+  }
+
+  let completed = 0;
+  for (const { finishAt } of targetData) {
+    if (progress / finishAt >= 1) {
+      completed += 1;
+    }
+  }
+
+  return Math.min(mockTabs.length, Math.round((completed / targetData.length) * mockTabs.length));
+}
+
+function createTextureCanvas(width: number, height: number) {
+  if (typeof OffscreenCanvas !== "undefined") {
+    return new OffscreenCanvas(width, height);
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+
 export default function Hero() {
   const [glowKey, setGlowKey] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -54,15 +80,16 @@ export default function Hero() {
   const TARGET_COUNT = isMobile ? TARGET_COUNT_SM : TARGET_COUNT_LG;
 
   const heroLayoutRef = useRef({ initialOffset: 0, scrollRange: 1, heroPageTop: 0 });
+  const textureRef = useRef<ReturnType<typeof imageToTexture> | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
     const heroPageTop = hero.getBoundingClientRect().top + window.scrollY - HERO_ENTRANCE_Y; // comp. for framer init y
     const vh = window.innerHeight;
     heroLayoutRef.current = {
       initialOffset: Math.max(0, vh - VISIBLE_AT_START_PX - heroPageTop),
-      scrollRange: Math.max(0, heroPageTop - FINAL_TOP_OFFSET_PX),
+      scrollRange: Math.max(1, heroPageTop - FINAL_TOP_OFFSET_PX),
       heroPageTop,
     };
     setHeroReady(true);
@@ -81,12 +108,21 @@ export default function Hero() {
     restDelta: 0.001,
   });
 
+  const [visibleTabCount, setVisibleTabCount] = useState(0);
+  const visibleTabCountRef = useRef(0);
+
   useEffect(() => {
+    let cancelled = false;
+    const opacityAnimations: { stop: () => void }[] = [];
     const isDark = document.documentElement.classList.contains("dark");
     const img = new Image();
-    img.src = isDark ? "/Window-dark.svg" : "/Window.svg";
+    img.decoding = "async";
     img.onload = () => {
-      const dpr = window.devicePixelRatio || 1;
+      if (cancelled) {
+        return;
+      }
+
+      const dpr = getWarpDpr();
       const w = Math.max(500, window.innerWidth);
       const { heroPageTop } = heroLayoutRef.current;
       const h = Math.max(500, window.innerHeight, heroPageTop + VISIBLE_AT_START_PX);
@@ -96,13 +132,21 @@ export default function Hero() {
       const widthNorm = TARGET_WIDTH_PX / w;
       const heightPx = TARGET_WIDTH_PX / SVG_ASPECT;
       const heightNorm = heightPx / h;
+      const textureWidth = Math.ceil(TARGET_WIDTH_PX * dpr);
+      const textureHeight = Math.ceil(heightPx * dpr);
 
-      const canvas = new OffscreenCanvas(TARGET_WIDTH_PX * dpr, heightPx * dpr);
+      const canvas = createTextureCanvas(textureWidth, textureHeight);
+      const ctx = canvas.getContext("2d");
 
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      if (!ctx) {
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, textureWidth, textureHeight);
 
       const texture = imageToTexture(canvas);
+      const previousTexture = textureRef.current;
+      textureRef.current = texture;
 
       const data = Array.from({ length: TARGET_COUNT }, (_, i) => {
         const opacityMV = motionValue(0);
@@ -123,17 +167,37 @@ export default function Hero() {
         };
       });
       setTargetData(data);
+      previousTexture?.dispose();
+
+      const count = getVisibleTabCount(data, progress.get());
+      visibleTabCountRef.current = count;
+      setVisibleTabCount(count);
 
       data.forEach(({ opacityMV }, i) => {
-        animate(opacityMV, 1, {
-          type: "tween",
-          ease: "easeIn",
-          duration: 0.35,
-          delay: i * 0.05,
-        });
+        opacityAnimations.push(
+          animate(opacityMV, 1, {
+            type: "tween",
+            ease: "easeIn",
+            duration: 0.35,
+            delay: i * 0.05,
+          }),
+        );
       });
     };
-  }, [TARGET_WIDTH_PX, TARGET_COUNT, VISIBLE_AT_START_PX]);
+    img.src = isDark ? "/Window-dark.svg" : "/Window.svg";
+
+    return () => {
+      cancelled = true;
+      opacityAnimations.forEach((animation) => animation.stop());
+    };
+  }, [TARGET_WIDTH_PX, TARGET_COUNT, VISIBLE_AT_START_PX, progress]);
+
+  useEffect(() => {
+    return () => {
+      textureRef.current?.dispose();
+      textureRef.current = null;
+    };
+  }, []);
 
   const activeTargets = useMemo(
     () =>
@@ -149,12 +213,13 @@ export default function Hero() {
     [targetData, progress],
   );
 
-  const [visibleTabCount, setVisibleTabCount] = useState(0);
-
   useMotionValueEvent(progress, "change", (p) => {
-    const completed = targetData.filter(({ finishAt }) => p / finishAt >= 1).length;
-    const ratio = TARGET_COUNT > 0 ? completed / TARGET_COUNT : 0;
-    const count = Math.min(mockTabs.length, Math.round(ratio * mockTabs.length));
+    const count = getVisibleTabCount(targetData, p);
+    if (visibleTabCountRef.current === count) {
+      return;
+    }
+
+    visibleTabCountRef.current = count;
     setVisibleTabCount(count);
   });
 
@@ -181,6 +246,7 @@ export default function Hero() {
             height: backdropSize.height,
             left: "50%",
             marginLeft: -backdropSize.width / 2,
+            contain: "layout paint",
           }}>
           <GenieTabs targets={activeTargets} onUpdate={progress} />
         </div>
@@ -193,7 +259,7 @@ export default function Hero() {
         animate={heroReady ? { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 } : undefined}
         transition={{ type: "tween", duration: 1, ease: [0.65, 0.05, 0.36, 1] }}>
         <motion.div
-          className="window border-border-active bg-background-base relative w-[min(1024px,90vw)] origin-[center_bottom] overflow-clip rounded-xl border shadow-[0_4px_4px_1px_rgba(0,0,0,.10),0_0_0_8px_var(--secondary)]"
+          className="window border-border-active bg-background-base relative w-[min(1024px,90vw)] origin-[center_bottom] overflow-clip rounded-xl border shadow-[0_4px_4px_1px_rgba(0,0,0,.10),0_0_0_8px_var(--secondary)] will-change-transform"
           style={{
             y: windowTranslateY,
             maskImage,

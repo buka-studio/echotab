@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@echotab/ui/util";
-import { ScreenQuad, shaderMaterial } from "@react-three/drei";
+import { shaderMaterial } from "@react-three/drei";
 import { Canvas, CanvasProps, extend, ThreeElement, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 import fragmentShaderSource from "./Warp.frag";
@@ -37,7 +37,7 @@ const WarpMaterial = shaderMaterial(
     uProgress: 0,
     uRangeLeft: 0.475,
     uRangeRight: 0.525,
-    uMotionBlur: 0.01,
+    uMotionBlur: 0,
     uEasingFunction: 1,
     uIsReversed: false,
     uTexture: null as THREE.Texture | null,
@@ -68,6 +68,19 @@ type WarpMatImpl = THREE.ShaderMaterial & {
   };
 };
 
+const MAX_WARP_DPR = 2;
+const DEFAULT_RANGE_LEFT = 0.475;
+const DEFAULT_RANGE_RIGHT = 0.525;
+const QUAD_PADDING = 0.02;
+
+export function getWarpDpr() {
+  if (typeof window === "undefined") {
+    return 1;
+  }
+
+  return Math.min(window.devicePixelRatio || 1, MAX_WARP_DPR);
+}
+
 export function imageToTexture(image: ImageSource) {
   const texture = (image as HTMLCanvasElement).getContext
     ? new THREE.CanvasTexture(image as HTMLCanvasElement)
@@ -83,8 +96,49 @@ export function imageToTexture(image: ImageSource) {
   return texture;
 }
 
-function WarpQuad({ target, renderOrder }: { target: GenieTarget; renderOrder: number }) {
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function createTargetGeometry(target: GenieTarget) {
+  const rangeLeft = target.warpRange?.left ?? DEFAULT_RANGE_LEFT;
+  const rangeRight = target.warpRange?.right ?? DEFAULT_RANGE_RIGHT;
+  const imageLeft = target.position.x;
+  const imageRight = target.position.x + target.dimensions.width;
+  const imageBottom = 1 - target.position.y - target.dimensions.height;
+  const imageTop = imageBottom + target.dimensions.height;
+  const isTop = target.side === "top";
+
+  const left = clamp01(Math.min(imageLeft, rangeLeft, rangeRight) - QUAD_PADDING);
+  const right = clamp01(Math.max(imageRight, rangeLeft, rangeRight) + QUAD_PADDING);
+  const bottom = clamp01((isTop ? imageBottom : imageBottom - 1) - QUAD_PADDING);
+  const top = clamp01((isTop ? imageTop + 1 : imageTop) + QUAD_PADDING);
+
+  const x0 = left * 2 - 1;
+  const x1 = right * 2 - 1;
+  const y0 = bottom * 2 - 1;
+  const y1 = top * 2 - 1;
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(new Float32Array([x0, y0, 0, x1, y0, 0, x1, y1, 0, x0, y1, 0]), 3),
+  );
+  geometry.setIndex([0, 1, 2, 0, 2, 3]);
+  geometry.computeBoundingSphere();
+
+  return geometry;
+}
+
+const WarpQuad = memo(function WarpQuad({
+  target,
+  renderOrder,
+}: {
+  target: GenieTarget;
+  renderOrder: number;
+}) {
   const matRef = useRef<WarpMatImpl>(null!);
+  const geometry = useMemo(() => createTargetGeometry(target), [target]);
 
   const {
     texture,
@@ -92,7 +146,7 @@ function WarpQuad({ target, renderOrder }: { target: GenieTarget; renderOrder: n
     dimensions,
     easing = 1,
     warpRange,
-    motionBlur = 0.01,
+    motionBlur = 0,
     isReversed = false,
     side = "bottom",
   } = target;
@@ -131,6 +185,10 @@ function WarpQuad({ target, renderOrder }: { target: GenieTarget; renderOrder: n
     glSizeY,
   ]);
 
+  useEffect(() => {
+    return () => geometry.dispose();
+  }, [geometry]);
+
   useFrame(() => {
     if (!matRef.current) return;
     matRef.current.uniforms.uProgress.value = target.progress;
@@ -138,18 +196,26 @@ function WarpQuad({ target, renderOrder }: { target: GenieTarget; renderOrder: n
   });
 
   return (
-    <ScreenQuad renderOrder={renderOrder}>
+    <mesh geometry={geometry} renderOrder={renderOrder} frustumCulled={false}>
       <warpMaterial ref={matRef} transparent depthWrite={false} depthTest={false} />
-    </ScreenQuad>
+    </mesh>
   );
-}
+});
 
 type Subscribable = { on: (event: "change", cb: (v: number) => void) => () => void };
 
-function Invalidator({ onUpdate, fadeInMs = 2000 }: { onUpdate?: Subscribable; fadeInMs?: number }) {
+function Invalidator({
+  onUpdate,
+  fadeInMs = 2000,
+}: {
+  onUpdate?: Subscribable;
+  fadeInMs?: number;
+}) {
   const invalidate = useThree((s) => s.invalidate);
   const mountTime = useRef(0);
-  useLayoutEffect(() => { mountTime.current = performance.now(); }, []);
+  useLayoutEffect(() => {
+    mountTime.current = performance.now();
+  }, []);
 
   useEffect(() => {
     if (!onUpdate) return;
@@ -186,12 +252,14 @@ export default function Warp({
       gl={{
         alpha: true,
         antialias: false,
-        preserveDrawingBuffer: true,
+        depth: false,
+        preserveDrawingBuffer: false,
         powerPreference: "high-performance",
+        stencil: false,
       }}
-      dpr={typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1}
+      dpr={getWarpDpr()}
       camera={{ position: [0, 0, 1], zoom: 1 }}
-      style={{ width, height, pointerEvents: "none" }}
+      style={{ width, height, pointerEvents: "none", display: "block" }}
       {...props}>
       {onUpdate && <Invalidator onUpdate={onUpdate} />}
       {targets.map((target, i) => (

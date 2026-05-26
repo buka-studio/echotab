@@ -86,6 +86,11 @@ void main(){
     float newUvY=uv.y+(yStart*direction);
     
     vec2 localUV=(vec2(newUvX,newUvY)-uImagePos)/uImageSize;
+    float mask=aaBounds(localUV);
+
+    if(mask<=0.){
+        discard;
+    }
     
     vec4 texColor=vec4(0.);
     
@@ -100,9 +105,7 @@ void main(){
     }else{
         texColor=texture(uTexture,localUV);
     }
-    
-    float mask=aaBounds(localUV);
-    
+
     vec4 result=texColor*mask;
     result.a*=uOpacity;
     gl_FragColor=result;
